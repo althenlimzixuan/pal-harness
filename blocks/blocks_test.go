@@ -98,6 +98,26 @@ func TestMatchesIgnoresEOL(t *testing.T) {
 	}
 }
 
+func TestBeginMarkerNeedsNameBoundary(t *testing.T) {
+	other := "<!-- pal:begin components2 (x) -->\nkeep\n<!-- pal:end components2 -->\n"
+	doc := other + "<!-- pal:begin components (x) -->\nstale\n<!-- pal:end components -->\n"
+	got, err := Replace(doc, Components, wantComponents)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != other+wantComponents+"\n" {
+		t.Fatalf("got %q", got)
+	}
+	if _, err := Extract(other, Components); !errors.Is(err, ErrNoBlock) {
+		t.Fatalf("components2 alone: err = %v", err)
+	}
+	for _, begin := range []string{"<!-- pal:begin components(x) -->", "<!-- pal:begin components-->", "<!-- pal:begin components"} {
+		if _, err := Extract(begin+"\n<!-- pal:end components -->\n", Components); err != nil {
+			t.Errorf("%q: %v", begin, err)
+		}
+	}
+}
+
 func TestBadBlocks(t *testing.T) {
 	b, e := "<!-- pal:begin components (x) -->", "<!-- pal:end components -->"
 	cases := []struct {
