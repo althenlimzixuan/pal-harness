@@ -62,6 +62,14 @@ func RegistryTable(w *manifest.Workspace) string {
 	return render(Registry, "workspace.yaml", lines)
 }
 
+// isBegin reports whether line is a begin marker for the name in prefix: the
+// prefix must end the line or be followed by a space, "(" or "-->", so a
+// marker for "components2" is not one for "components".
+func isBegin(line, prefix string) bool {
+	rest, ok := strings.CutPrefix(line, prefix)
+	return ok && (rest == "" || rest[0] == ' ' || rest[0] == '(' || strings.HasPrefix(rest, "-->"))
+}
+
 // locate returns the byte range [start, end) of the block in doc: start is the
 // beginning of the begin-marker line, end is the end of the end-marker line's
 // content (before its CR/LF).
@@ -79,7 +87,7 @@ func locate(doc, name string) (int, int, error) {
 		content := strings.TrimSuffix(doc[pos:lineEnd], "\r")
 		trimmed := strings.TrimSpace(content)
 		switch {
-		case strings.HasPrefix(trimmed, beginPrefix):
+		case isBegin(trimmed, beginPrefix):
 			begins = append(begins, pos)
 		case trimmed == endLine:
 			ends = append(ends, pos+len(content))

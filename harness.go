@@ -7,7 +7,7 @@ import "embed"
 
 // Version is the harness release. It must equal the version in
 // .claude-plugin/plugin.json and the first heading of CHANGELOG.md.
-const Version = "1.0.0-rc.1"
+const Version = "1.0.0"
 
 // Content holds the practices and templates shipped in every pinned copy.
 // Paths start with "content/". Dot-files are deliberately not embedded.
