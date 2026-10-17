@@ -20,3 +20,14 @@ jobs:
           echo "$out"
           pct=$(echo "$out" | awk '{print $NF}' | tr -d '%')
           awk -v p="$pct" 'BEGIN { exit (p+0 < 80.0) ? 1 : 0 }' || { echo "coverage ${pct}% is below 80.0%"; exit 1; }
+  test-windows:
+    runs-on: windows-latest
+    steps:
+      # The owner's PC checks out with CRLF; .gitattributes must keep the repo working.
+      - run: git config --global core.autocrlf true
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+      - run: go vet ./...
+      - run: go test ./...

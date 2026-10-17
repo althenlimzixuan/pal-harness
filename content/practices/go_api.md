@@ -102,7 +102,7 @@ All errors return `application/problem+json` (RFC 7807):
 - Pagination: cursor-based preferred over offset
 - POST endpoints that create resources accept `Idempotency-Key` header
 - Swagger annotations on all handlers — run `make docs` after any handler change
-- **Contract sync rule (same PR as the change):** regenerate `openapi.yaml`, update `doc/API.md` to match, keep Swagger UI served at `/swagger/index.html` (non-prod). CI fails if the committed spec drifts from a fresh `make docs`. See `product_docs.md`.
+- **Contract sync rule** (the split rule in `product_docs.md`): the provider's PR regenerates `openapi.yaml` (`make docs`) and keeps Swagger UI served at `/swagger/index.html` (non-prod); CI fails if the committed spec drifts from a fresh `make docs`. In the same piece of work, the SSOT repo's PR updates its `doc/openapi.yaml` copy and `doc/API.md`.
 
 ## Wire (Dependency Injection)
 

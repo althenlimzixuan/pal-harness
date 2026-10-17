@@ -145,6 +145,31 @@ func TestDiffIOError(t *testing.T) {
 	}
 }
 
+func TestWriteExceptKeepsOverrides(t *testing.T) {
+	root := written(t)
+	mutate(t, root) // workflow.md edited, templates/spec.md removed, practices/extra.md added
+	if err := os.WriteFile(abs(root, "practices/testing.md"), []byte("edited\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	overrides := []manifest.Override{{Item: "practices/workflow.md"}, {Item: "templates"}}
+	if err := WriteExcept(root, overrides); err != nil {
+		t.Fatal(err)
+	}
+	if b, _ := os.ReadFile(abs(root, "practices/workflow.md")); string(b) != "edited\n" {
+		t.Fatalf("overridden file rewritten: %q", b)
+	}
+	if _, err := os.Stat(abs(root, "templates/spec.md")); err == nil {
+		t.Fatal("file under an overridden folder was written")
+	}
+	if b, _ := os.ReadFile(abs(root, "practices/testing.md")); string(b) == "edited\n" {
+		t.Fatal("non-overridden file was not restored")
+	}
+	got, err := Diff(root, overrides)
+	if err != nil || !reflect.DeepEqual(got, []string{"extra practices/extra.md"}) {
+		t.Fatalf("Diff = %v, %v", got, err)
+	}
+}
+
 func TestWriteError(t *testing.T) {
 	root := t.TempDir()
 	if err := os.WriteFile(filepath.Join(root, Dir), []byte("x"), 0o644); err != nil {

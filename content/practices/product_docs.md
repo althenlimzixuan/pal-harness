@@ -57,16 +57,18 @@ A RESTful API has **two** synchronized artifacts:
 1. The provider's PR regenerates `openapi.yaml` at the origin (`make docs`) and commits it
 2. The provider keeps Swagger UI served (e.g. `/swagger/index.html` in non-prod)
 3. In the same piece of work, the SSOT repo's PR updates its `doc/openapi.yaml` copy and
-   `doc/API.md` to match; the §4.5 drift check catches a gap
+   `doc/API.md` to match
 
 **Generated artifacts flow down the ladder (§4.5):** provider → SSOT copy → consumers. The provider
 generates `openapi.yaml` and is its only origin; the SSOT keeps a copy; consumers (`api-client`, web,
-mobile) read the SSOT copy or the published client, never the provider's working tree. Each hop has a
+mobile) read the SSOT copy or the published client, never the provider's working tree. Each hop gets a
 drift check that fails when the copy no longer matches its origin.
+The §4.5 copy drift check is manual until a later harness release: before merging, compare each copy
+with its origin.
 
 The Postman collection in the SSOT's `postman/` is the truth for the collection (§4.7). Regenerate it
 from the SSOT copy of `openapi.yaml` whenever the contract changes; a cloud Postman workspace is only a
-mirror.
+mirror. Regenerating it is manual until a later harness release.
 
 CI fails if the committed spec differs from a fresh generation (spec must never drift from code).
 `doc/API.md` and `openapi.yaml` must describe the same endpoints — the human doc is the contract

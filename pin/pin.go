@@ -49,8 +49,15 @@ func Files() []File {
 
 // Write writes Files() under root, creating directories and overwriting
 // existing files. It never deletes anything.
-func Write(root string) error {
+func Write(root string) error { return WriteExcept(root, nil) }
+
+// WriteExcept is Write, but it leaves overridden items (and anything under
+// them) untouched, so a recorded patch survives a re-pin.
+func WriteExcept(root string, overrides []manifest.Override) error {
 	for _, f := range Files() {
+		if overridden(strings.TrimPrefix(f.Path, Dir+"/"), overrides) {
+			continue
+		}
 		p := filepath.Join(root, filepath.FromSlash(f.Path))
 		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
 			return err
