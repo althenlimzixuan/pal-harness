@@ -149,14 +149,15 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "%s: %v\n", mfile, err)
 		return 2
 	}
+	if p != nil && p.Harness.Version != harness.Version {
+		// The rest is judged by the pinned release, not by this one.
+		fmt.Fprintf(stdout, "project.yaml: harness.version is %s but this checker is %s\n", p.Harness.Version, harness.Version)
+		fmt.Fprintf(stdout, "run: go run github.com/althenlimzixuan/pal-harness/cmd/pal-harness@v%s check .\n", p.Harness.Version)
+		return 1
+	}
 	var findings []string
 	add := func(f string, a ...any) { findings = append(findings, fmt.Sprintf(f, a...)) }
-	if err != nil {
-		add("%s: %v", mfile, err)
-	}
-	if p != nil && p.Harness.Version != harness.Version {
-		add("project.yaml: harness.version is %s but this checker is %s", p.Harness.Version, harness.Version)
-	}
+	findings = append(findings, manifestFindings(mfile, err)...)
 	for _, d := range docs {
 		doc, rerr := os.ReadFile(filepath.Join(dir, d.file))
 		if rerr != nil {
@@ -191,6 +192,23 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return 0
+}
+
+// manifestFindings turns a manifest error into findings: one per validation
+// problem ("<file>: <path>: <message>"), or one for a decode error.
+func manifestFindings(file string, err error) []string {
+	if err == nil {
+		return nil
+	}
+	var ve *manifest.ValidationError
+	if !errors.As(err, &ve) {
+		return []string{file + ": " + err.Error()}
+	}
+	out := make([]string, len(ve.Problems))
+	for i, pr := range ve.Problems {
+		out[i] = file + ": " + pr
+	}
+	return out
 }
 
 // checkUses is the reusable workflow a project's ssot.yml must call.
@@ -228,10 +246,13 @@ func runGenerate(dir string, stderr io.Writer) int {
 		return 2
 	}
 	if err != nil {
-		fmt.Fprintf(stderr, "%s: %v\n", mfile, err)
 		var ioe ioError
 		if errors.As(err, &ioe) {
+			fmt.Fprintf(stderr, "%s: %v\n", mfile, err)
 			return 2
+		}
+		for _, f := range manifestFindings(mfile, err) {
+			fmt.Fprintln(stderr, f)
 		}
 		return 1
 	}

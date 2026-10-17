@@ -143,8 +143,6 @@ func TestCheckFindings(t *testing.T) {
 	readme := read(t, dir, "README.md")
 	write(t, dir, "README.md", strings.Replace(readme, "provider", "providerx", 1))
 	write(t, dir, ".pal-harness/practices/workflow.md", "changed\n")
-	proj := read(t, dir, "project.yaml")
-	write(t, dir, "project.yaml", strings.Replace(proj, "version: "+harness.Version, "version: 0.9.0", 1))
 	write(t, dir, ".github/workflows/ssot.yml", "nothing\n")
 	code, out, _ := do(t, "check", dir)
 	if code != 1 {
@@ -153,7 +151,6 @@ func TestCheckFindings(t *testing.T) {
 	for _, want := range []string{
 		"README.md: components block does not match project.yaml",
 		".pal-harness: changed practices/workflow.md",
-		"project.yaml: harness.version is 0.9.0 but this checker is " + harness.Version,
 		ssotFinding,
 	} {
 		if !strings.Contains(out, want+"\n") {
@@ -162,6 +159,38 @@ func TestCheckFindings(t *testing.T) {
 	}
 	if strings.Contains(out, "CLAUDE.md:") {
 		t.Errorf("CLAUDE.md should be fine:\n%s", out)
+	}
+}
+
+func TestCheckVersionMismatchReportsOnlyVersion(t *testing.T) {
+	dir := fixture(t)
+	proj := read(t, dir, "project.yaml")
+	write(t, dir, "project.yaml", strings.Replace(proj, "version: "+harness.Version, "version: 0.9.0", 1))
+	write(t, dir, "README.md", "no block\n")
+	write(t, dir, ".pal-harness/practices/workflow.md", "changed\n")
+	write(t, dir, ".github/workflows/ssot.yml", "nothing\n")
+	code, out, _ := do(t, "check", dir)
+	want := "project.yaml: harness.version is 0.9.0 but this checker is " + harness.Version + "\n" +
+		"run: go run github.com/althenlimzixuan/pal-harness/cmd/pal-harness@v0.9.0 check .\n"
+	if code != 1 || out != want {
+		t.Fatalf("code %d out:\n%s", code, out)
+	}
+}
+
+func TestCheckValidationOneFindingPerProblem(t *testing.T) {
+	dir := fixture(t)
+	proj := read(t, dir, "project.yaml")
+	proj = strings.Replace(proj, "version: 1\n", "version: 3\n", 1)
+	proj = strings.Replace(proj, "key: fhph", "key: X", 1)
+	write(t, dir, "project.yaml", proj)
+	code, out, _ := do(t, "check", dir)
+	want := "project.yaml: version: must be 1\nproject.yaml: key: must match ^[a-z0-9]{2,6}$\n"
+	if code != 1 || out != want {
+		t.Fatalf("code %d out:\n%s", code, out)
+	}
+	code, _, errs := do(t, "generate", dir)
+	if code != 1 || errs != want {
+		t.Fatalf("generate: code %d err:\n%s", code, errs)
 	}
 }
 
