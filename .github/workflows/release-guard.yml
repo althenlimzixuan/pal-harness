@@ -1,0 +1,23 @@
+name: release-guard
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+      - name: Tag must equal v + harness.Version
+        shell: bash
+        run: |
+          want="v$(go run ./cmd/pal-harness version)"
+          if [ "$GITHUB_REF_NAME" != "$want" ]; then
+            echo "tag $GITHUB_REF_NAME does not match $want" >&2
+            exit 1
+          fi
+          echo "tag $GITHUB_REF_NAME matches $want"

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -78,6 +79,34 @@ const daemonSSOT = "name: ssot\non:\n  push:\n    branches: [dev, staging, main]
 
 const ssotFinding = ".github/workflows/ssot.yml: must call althenlimzixuan/pal-harness/.github/workflows/check.yml@v" +
 	harness.Version + " with version " + harness.Version
+
+// TestCheckCRLFProject is what a Windows checkout with core.autocrlf=true
+// looks like: every file CRLF. check must still pass.
+func TestCheckCRLFProject(t *testing.T) {
+	dir := fixture(t)
+	n := 0
+	err := filepath.WalkDir(dir, func(p string, d os.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		b, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		n++
+		return os.WriteFile(p, []byte(strings.ReplaceAll(string(b), "\n", "\r\n")), 0o644)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n < 10 || !strings.Contains(read(t, dir, "project.yaml"), "\r\n") || !strings.Contains(read(t, dir, ".github/workflows/ssot.yml"), "\r\n") {
+		t.Fatalf("fixture not converted (%d files)", n)
+	}
+	if code := run([]string{"check", dir}, io.Discard, io.Discard); code != 0 {
+		_, out, errs := do(t, "check", dir)
+		t.Fatalf("code %d out=%q err=%q", code, out, errs)
+	}
+}
 
 func TestCheckSSOTWorkflowRejects(t *testing.T) {
 	v := harness.Version
