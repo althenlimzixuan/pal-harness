@@ -62,13 +62,3 @@ func TestValidSlug(t *testing.T) {
 		t.Error("50 chars should be valid")
 	}
 }
-
-func TestMaxSpecInNames(t *testing.T) {
-	if got := MaxSpecInNames(nil); got != 0 {
-		t.Fatalf("nil: %d", got)
-	}
-	got := MaxSpecInNames([]string{"specs/001-a", "specs/012-b", "specs/notes", "specs/7-x"})
-	if got != 12 {
-		t.Fatalf("got %d, want 12", got)
-	}
-}

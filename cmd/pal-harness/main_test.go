@@ -429,7 +429,7 @@ func TestSpecNew(t *testing.T) {
 		t.Fatalf("branch %q", b)
 	}
 	// Second run: the new spec is untracked, so the tree is not clean. That is
-	// the refusal; it must change nothing. (Duplicate branch: next test.)
+	// the refusal; it must change nothing.
 	head := tgit(t, dir, "rev-parse", "HEAD")
 	status := tgit(t, dir, "status", "--porcelain")
 	code, _, errs = do(t, "spec", "new", "first-spec", dir)
@@ -442,19 +442,93 @@ func TestSpecNew(t *testing.T) {
 	}
 }
 
-func TestSpecNewDuplicateChangesNothing(t *testing.T) {
+// specNewAt runs spec new and checks the printed path and the new branch.
+func specNewAt(t *testing.T, dir, slug, want string) {
+	t.Helper()
+	code, out, errs := do(t, "spec", "new", slug, dir)
+	if code != 0 {
+		t.Fatalf("spec new %s: %d %s", slug, code, errs)
+	}
+	if strings.TrimSpace(out) != filepath.Join(dir, "specs", want, "spec.md") {
+		t.Fatalf("spec new %s: out %q, want %s", slug, out, want)
+	}
+	if b := tgit(t, dir, "branch", "--show-current"); b != "docs/"+want {
+		t.Fatalf("spec new %s: branch %q", slug, b)
+	}
+}
+
+func TestSpecNewSkipsLocalBranchNumbers(t *testing.T) {
 	dir := gitRepo(t)
 	tgit(t, dir, "branch", "docs/001-dup")
-	head := tgit(t, dir, "rev-parse", "HEAD")
-	code, _, errs := do(t, "spec", "new", "dup", dir)
-	if code != 2 || !strings.Contains(errs, "docs/001-dup already exists") {
-		t.Fatalf("%d %s", code, errs)
+	specNewAt(t, dir, "dup", "002-dup")
+}
+
+// Two specs in flight on unmerged branches must not share a number.
+func TestSpecNewInFlightBranches(t *testing.T) {
+	dir := gitRepo(t)
+	specNewAt(t, dir, "alpha", "001-alpha")
+	tgit(t, dir, "add", "-A")
+	tgit(t, dir, "commit", "-m", "alpha")
+	tgit(t, dir, "switch", "dev")
+	specNewAt(t, dir, "beta", "002-beta")
+}
+
+// withOrigin gives dir a bare origin remote.
+func withOrigin(t *testing.T, dir string) {
+	t.Helper()
+	remote := filepath.Join(t.TempDir(), "origin.git")
+	tgit(t, dir, "init", "--bare", "-b", "main", remote)
+	tgit(t, dir, "remote", "add", "origin", remote)
+}
+
+// pushCommit commits files on a throwaway branch, pushes it to origin as
+// dst, and deletes the local branch; the working tree is left as it was.
+func pushCommit(t *testing.T, dir, dst string, files ...string) {
+	t.Helper()
+	tgit(t, dir, "switch", "-q", "-c", "tmp-push", "dev")
+	for _, f := range files {
+		write(t, dir, f, "x\n")
+		tgit(t, dir, "add", "--", f)
 	}
-	if tgit(t, dir, "rev-parse", "HEAD") != head || tgit(t, dir, "branch", "--show-current") != "main" || tgit(t, dir, "status", "--porcelain") != "" {
-		t.Fatal("repo changed")
+	tgit(t, dir, "commit", "-q", "--allow-empty", "-m", "remote")
+	tgit(t, dir, "push", "-q", "origin", "tmp-push:"+dst)
+	tgit(t, dir, "switch", "-q", "main")
+	tgit(t, dir, "branch", "-D", "tmp-push")
+}
+
+func TestSpecNewRemoteNumbering(t *testing.T) {
+	t.Run("remote docs branch", func(t *testing.T) {
+		dir := gitRepo(t)
+		withOrigin(t, dir)
+		pushCommit(t, dir, "docs/004-remote")
+		specNewAt(t, dir, "next", "005-next")
+	})
+	t.Run("origin dev specs", func(t *testing.T) {
+		dir := gitRepo(t)
+		withOrigin(t, dir)
+		pushCommit(t, dir, "dev", "specs/006-merged/spec.md")
+		specNewAt(t, dir, "next", "007-next")
+	})
+}
+
+func TestADRNewUsesDevAndOriginDev(t *testing.T) {
+	dir := gitRepo(t)
+	write(t, dir, ".pal-harness/templates/adr.md", "# <NNNN>\n")
+	tgit(t, dir, "switch", "-q", "dev")
+	write(t, dir, "doc/ADR/0003-on-dev.md", "x\n")
+	tgit(t, dir, "add", "--", "doc/ADR/0003-on-dev.md")
+	tgit(t, dir, "commit", "-q", "-m", "adr on dev")
+	tgit(t, dir, "switch", "-q", "main")
+	code, out, errs := do(t, "adr", "new", "a", dir)
+	if code != 0 || strings.TrimSpace(out) != filepath.Join(dir, "doc", "ADR", "0004-a.md") {
+		t.Fatalf("dev: %d %q %s", code, out, errs)
 	}
-	if _, err := os.Stat(filepath.Join(dir, "specs")); err == nil {
-		t.Fatal("specs created")
+	withOrigin(t, dir)
+	// Untracked doc/ADR/0004-a.md stays in the tree through the switches.
+	pushCommit(t, dir, "dev", "doc/ADR/0009-on-origin.md")
+	code, out, errs = do(t, "adr", "new", "b", dir)
+	if code != 0 || strings.TrimSpace(out) != filepath.Join(dir, "doc", "ADR", "0010-b.md") {
+		t.Fatalf("origin/dev: %d %q %s", code, out, errs)
 	}
 }
 
@@ -551,10 +625,6 @@ func TestSpecNewPreconditions(t *testing.T) {
 	}
 	if err := os.Remove(filepath.Join(dir, "dirty.txt")); err != nil {
 		t.Fatal(err)
-	}
-	tgit(t, dir, "branch", "docs/001-a")
-	if code, _, errs := do(t, "spec", "new", "a", dir); code != 2 || !strings.Contains(errs, "exists") {
-		t.Fatalf("branch exists: %d %s", code, errs)
 	}
 	if code, _, _ := do(t, "spec", "new", "a", t.TempDir()); code != 2 {
 		t.Fatalf("no project.yaml: %d", code)

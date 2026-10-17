@@ -15,6 +15,7 @@ import (
 
 	harness "github.com/althenlimzixuan/pal-harness"
 	"github.com/althenlimzixuan/pal-harness/blocks"
+	"github.com/althenlimzixuan/pal-harness/internal/seq"
 	"github.com/althenlimzixuan/pal-harness/manifest"
 	"github.com/althenlimzixuan/pal-harness/number"
 	"github.com/althenlimzixuan/pal-harness/pin"
@@ -368,6 +369,14 @@ func newADR(dir, slug string, conflict bool, stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail(stderr, "%v", err)
 	}
+	// ADRs merged to dev or origin/dev but not in this checkout count too.
+	names, err := devEntries(dir, "doc/ADR/", "blob")
+	if err != nil {
+		return fail(stderr, "%v", err)
+	}
+	if m := seq.MaxADR(names) + 1; m > n {
+		n = m
+	}
 	num := fmt.Sprintf("%04d", n)
 	text = strings.NewReplacer("<NNNN>", num, "<Title>", title(slug), "<Date>", now().Format("2006-01-02")).Replace(text)
 	path := filepath.Join(dir, "doc", "ADR", num+"-"+slug+".md")
@@ -402,6 +411,31 @@ func git(dir string, args ...string) (string, error) {
 	return strings.TrimSpace(string(out)), err
 }
 
+// devRefs are the branches whose trees count when numbering.
+var devRefs = []string{"refs/heads/dev", "refs/remotes/origin/dev"}
+
+// devEntries lists the entries of kind ("tree" or "blob") under path on each
+// of devRefs that exists. Outside a git repo no ref exists, so it is empty.
+func devEntries(dir, path, kind string) ([]string, error) {
+	var names []string
+	for _, ref := range devRefs {
+		if _, err := git(dir, "rev-parse", "--verify", "-q", ref); err != nil {
+			continue
+		}
+		out, err := git(dir, "ls-tree", "-z", ref, path)
+		if err != nil {
+			return nil, fmt.Errorf("git ls-tree %s %s failed: %v: %s", ref, path, err, out)
+		}
+		for _, entry := range strings.Split(out, "\x00") {
+			meta, name, _ := strings.Cut(entry, "\t")
+			if f := strings.Fields(meta); len(f) == 3 && f[1] == kind {
+				names = append(names, name)
+			}
+		}
+	}
+	return names, nil
+}
+
 // writeFile creates the spec file; tests replace it to force a failure.
 var writeFile = writeNew
 
@@ -416,35 +450,32 @@ func newSpec(dir, slug string, stdout, stderr io.Writer) int {
 	if _, err := git(dir, "rev-parse", "--verify", "-q", "refs/heads/dev"); err != nil {
 		return fail(stderr, "local branch dev does not exist")
 	}
-	// The new branch starts from dev, so dev's specs/ counts as well as ours.
-	tree, err := git(dir, "ls-tree", "-d", "--name-only", "dev", "specs/")
-	if err != nil {
-		return fail(stderr, "git ls-tree failed: %v: %s", err, tree)
-	}
-	var devSpecs []string
-	if tree != "" {
-		devSpecs = strings.Split(tree, "\n")
-	}
 	n, err := number.NextSpec(dir)
 	if err != nil {
 		return fail(stderr, "%v", err)
 	}
-	if m := number.MaxSpecInNames(devSpecs) + 1; m > n {
+	// Numbers already taken elsewhere: dev's and origin/dev's specs/ (the new
+	// branch starts from dev) and every docs/NNN-* branch, local or remote,
+	// so two specs in flight never share a number.
+	names, err := devEntries(dir, "specs/", "tree")
+	if err != nil {
+		return fail(stderr, "%v", err)
+	}
+	// refs/remotes/*/docs (no trailing /*) matches no remote branch in git's
+	// for-each-ref, so the remote pattern names the branches explicitly.
+	refs, err := git(dir, "for-each-ref", "--format=%(refname:short)", "refs/heads/docs", "refs/remotes/*/docs/*")
+	if err != nil {
+		return fail(stderr, "git for-each-ref failed: %v: %s", err, refs)
+	}
+	names = append(names, strings.Fields(refs)...)
+	if m := seq.MaxSpec(names) + 1; m > n {
 		n = m
 	}
 	name := fmt.Sprintf("%03d-%s", n, slug)
 	branch := "docs/" + name
-	if _, err := git(dir, "rev-parse", "--verify", "-q", "refs/heads/"+branch); err == nil {
-		return fail(stderr, "branch %s already exists", branch)
-	}
 	folder := filepath.Join(dir, "specs", name)
 	if exists(folder) {
 		return fail(stderr, "%s already exists", folder)
-	}
-	for _, d := range devSpecs {
-		if strings.TrimSpace(d) == "specs/"+name {
-			return fail(stderr, "specs/%s already exists on dev", name)
-		}
 	}
 	text, err := readTemplate(dir, "spec.md")
 	if err != nil {
