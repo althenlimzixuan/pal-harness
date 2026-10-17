@@ -52,11 +52,15 @@ Tools: `pal-harness <command>` runs as
   `.postman/`, `postman/`, and in components `.vercel/`, `eas.json`). Everything people write goes
   under `doc/`. Config only one component uses stays in that component; the SSOT records its
   facts in `doc/infra/`.
-- **Deliberately absent:** `docs/`, `.specify/`, `feedbacks/`, `doc/feedback/`, loose files at the
-  root, markdown backlog or roadmap ledgers, and anything holding credentials. Do not create them.
+- **Deliberately absent from the SSOT repo:** `docs/`, `.specify/`, `feedbacks/`, `doc/feedback/`,
+  loose files at the root, markdown backlog or roadmap ledgers, and anything holding credentials.
+  Do not create them.
 - Tech-stack decisions are recorded in an SSOT ADR. A component may mirror one, citing the ADR
   number; the SSOT wins.
 - `.superpowers/` is gitignored scratch. Never cite it as truth.
+- **Pinned copy (§6.2, §6.3):** never edit `.pal-harness/` by hand. An override needs the owner's
+  decision and a `harness.overrides` entry (item, source, reason, since) in `project.yaml`. A patch
+  goes back upstream only by a PR to `pal-harness`.
 
 ## 3. Manifest and generated blocks (§4.2, §5.1)
 
@@ -98,9 +102,11 @@ Tools: `pal-harness <command>` runs as
 
 - A generated file has one origin and flows **provider, then SSOT copy, then consumers**.
 - Consumers read the SSOT copy or the published client, never the provider's working tree.
-- Never edit a copy by hand. Regenerate at the origin; each hop's drift check fails on mismatch.
+- Never edit a copy by hand; regenerate at the origin.
+  The §4.5 copy drift check is manual until a later harness release: before merging, compare
+  each copy with its origin.
 - The Postman collection in `postman/` is regenerated from the SSOT `openapi.yaml` whenever the
-  contract changes (§4.7).
+  contract changes (§4.7). Regenerating it is manual until a later harness release.
 
 ## 8. Feedback notes (§4.7)
 

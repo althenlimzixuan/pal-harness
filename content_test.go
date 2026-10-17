@@ -77,4 +77,53 @@ func TestContentComplete(t *testing.T) {
 			t.Errorf("spec.md lacks heading %q", h)
 		}
 	}
+
+	text := func(p string) string {
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(b)
+	}
+	has := func(p string, subs ...string) {
+		t.Helper()
+		for _, s := range subs {
+			if !strings.Contains(text(p), s) {
+				t.Errorf("%s lacks %q", p, s)
+			}
+		}
+	}
+	lacks := func(p string, subs ...string) {
+		t.Helper()
+		for _, s := range subs {
+			if strings.Contains(text(p), s) {
+				t.Errorf("%s still contains %q", p, s)
+			}
+		}
+	}
+
+	// R26: the contract-sync lines point to product_docs' split rule; no
+	// practice tells a component to carry doc/API.md.
+	for _, p := range []string{"practices/workflow.md", "practices/go_api.md"} {
+		has(p, "split rule in `product_docs.md`", "the SSOT repo's PR updates its `doc/openapi.yaml` copy and `doc/API.md`")
+		lacks(p, "regenerate `openapi.yaml`, update `doc/API.md`")
+	}
+	has("practices/ssot_standard.md",
+		"**Deliberately absent from the SSOT repo:**",
+		"never edit `.pal-harness/` by hand",
+		"`harness.overrides` entry (item, source, reason, since)",
+		"only by a PR to `pal-harness`",
+		"The §4.5 copy drift check is manual until a later harness release",
+		"Regenerating it is manual until a later harness release")
+	has("practices/product_docs.md",
+		"The §4.5 copy drift check is manual until a later harness release",
+		"Regenerating it is manual until a later harness release")
+
+	// §2.1: feature PRs into dev may be squash-merged; it is not a rule.
+	for _, p := range []string{"practices/workflow.md", "practices/devops_cicd.md"} {
+		has(p, "may be squash-merged")
+		lacks(p, "squash-merge feature PRs", "squash-merge into")
+	}
+
+	has("templates/adr-conflict.md", "- **Status:** Accepted\n")
 }

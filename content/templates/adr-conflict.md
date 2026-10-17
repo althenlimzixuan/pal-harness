@@ -1,6 +1,6 @@
 # ADR <NNNN> — <Title>
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** <Date>
 
 ## Finding
