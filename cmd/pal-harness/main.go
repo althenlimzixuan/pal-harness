@@ -94,16 +94,20 @@ func exists(p string) bool {
 // docBlock names a document and the generated block it must carry.
 type docBlock struct{ file, name, source, block string }
 
+// ioError marks a file that could not be read, as opposed to one that is
+// invalid; it makes the commands exit 2 rather than report a finding.
+type ioError struct{ error }
+
 func parseProject(dir string) (*manifest.Project, error) {
 	b, err := os.ReadFile(filepath.Join(dir, "project.yaml"))
 	if err != nil {
-		return nil, err
+		return nil, ioError{err}
 	}
 	return manifest.ParseProject(b)
 }
 
 // targets returns the blocks to maintain in dir, whichever mode it is in.
-// mode is "" when neither manifest exists; a manifest parse error is returned
+// Project mode wins when both manifests exist. mode is "" when neither manifest exists; a manifest parse error is returned
 // with the manifest's file name.
 func targets(dir string) (mode string, p *manifest.Project, docs []docBlock, file string, err error) {
 	switch {
@@ -120,7 +124,9 @@ func targets(dir string) (mode string, p *manifest.Project, docs []docBlock, fil
 	case exists(filepath.Join(dir, "workspace.yaml")):
 		b, rerr := os.ReadFile(filepath.Join(dir, "workspace.yaml"))
 		var w *manifest.Workspace
-		if rerr == nil {
+		if rerr != nil {
+			rerr = ioError{rerr}
+		} else {
 			w, rerr = manifest.ParseWorkspace(b)
 		}
 		if rerr != nil {
@@ -135,6 +141,11 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 	mode, p, docs, mfile, err := targets(dir)
 	if mode == "" {
 		fmt.Fprintln(stderr, "no project.yaml or workspace.yaml in "+dir)
+		return 2
+	}
+	var ioe ioError
+	if errors.As(err, &ioe) {
+		fmt.Fprintf(stderr, "%s: %v\n", mfile, err)
 		return 2
 	}
 	var findings []string
@@ -162,7 +173,8 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 	if p != nil {
 		diff, derr := pin.Diff(dir, p.Harness.Overrides)
 		if derr != nil {
-			add("%s: %v", pin.Dir, derr)
+			fmt.Fprintf(stderr, "%s: %v\n", pin.Dir, derr)
+			return 2
 		}
 		for _, f := range diff {
 			add("%s: %s", pin.Dir, f)
@@ -192,6 +204,10 @@ func runGenerate(dir string, stderr io.Writer) int {
 	}
 	if err != nil {
 		fmt.Fprintf(stderr, "%s: %v\n", mfile, err)
+		var ioe ioError
+		if errors.As(err, &ioe) {
+			return 2
+		}
 		return 1
 	}
 	// Compute every result before writing any file.
@@ -202,9 +218,8 @@ func runGenerate(dir string, stderr io.Writer) int {
 		path := filepath.Join(dir, d.file)
 		doc, rerr := os.ReadFile(path)
 		if rerr != nil {
-			fmt.Fprintf(stderr, "%s: %s block: %v\n", d.file, d.name, rerr)
-			failed = true
-			continue
+			fmt.Fprintf(stderr, "%s: %v\n", d.file, rerr)
+			return 2
 		}
 		text, rerr := blocks.Replace(string(doc), d.name, d.block)
 		if rerr != nil {
@@ -319,6 +334,9 @@ func git(dir string, args ...string) (string, error) {
 	return strings.TrimSpace(string(out)), err
 }
 
+// writeFile creates the spec file; tests replace it to force a failure.
+var writeFile = writeNew
+
 func newSpec(dir, slug string, stdout, stderr io.Writer) int {
 	if !exists(filepath.Join(dir, "project.yaml")) {
 		return fail(stderr, "no project.yaml in %s", dir)
@@ -333,9 +351,21 @@ func newSpec(dir, slug string, stdout, stderr io.Writer) int {
 	if _, err := git(dir, "rev-parse", "--verify", "-q", "refs/heads/dev"); err != nil {
 		return fail(stderr, "local branch dev does not exist")
 	}
+	// The new branch starts from dev, so dev's specs/ counts as well as ours.
+	tree, err := git(dir, "ls-tree", "-d", "--name-only", "dev", "specs/")
+	if err != nil {
+		return fail(stderr, "git ls-tree failed: %v: %s", err, tree)
+	}
+	var devSpecs []string
+	if tree != "" {
+		devSpecs = strings.Split(tree, "\n")
+	}
 	n, err := number.NextSpec(dir)
 	if err != nil {
 		return fail(stderr, "%v", err)
+	}
+	if m := number.MaxSpecInNames(devSpecs) + 1; m > n {
+		n = m
 	}
 	name := fmt.Sprintf("%03d-%s", n, slug)
 	branch := "docs/" + name
@@ -346,17 +376,31 @@ func newSpec(dir, slug string, stdout, stderr io.Writer) int {
 	if exists(folder) {
 		return fail(stderr, "%s already exists", folder)
 	}
+	for _, d := range devSpecs {
+		if strings.TrimSpace(d) == "specs/"+name {
+			return fail(stderr, "specs/%s already exists on dev", name)
+		}
+	}
 	text, err := readTemplate(dir, "spec.md")
 	if err != nil {
 		return fail(stderr, "%v", err)
+	}
+	orig, _ := git(dir, "branch", "--show-current")
+	back := []string{"switch", orig}
+	if orig == "" {
+		sha, _ := git(dir, "rev-parse", "HEAD")
+		back = []string{"switch", "--detach", sha}
 	}
 	if out, err := git(dir, "switch", "-c", branch, "dev"); err != nil {
 		return fail(stderr, "git switch failed: %v: %s", err, out)
 	}
 	text = strings.NewReplacer("<NNN>", fmt.Sprintf("%03d", n), "<Title>", title(slug)).Replace(text)
 	path := filepath.Join(folder, "spec.md")
-	if err := writeNew(path, text); err != nil {
-		return fail(stderr, "%v", err)
+	if err := writeFile(path, text); err != nil {
+		os.RemoveAll(folder)
+		git(dir, back...)
+		git(dir, "branch", "-D", branch)
+		return fail(stderr, "%v (rolled back to %s)", err, orig)
 	}
 	fmt.Fprintln(stdout, path)
 	return 0

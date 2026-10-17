@@ -337,8 +337,118 @@ func TestSpecNew(t *testing.T) {
 	if b := tgit(t, dir, "branch", "--show-current"); b != "docs/001-first-spec" {
 		t.Fatalf("branch %q", b)
 	}
-	if code, _, _ := do(t, "spec", "new", "first-spec", dir); code != 2 {
-		t.Fatalf("second run code %d", code)
+	// Second run: the new spec is untracked, so the tree is not clean. That is
+	// the refusal; it must change nothing. (Duplicate branch: next test.)
+	head := tgit(t, dir, "rev-parse", "HEAD")
+	status := tgit(t, dir, "status", "--porcelain")
+	code, _, errs = do(t, "spec", "new", "first-spec", dir)
+	if code != 2 || !strings.Contains(errs, "not clean") {
+		t.Fatalf("second run: %d %s", code, errs)
+	}
+	if tgit(t, dir, "rev-parse", "HEAD") != head || tgit(t, dir, "status", "--porcelain") != status ||
+		tgit(t, dir, "branch", "--show-current") != "docs/001-first-spec" {
+		t.Fatal("second run changed the repo")
+	}
+}
+
+func TestSpecNewDuplicateChangesNothing(t *testing.T) {
+	dir := gitRepo(t)
+	tgit(t, dir, "branch", "docs/001-dup")
+	head := tgit(t, dir, "rev-parse", "HEAD")
+	code, _, errs := do(t, "spec", "new", "dup", dir)
+	if code != 2 || !strings.Contains(errs, "docs/001-dup already exists") {
+		t.Fatalf("%d %s", code, errs)
+	}
+	if tgit(t, dir, "rev-parse", "HEAD") != head || tgit(t, dir, "branch", "--show-current") != "main" || tgit(t, dir, "status", "--porcelain") != "" {
+		t.Fatal("repo changed")
+	}
+	if _, err := os.Stat(filepath.Join(dir, "specs")); err == nil {
+		t.Fatal("specs created")
+	}
+}
+
+func TestSpecNewUsesDevNumbering(t *testing.T) {
+	dir := gitRepo(t)
+	tgit(t, dir, "switch", "dev")
+	write(t, dir, "specs/001-a/spec.md", "a")
+	tgit(t, dir, "add", "-A")
+	tgit(t, dir, "commit", "-m", "dev spec")
+	tgit(t, dir, "switch", "main")
+	code, out, errs := do(t, "spec", "new", "b", dir)
+	if code != 0 {
+		t.Fatalf("%d %s", code, errs)
+	}
+	if strings.TrimSpace(out) != filepath.Join(dir, "specs", "002-b", "spec.md") {
+		t.Fatalf("out %q", out)
+	}
+	if b := tgit(t, dir, "branch", "--show-current"); b != "docs/002-b" {
+		t.Fatalf("branch %q", b)
+	}
+}
+
+func TestSpecNewRollsBackOnWriteFailure(t *testing.T) {
+	dir := gitRepo(t)
+	old := writeFile
+	writeFile = func(string, string) error { return os.ErrPermission }
+	defer func() { writeFile = old }()
+	head := tgit(t, dir, "rev-parse", "HEAD")
+	code, _, errs := do(t, "spec", "new", "x", dir)
+	if code != 2 || !strings.Contains(errs, "rolled back") {
+		t.Fatalf("%d %s", code, errs)
+	}
+	if b := tgit(t, dir, "branch", "--show-current"); b != "main" {
+		t.Fatalf("branch %q", b)
+	}
+	if br := tgit(t, dir, "branch", "--list", "docs/*"); br != "" {
+		t.Fatalf("leftover branch %q", br)
+	}
+	if tgit(t, dir, "rev-parse", "HEAD") != head || tgit(t, dir, "status", "--porcelain") != "" {
+		t.Fatal("repo changed")
+	}
+}
+
+func TestExitTwoOnUnreadableFiles(t *testing.T) {
+	// workspace.yaml is a directory: a read error, not a parse error.
+	ws := t.TempDir()
+	if err := os.Mkdir(filepath.Join(ws, "workspace.yaml"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range []string{"check", "generate"} {
+		if code, _, errs := do(t, c, ws); code != 2 || errs == "" {
+			t.Errorf("%s workspace: %d %q", c, code, errs)
+		}
+	}
+	// pin.Diff I/O error: a pinned file is a directory.
+	dir := fixture(t)
+	p := filepath.Join(dir, ".pal-harness", "practices", "workflow.md")
+	if err := os.Remove(p); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(p, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if code, _, errs := do(t, "check", dir); code != 2 || errs == "" {
+		t.Errorf("check pin: %d %q", code, errs)
+	}
+	// generate with an unreadable README.md.
+	dir = fixture(t)
+	r := filepath.Join(dir, "README.md")
+	if err := os.Remove(r); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(r, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if code, _, errs := do(t, "generate", dir); code != 2 || errs == "" {
+		t.Errorf("generate readme: %d %q", code, errs)
+	}
+}
+
+func TestProjectModeWinsOverWorkspace(t *testing.T) {
+	dir := fixture(t)
+	write(t, dir, "workspace.yaml", "garbage: [\n")
+	if code, out, _ := do(t, "check", dir); code != 0 {
+		t.Fatalf("project mode should win: %d %s", code, out)
 	}
 }
 

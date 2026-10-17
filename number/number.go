@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -54,3 +55,19 @@ func NextADR(root string) (int, error) {
 
 // ValidSlug reports whether s is a lowercase-dash slug of at most 50 characters.
 func ValidSlug(s string) bool { return len(s) <= 50 && slugRe.MatchString(s) }
+
+// MaxSpecInNames returns the highest NNN among names shaped like
+// "NNN-..." or "specs/NNN-..." (as printed by git ls-tree); 0 when none match.
+func MaxSpecInNames(names []string) int {
+	max := 0
+	for _, n := range names {
+		m := specRe.FindStringSubmatch(path.Base(n))
+		if m == nil {
+			continue
+		}
+		if v, _ := strconv.Atoi(m[1]); v > max {
+			max = v
+		}
+	}
+	return max
+}
