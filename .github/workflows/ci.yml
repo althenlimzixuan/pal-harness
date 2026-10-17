@@ -1,0 +1,27 @@
+name: ci
+on:
+  push:
+    branches: [dev, staging, main]
+  pull_request:
+    branches: [dev, staging, main]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+      - run: go vet ./...
+      - run: go test -coverprofile=c.out ./...
+      - name: Coverage gate (80%)
+        run: |
+          # c.out holds only the "mode:" line when the module has no statements yet.
+          if [ "$(wc -l < c.out)" -le 1 ]; then
+            echo "no statements to measure; gate skipped"
+            exit 0
+          fi
+          out=$(go tool cover -func=c.out | tail -1)
+          echo "$out"
+          pct=$(echo "$out" | awk '{print $NF}' | tr -d '%')
+          awk -v p="$pct" 'BEGIN { exit (p+0 < 80.0) ? 1 : 0 }' || { echo "coverage ${pct}% is below 80.0%"; exit 1; }
