@@ -67,8 +67,67 @@ func fixture(t *testing.T) string {
 	if err := pin.Write(dir); err != nil {
 		t.Fatal(err)
 	}
-	write(t, dir, ".github/workflows/ssot.yml", "jobs:\n  c:\n    uses: althenlimzixuan/pal-harness/.github/workflows/check.yml@v"+harness.Version+"\n")
+	write(t, dir, ".github/workflows/ssot.yml", daemonSSOT)
 	return dir
+}
+
+// daemonSSOT is the exact ssot.yml the Pal Center daemon writes at kickstart.
+const daemonSSOT = "name: ssot\non:\n  push:\n    branches: [dev, staging, main]\n  pull_request:\n    branches: [dev, staging, main]\n" +
+	"jobs:\n  check:\n    uses: althenlimzixuan/pal-harness/.github/workflows/check.yml@v" + harness.Version +
+	"\n    with:\n      version: " + harness.Version + "\n"
+
+const ssotFinding = ".github/workflows/ssot.yml: must call althenlimzixuan/pal-harness/.github/workflows/check.yml@v" +
+	harness.Version + " with version " + harness.Version
+
+func TestCheckSSOTWorkflowRejects(t *testing.T) {
+	v := harness.Version
+	uses := "althenlimzixuan/pal-harness/.github/workflows/check.yml@v" + v
+	cases := map[string]string{
+		"longer version tag": strings.Replace(daemonSSOT, uses, uses+"0", 1),
+		"comment only":       "# uses: " + uses + "\n# with:\n#   version: " + v + "\njobs: {}\n",
+		"fork path":          strings.Replace(daemonSSOT, "althenlimzixuan/pal-harness", "someone/pal-harness", 1),
+		"version mismatch":   strings.Replace(daemonSSOT, "version: "+v+"\n", "version: 9.9.9\n", 1),
+		"no with":            strings.Replace(daemonSSOT, "\n    with:\n      version: "+v, "", 1),
+		"not yaml":           "jobs: [\n",
+		"jobs not a map":     "jobs: [a, b]\n",
+	}
+	for name, wf := range cases {
+		t.Run(name, func(t *testing.T) {
+			if wf == daemonSSOT {
+				t.Fatal("case did not change the file")
+			}
+			dir := fixture(t)
+			write(t, dir, ".github/workflows/ssot.yml", wf)
+			code, out, errs := do(t, "check", dir)
+			if code != 1 || out != ssotFinding+"\n" {
+				t.Fatalf("code %d out=%q err=%q", code, out, errs)
+			}
+		})
+	}
+	t.Run("missing", func(t *testing.T) {
+		dir := fixture(t)
+		if err := os.Remove(filepath.Join(dir, ".github", "workflows", "ssot.yml")); err != nil {
+			t.Fatal(err)
+		}
+		if code, out, _ := do(t, "check", dir); code != 1 || out != ssotFinding+"\n" {
+			t.Fatalf("code %d out=%q", code, out)
+		}
+	})
+}
+
+func TestCheckSSOTWorkflowAcceptsDaemonFile(t *testing.T) {
+	dir := fixture(t)
+	if got := read(t, dir, ".github/workflows/ssot.yml"); got != daemonSSOT {
+		t.Fatalf("fixture ssot.yml %q", got)
+	}
+	if code, out, errs := do(t, "check", dir); code != 0 {
+		t.Fatalf("daemon file: code %d out=%q err=%q", code, out, errs)
+	}
+	// Another job alongside the check job is fine.
+	write(t, dir, ".github/workflows/ssot.yml", daemonSSOT+"  lint:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi\n")
+	if code, out, errs := do(t, "check", dir); code != 0 {
+		t.Fatalf("extra job: code %d out=%q err=%q", code, out, errs)
+	}
 }
 
 func TestCheckCleanProject(t *testing.T) {
@@ -95,7 +154,7 @@ func TestCheckFindings(t *testing.T) {
 		"README.md: components block does not match project.yaml",
 		".pal-harness: changed practices/workflow.md",
 		"project.yaml: harness.version is 0.9.0 but this checker is " + harness.Version,
-		".github/workflows/ssot.yml: must call check.yml@v" + harness.Version,
+		ssotFinding,
 	} {
 		if !strings.Contains(out, want+"\n") {
 			t.Errorf("missing %q in:\n%s", want, out)

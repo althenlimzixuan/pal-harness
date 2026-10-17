@@ -18,6 +18,7 @@ import (
 	"github.com/althenlimzixuan/pal-harness/manifest"
 	"github.com/althenlimzixuan/pal-harness/number"
 	"github.com/althenlimzixuan/pal-harness/pin"
+	"gopkg.in/yaml.v3"
 )
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr)) }
@@ -180,12 +181,8 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 			add("%s: %s", pin.Dir, f)
 		}
 	}
-	if mode == "project" {
-		want := "check.yml@v" + harness.Version
-		b, _ := os.ReadFile(filepath.Join(dir, ".github", "workflows", "ssot.yml"))
-		if !strings.Contains(string(b), want) {
-			add(".github/workflows/ssot.yml: must call %s", want)
-		}
+	if mode == "project" && !callsCheck(dir) {
+		add(".github/workflows/ssot.yml: must call %s with version %s", checkUses, harness.Version)
 	}
 	for _, f := range findings {
 		fmt.Fprintln(stdout, f)
@@ -194,6 +191,34 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return 0
+}
+
+// checkUses is the reusable workflow a project's ssot.yml must call.
+const checkUses = "althenlimzixuan/pal-harness/.github/workflows/check.yml@v" + harness.Version
+
+// callsCheck reports whether dir/.github/workflows/ssot.yml parses as YAML and
+// has a job that uses exactly checkUses with `with.version` exactly Version.
+// A missing or unparsable file does not.
+func callsCheck(dir string) bool {
+	b, err := os.ReadFile(filepath.Join(dir, ".github", "workflows", "ssot.yml"))
+	if err != nil {
+		return false
+	}
+	var wf struct {
+		Jobs map[string]struct {
+			Uses string         `yaml:"uses"`
+			With map[string]any `yaml:"with"`
+		} `yaml:"jobs"`
+	}
+	if err := yaml.Unmarshal(b, &wf); err != nil {
+		return false
+	}
+	for _, j := range wf.Jobs {
+		if v, ok := j.With["version"].(string); ok && j.Uses == checkUses && v == harness.Version {
+			return true
+		}
+	}
+	return false
 }
 
 func runGenerate(dir string, stderr io.Writer) int {
