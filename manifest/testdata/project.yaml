@@ -1,0 +1,37 @@
+version: 1
+key: fhph
+name: FrostHaven Party Helper
+summary: Frosthaven party, character and session companion (web + Discord)
+status: active
+ssot:
+  repo: https://github.com/althenlimzixuan/fhph-docs
+components:
+  - folder: api
+    repo: https://github.com/althenlimzixuan/fhph-api
+    role: provider          # provider | platform | consumer
+    rank: 1
+    stack: [go_api]
+    status: active
+  - folder: web
+    repo: https://github.com/althenlimzixuan/fhph-web
+    role: consumer
+    rank: 2
+    stack: [nextjs_web]
+    status: active
+  - folder: discord
+    repo: https://github.com/althenlimzixuan/fhph-discord
+    role: consumer
+    rank: 2
+    stack: [tbd]
+    status: active
+boards:
+  backlog:  { owner: althenlimzixuan, number: 0 }
+  roadmap:  { owner: althenlimzixuan, number: 0 }
+  feedback: { owner: althenlimzixuan, number: 0 }
+postman:
+  workspace: null           # Postman workspace id once linked
+inbox:
+  slack_prefix: fhph
+harness:
+  version: 1.0.0
+  overrides: []             # see §6.2
