@@ -15,7 +15,7 @@ client UAT gate, a Figma sign-off, a staged rollout). State the scope at kickoff
 - **Gate**: brief + contract reviewed before implementation starts.
 
 ## 2. Develop
-- Branch per change from `dev`: `feature/ fix/ chore/ docs/`; `hotfix/` branches from `main`. `main` always deployable; no direct commits to `main`.
+- Branch per change from `dev`: `feature/ fix/ chore/ docs/`; `hotfix/` branches from `main`, PRs to `main`, then merges back into `staging` and `dev`. `main` always deployable; no direct commits to `main`.
 - **TDD**: write the failing test from a JSON fixture first (`testing.md`), then implement.
 - Follow the stack practice (`go_api` / `nextjs_web` / `react_native` / `django_admin`).
 - Every PR keeps the API contract in sync: regenerate `openapi.yaml`, update `doc/API.md`, serve Swagger UI.

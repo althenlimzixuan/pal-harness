@@ -18,11 +18,15 @@
 
 ### User Story 2 — (title) (Priority: P2)
 
+(Who does what, and why it matters.)
+
 **Acceptance scenarios**
 
 1. **Given** (state), **when** (action), **then** (outcome).
 
 ### User Story 3 — (title) (Priority: P3)
+
+(Who does what, and why it matters.)
 
 **Acceptance scenarios**
 

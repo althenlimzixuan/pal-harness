@@ -19,8 +19,8 @@ ADR, two docs).
    - *Decision*: the owner's answer
    - *Reason*: why
    - *Changes*: what was updated in the same piece of work
-5. **Update the losing source** in the same piece of work, so the sources agree again. If the SSOT
-   held the wrong truth, update the SSOT too.
+5. **Update the losing source** in the same piece of work, even when it is the SSOT, so the sources
+   agree again.
 
 The ADR lands in `doc/ADR/` of the SSOT repo, numbered with the other ADRs.
 
@@ -33,3 +33,6 @@ written. Do not ask.
 
 - A generated block that no longer matches `project.yaml`: run `pal-harness generate`.
 - A generated copy (such as `openapi.yaml`) that differs from its origin: regenerate it.
+
+If the origin itself looks wrong (e.g. `project.yaml` or the provider is stale), that is a conflict:
+follow the steps above.

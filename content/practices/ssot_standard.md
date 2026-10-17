@@ -73,6 +73,7 @@ Tools: `pal-harness <command>` runs as
 - Promote `dev` to `staging`, then `staging` to `main`, with merge commits (not squash).
 - Feature PRs into `dev` may be squash-merged.
 - `hotfix/*` branches from `main`, PRs to `main`, then is merged back into `staging` and `dev`.
+- Each repo's GitHub default branch is `dev`, so new PRs target it.
 - No direct commits to `main`. Branch protection is not enforced; the rule is by convention.
 
 ## 5. Specs and plans (§4.4)

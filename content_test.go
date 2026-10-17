@@ -43,8 +43,11 @@ func TestContentComplete(t *testing.T) {
 	for _, p := range got {
 		b, _ := harness.Content.ReadFile(p)
 		text := string(b)
+		if strings.Contains(text, `C:\Users`) {
+			t.Errorf("%s contains an absolute C:\\Users path", p)
+		}
 		if strings.HasPrefix(p, "content/practices/") {
-			for _, bad := range []string{"Shape B", "single Service", "squash merge to `main`", `C:\Users`} {
+			for _, bad := range []string{"Shape B", "single Service", "squash merge to `main`"} {
 				if strings.Contains(text, bad) {
 					t.Errorf("%s contains %q", p, bad)
 				}

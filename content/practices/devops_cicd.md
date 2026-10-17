@@ -2,7 +2,7 @@
 
 ## GitHub Actions Pipeline
 
-Every repository must pass all stages before merge to `main`:
+Every repository must pass all stages before a PR merges (and before each promotion toward `main`):
 
 | Stage | Go API | Next.js Web | React Native |
 |---|---|---|---|
@@ -18,7 +18,7 @@ No stage may be skipped. Flaky tests must be fixed, not retried.
 ## Branch & Merge Strategy
 
 - `main` is always deployable to production
-- Feature branches from `dev`: `feature/`, `fix/`, `chore/`, `docs/` prefixes; `hotfix/` branches from `main`
+- Feature branches from `dev`: `feature/`, `fix/`, `chore/`, `docs/` prefixes; `hotfix/` branches from `main`, PRs to `main`, then merges back into `staging` and `dev`
 - Feature PR → squash-merge into `dev`; promote `dev → staging → main` with merge commits
 - No direct commits to `main`
 - Require passing CI + 1 review before merge

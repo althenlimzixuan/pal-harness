@@ -7,16 +7,9 @@ by the layout in `ssot_standard.md` (spec §4.1); this file does not redefine it
 
 ## doc/ Structure (the documents this file covers)
 
-```
-doc/
-  PRD.md              # product requirements — the full brief
-  API.md              # canonical human-readable API contract
-  openapi.yaml        # generated OpenAPI 3.1 spec (from the Go API)
-  ADR/
-    0001-record-architecture-decisions.md
-    0002-....md
-  wireframes/         # exported screens / links to Figma
-```
+The full layout is the table in `ssot_standard.md` §2 (spec §4.1). The documents this file covers
+are `doc/PRD.md`, `doc/API.md`, `doc/openapi.yaml` (a copy of the provider's generated file) and
+`doc/ADR/`.
 
 `doc/` lives in the project's SSOT repo, never in a component. Designed work lives in
 `specs/NNN-slug/` and raw feedback notes in `_feedbacks/`, both at the SSOT root, not under `doc/`.
@@ -42,26 +35,11 @@ The product `CLAUDE.md` is the **condensed** brief (tagline, users, domain, jour
 
 Numbered, immutable once **Accepted** (supersede with a new ADR rather than editing).
 
-```markdown
-# ADR-0002: Use MySQL as primary datastore
+Create ADRs with `pal-harness adr new <slug>` (or `pal-harness adr new <slug> --conflict` for a
+conflict resolution). Fill in the template headings: Status/Date, Context, Decision, Consequences
+(or Finding, Decision point, Decision, Reason, Changes for a conflict).
 
-## Status
-Accepted — 2026-06-10
-
-## Context
-[forces at play, constraints]
-
-## Decision
-[what we chose]
-
-## Consequences
-[trade-offs accepted, follow-ups]
-
-## Alternatives considered
-[options rejected and why]
-```
-
-Statuses: `Proposed` → `Accepted` → `Superseded by ADR-XXXX`.
+Statuses: `Proposed` → `Accepted` → `Superseded by ADR <NNNN>`.
 Write an ADR for any choice that is expensive to reverse (datastore, auth model, cloud target,
 admin stack, API versioning strategy).
 
@@ -75,10 +53,11 @@ A RESTful API has **two** synchronized artifacts:
 | `doc/openapi.yaml` | Machine spec for codegen, Swagger UI, contract tests | **Generated from the provider's code**; the SSOT file is a copy of it |
 | Swagger UI | Live, browsable docs for consumers (web/mobile/B2B) | Served by the API from the spec |
 
-**Universal rule — any RESTful API change must, in the same PR:**
-1. Regenerate the OpenAPI spec (`make docs`) and commit it
-2. Update `doc/API.md` to match
-3. Keep Swagger UI served (e.g. `/swagger/index.html` in non-prod)
+**Universal rule — any RESTful API change:**
+1. The provider's PR regenerates `openapi.yaml` at the origin (`make docs`) and commits it
+2. The provider keeps Swagger UI served (e.g. `/swagger/index.html` in non-prod)
+3. In the same piece of work, the SSOT repo's PR updates its `doc/openapi.yaml` copy and
+   `doc/API.md` to match; the §4.5 drift check catches a gap
 
 **Generated artifacts flow down the ladder (§4.5):** provider → SSOT copy → consumers. The provider
 generates `openapi.yaml` and is its only origin; the SSOT keeps a copy; consumers (`api-client`, web,
