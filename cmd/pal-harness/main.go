@@ -66,11 +66,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 		case "generate":
 			return runGenerate(dir, stderr)
 		}
-		if err := pin.Write(dir); err != nil {
-			fmt.Fprintln(stderr, err)
-			return 2
-		}
-		return 0
+		return runPin(dir, stderr)
 	case "spec", "adr":
 		if len(rest) == 0 || rest[0] != "new" {
 			return usageErr(stderr, "expected: "+args[0]+" new <slug>")
@@ -90,6 +86,29 @@ func dirArg(a []string) string {
 func exists(p string) bool {
 	_, err := os.Stat(p)
 	return err == nil
+}
+
+// msgNotRoot is the hint for a command run outside the SSOT root.
+const msgNotRoot = "run from the SSOT root (the folder with project.yaml)"
+
+func isRoot(dir string) bool { return exists(filepath.Join(dir, "project.yaml")) }
+
+// runPin writes the pinned copy, leaving the project's overridden items alone.
+func runPin(dir string, stderr io.Writer) int {
+	if !isRoot(dir) {
+		return fail(stderr, msgNotRoot)
+	}
+	p, err := parseProject(dir)
+	if err != nil {
+		for _, f := range manifestFindings("project.yaml", err) {
+			fmt.Fprintln(stderr, f)
+		}
+		return 2
+	}
+	if err := pin.WriteExcept(dir, p.Harness.Overrides); err != nil {
+		return fail(stderr, "%v", err)
+	}
+	return 0
 }
 
 // docBlock names a document and the generated block it must carry.
@@ -296,7 +315,7 @@ func title(slug string) string {
 func readTemplate(dir, name string) (string, error) {
 	b, err := os.ReadFile(filepath.Join(dir, pin.Dir, "templates", name))
 	if errors.Is(err, fs.ErrNotExist) {
-		return "", fmt.Errorf("template %s/templates/%s not found; run `pal-harness pin`", pin.Dir, name)
+		return "", fmt.Errorf("template %s/templates/%s not found; %s", pin.Dir, name, msgNotRoot)
 	}
 	return string(b), err
 }
@@ -322,6 +341,9 @@ func runNew(kind string, args []string, stdout, stderr io.Writer) int {
 		return usageErr(stderr, "invalid slug (lowercase letters, digits and single dashes, at most 50 characters): "+slug)
 	}
 	dir := dirArg(pos[1:])
+	if !isRoot(dir) {
+		return fail(stderr, msgNotRoot)
+	}
 	if kind == "adr" {
 		return newADR(dir, slug, conflict, stdout, stderr)
 	}
@@ -384,9 +406,6 @@ func git(dir string, args ...string) (string, error) {
 var writeFile = writeNew
 
 func newSpec(dir, slug string, stdout, stderr io.Writer) int {
-	if !exists(filepath.Join(dir, "project.yaml")) {
-		return fail(stderr, "no project.yaml in %s", dir)
-	}
 	st, err := git(dir, "status", "--porcelain")
 	if err != nil {
 		return fail(stderr, "git status failed: %v: %s", err, st)

@@ -356,9 +356,12 @@ func TestGenerateKeepsCRLF(t *testing.T) {
 }
 
 func TestPinAndVersion(t *testing.T) {
-	dir := t.TempDir()
-	if code, _, _ := do(t, "pin", dir); code != 0 {
-		t.Fatal(code)
+	dir := fixture(t)
+	if err := os.RemoveAll(filepath.Join(dir, ".pal-harness")); err != nil {
+		t.Fatal(err)
+	}
+	if code, _, errs := do(t, "pin", dir); code != 0 {
+		t.Fatal(code, errs)
 	}
 	if got := read(t, dir, ".pal-harness/VERSION"); got != harness.Version+"\n" {
 		t.Fatalf("VERSION %q", got)
@@ -597,6 +600,7 @@ func TestADRNew(t *testing.T) {
 	now = func() time.Time { return time.Date(2026, 10, 17, 9, 0, 0, 0, time.UTC) }
 	defer func() { now = old }()
 	dir := t.TempDir()
+	write(t, dir, "project.yaml", "version: 1\n")
 	write(t, dir, ".pal-harness/templates/adr.md", "# <NNNN>. <Title>\nDate: <Date>\n")
 	code, out, errs := do(t, "adr", "new", "use-sqlite", dir)
 	if code != 0 {
@@ -618,6 +622,7 @@ func TestADRNew(t *testing.T) {
 
 func TestADRNewConflict(t *testing.T) {
 	dir := t.TempDir()
+	write(t, dir, "project.yaml", "version: 1\n")
 	write(t, dir, ".pal-harness/templates/adr.md", "plain\n")
 	write(t, dir, ".pal-harness/templates/adr-conflict.md", "C <NNNN> <Title>\n")
 	code, _, errs := do(t, "adr", "new", "clash", "--conflict", dir)
@@ -630,7 +635,62 @@ func TestADRNewConflict(t *testing.T) {
 }
 
 func TestADRNewNoTemplate(t *testing.T) {
-	if code, _, errs := do(t, "adr", "new", "x", t.TempDir()); code != 2 || !strings.Contains(errs, "template") {
-		t.Fatalf("%d %s", code, errs)
+	dir := t.TempDir()
+	write(t, dir, "project.yaml", "version: 1\n")
+	code, _, errs := do(t, "adr", "new", "x", dir)
+	want := "template .pal-harness/templates/adr.md not found; " + notRoot + "\n"
+	if code != 2 || errs != want {
+		t.Fatalf("%d %q", code, errs)
+	}
+}
+
+const notRoot = "run from the SSOT root (the folder with project.yaml)"
+
+func TestCommandsOutsideSSOTRoot(t *testing.T) {
+	for _, c := range [][]string{{"adr", "new", "x"}, {"adr", "new", "x", "--conflict"}, {"pin"}, {"spec", "new", "x"}} {
+		dir := t.TempDir()
+		write(t, dir, ".pal-harness/templates/adr.md", "x\n")
+		write(t, dir, ".pal-harness/templates/adr-conflict.md", "x\n")
+		code, out, errs := do(t, append(c, dir)...)
+		if code != 2 || errs != notRoot+"\n" || out != "" {
+			t.Errorf("%v: code %d out=%q err=%q", c, code, out, errs)
+		}
+		entries, _ := os.ReadDir(dir)
+		if len(entries) != 1 {
+			t.Errorf("%v: wrote files: %v", c, entries)
+		}
+	}
+}
+
+func TestPinKeepsOverrides(t *testing.T) {
+	dir := fixture(t)
+	write(t, dir, ".pal-harness/practices/workflow.md", "local patch\n")
+	write(t, dir, ".pal-harness/practices/testing.md", "drifted\n")
+	proj := strings.Replace(read(t, dir, "project.yaml"), "overrides: []",
+		"overrides:\n    - item: practices/workflow.md\n      source: 1.0.0-rc.1+patch\n      reason: r\n      since: 2026-10-17", 1)
+	write(t, dir, "project.yaml", proj)
+	if code, _, errs := do(t, "pin", dir); code != 0 {
+		t.Fatalf("pin: %d %s", code, errs)
+	}
+	if got := read(t, dir, ".pal-harness/practices/workflow.md"); got != "local patch\n" {
+		t.Fatalf("override overwritten: %q", got)
+	}
+	if got := read(t, dir, ".pal-harness/practices/testing.md"); got == "drifted\n" {
+		t.Fatal("non-overridden file not restored")
+	}
+	if code, out, _ := do(t, "check", dir); code != 0 {
+		t.Fatalf("check: %d %s", code, out)
+	}
+}
+
+func TestPinInvalidProject(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "project.yaml", "version: 3\n")
+	code, _, errs := do(t, "pin", dir)
+	if code != 2 || !strings.Contains(errs, "project.yaml: version: must be 1\n") {
+		t.Fatalf("%d %q", code, errs)
+	}
+	if _, err := os.Stat(filepath.Join(dir, ".pal-harness")); err == nil {
+		t.Fatal("pin wrote files for an invalid project")
 	}
 }
