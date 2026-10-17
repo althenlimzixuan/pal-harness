@@ -1,0 +1,6 @@
+# ssot.yaml
+version: 1
+project: fhph
+ssot: https://github.com/althenlimzixuan/fhph-docs
+role: consumer
+rank: 2
