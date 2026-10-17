@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -67,8 +68,95 @@ func fixture(t *testing.T) string {
 	if err := pin.Write(dir); err != nil {
 		t.Fatal(err)
 	}
-	write(t, dir, ".github/workflows/ssot.yml", "jobs:\n  c:\n    uses: althenlimzixuan/pal-harness/.github/workflows/check.yml@v"+harness.Version+"\n")
+	write(t, dir, ".github/workflows/ssot.yml", daemonSSOT)
 	return dir
+}
+
+// daemonSSOT is the exact ssot.yml the Pal Center daemon writes at kickstart.
+const daemonSSOT = "name: ssot\non:\n  push:\n    branches: [dev, staging, main]\n  pull_request:\n    branches: [dev, staging, main]\n" +
+	"jobs:\n  check:\n    uses: althenlimzixuan/pal-harness/.github/workflows/check.yml@v" + harness.Version +
+	"\n    with:\n      version: " + harness.Version + "\n"
+
+const ssotFinding = ".github/workflows/ssot.yml: must call althenlimzixuan/pal-harness/.github/workflows/check.yml@v" +
+	harness.Version + " with version " + harness.Version
+
+// TestCheckCRLFProject is what a Windows checkout with core.autocrlf=true
+// looks like: every file CRLF. check must still pass.
+func TestCheckCRLFProject(t *testing.T) {
+	dir := fixture(t)
+	n := 0
+	err := filepath.WalkDir(dir, func(p string, d os.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		b, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		n++
+		return os.WriteFile(p, []byte(strings.ReplaceAll(string(b), "\n", "\r\n")), 0o644)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n < 10 || !strings.Contains(read(t, dir, "project.yaml"), "\r\n") || !strings.Contains(read(t, dir, ".github/workflows/ssot.yml"), "\r\n") {
+		t.Fatalf("fixture not converted (%d files)", n)
+	}
+	if code := run([]string{"check", dir}, io.Discard, io.Discard); code != 0 {
+		_, out, errs := do(t, "check", dir)
+		t.Fatalf("code %d out=%q err=%q", code, out, errs)
+	}
+}
+
+func TestCheckSSOTWorkflowRejects(t *testing.T) {
+	v := harness.Version
+	uses := "althenlimzixuan/pal-harness/.github/workflows/check.yml@v" + v
+	cases := map[string]string{
+		"longer version tag": strings.Replace(daemonSSOT, uses, uses+"0", 1),
+		"comment only":       "# uses: " + uses + "\n# with:\n#   version: " + v + "\njobs: {}\n",
+		"fork path":          strings.Replace(daemonSSOT, "althenlimzixuan/pal-harness", "someone/pal-harness", 1),
+		"version mismatch":   strings.Replace(daemonSSOT, "version: "+v+"\n", "version: 9.9.9\n", 1),
+		"no with":            strings.Replace(daemonSSOT, "\n    with:\n      version: "+v, "", 1),
+		"not yaml":           "jobs: [\n",
+		"jobs not a map":     "jobs: [a, b]\n",
+	}
+	for name, wf := range cases {
+		t.Run(name, func(t *testing.T) {
+			if wf == daemonSSOT {
+				t.Fatal("case did not change the file")
+			}
+			dir := fixture(t)
+			write(t, dir, ".github/workflows/ssot.yml", wf)
+			code, out, errs := do(t, "check", dir)
+			if code != 1 || out != ssotFinding+"\n" {
+				t.Fatalf("code %d out=%q err=%q", code, out, errs)
+			}
+		})
+	}
+	t.Run("missing", func(t *testing.T) {
+		dir := fixture(t)
+		if err := os.Remove(filepath.Join(dir, ".github", "workflows", "ssot.yml")); err != nil {
+			t.Fatal(err)
+		}
+		if code, out, _ := do(t, "check", dir); code != 1 || out != ssotFinding+"\n" {
+			t.Fatalf("code %d out=%q", code, out)
+		}
+	})
+}
+
+func TestCheckSSOTWorkflowAcceptsDaemonFile(t *testing.T) {
+	dir := fixture(t)
+	if got := read(t, dir, ".github/workflows/ssot.yml"); got != daemonSSOT {
+		t.Fatalf("fixture ssot.yml %q", got)
+	}
+	if code, out, errs := do(t, "check", dir); code != 0 {
+		t.Fatalf("daemon file: code %d out=%q err=%q", code, out, errs)
+	}
+	// Another job alongside the check job is fine.
+	write(t, dir, ".github/workflows/ssot.yml", daemonSSOT+"  lint:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi\n")
+	if code, out, errs := do(t, "check", dir); code != 0 {
+		t.Fatalf("extra job: code %d out=%q err=%q", code, out, errs)
+	}
 }
 
 func TestCheckCleanProject(t *testing.T) {
@@ -84,8 +172,6 @@ func TestCheckFindings(t *testing.T) {
 	readme := read(t, dir, "README.md")
 	write(t, dir, "README.md", strings.Replace(readme, "provider", "providerx", 1))
 	write(t, dir, ".pal-harness/practices/workflow.md", "changed\n")
-	proj := read(t, dir, "project.yaml")
-	write(t, dir, "project.yaml", strings.Replace(proj, "version: "+harness.Version, "version: 0.9.0", 1))
 	write(t, dir, ".github/workflows/ssot.yml", "nothing\n")
 	code, out, _ := do(t, "check", dir)
 	if code != 1 {
@@ -94,8 +180,7 @@ func TestCheckFindings(t *testing.T) {
 	for _, want := range []string{
 		"README.md: components block does not match project.yaml",
 		".pal-harness: changed practices/workflow.md",
-		"project.yaml: harness.version is 0.9.0 but this checker is " + harness.Version,
-		".github/workflows/ssot.yml: must call check.yml@v" + harness.Version,
+		ssotFinding,
 	} {
 		if !strings.Contains(out, want+"\n") {
 			t.Errorf("missing %q in:\n%s", want, out)
@@ -103,6 +188,38 @@ func TestCheckFindings(t *testing.T) {
 	}
 	if strings.Contains(out, "CLAUDE.md:") {
 		t.Errorf("CLAUDE.md should be fine:\n%s", out)
+	}
+}
+
+func TestCheckVersionMismatchReportsOnlyVersion(t *testing.T) {
+	dir := fixture(t)
+	proj := read(t, dir, "project.yaml")
+	write(t, dir, "project.yaml", strings.Replace(proj, "version: "+harness.Version, "version: 0.9.0", 1))
+	write(t, dir, "README.md", "no block\n")
+	write(t, dir, ".pal-harness/practices/workflow.md", "changed\n")
+	write(t, dir, ".github/workflows/ssot.yml", "nothing\n")
+	code, out, _ := do(t, "check", dir)
+	want := "project.yaml: harness.version is 0.9.0 but this checker is " + harness.Version + "\n" +
+		"run: go run github.com/althenlimzixuan/pal-harness/cmd/pal-harness@v0.9.0 check .\n"
+	if code != 1 || out != want {
+		t.Fatalf("code %d out:\n%s", code, out)
+	}
+}
+
+func TestCheckValidationOneFindingPerProblem(t *testing.T) {
+	dir := fixture(t)
+	proj := read(t, dir, "project.yaml")
+	proj = strings.Replace(proj, "version: 1\n", "version: 3\n", 1)
+	proj = strings.Replace(proj, "key: fhph", "key: X", 1)
+	write(t, dir, "project.yaml", proj)
+	code, out, _ := do(t, "check", dir)
+	want := "project.yaml: version: must be 1\nproject.yaml: key: must match ^[a-z0-9]{2,6}$\n"
+	if code != 1 || out != want {
+		t.Fatalf("code %d out:\n%s", code, out)
+	}
+	code, _, errs := do(t, "generate", dir)
+	if code != 1 || errs != want {
+		t.Fatalf("generate: code %d err:\n%s", code, errs)
 	}
 }
 
@@ -268,9 +385,12 @@ func TestGenerateKeepsCRLF(t *testing.T) {
 }
 
 func TestPinAndVersion(t *testing.T) {
-	dir := t.TempDir()
-	if code, _, _ := do(t, "pin", dir); code != 0 {
-		t.Fatal(code)
+	dir := fixture(t)
+	if err := os.RemoveAll(filepath.Join(dir, ".pal-harness")); err != nil {
+		t.Fatal(err)
+	}
+	if code, _, errs := do(t, "pin", dir); code != 0 {
+		t.Fatal(code, errs)
 	}
 	if got := read(t, dir, ".pal-harness/VERSION"); got != harness.Version+"\n" {
 		t.Fatalf("VERSION %q", got)
@@ -338,7 +458,7 @@ func TestSpecNew(t *testing.T) {
 		t.Fatalf("branch %q", b)
 	}
 	// Second run: the new spec is untracked, so the tree is not clean. That is
-	// the refusal; it must change nothing. (Duplicate branch: next test.)
+	// the refusal; it must change nothing.
 	head := tgit(t, dir, "rev-parse", "HEAD")
 	status := tgit(t, dir, "status", "--porcelain")
 	code, _, errs = do(t, "spec", "new", "first-spec", dir)
@@ -351,19 +471,93 @@ func TestSpecNew(t *testing.T) {
 	}
 }
 
-func TestSpecNewDuplicateChangesNothing(t *testing.T) {
+// specNewAt runs spec new and checks the printed path and the new branch.
+func specNewAt(t *testing.T, dir, slug, want string) {
+	t.Helper()
+	code, out, errs := do(t, "spec", "new", slug, dir)
+	if code != 0 {
+		t.Fatalf("spec new %s: %d %s", slug, code, errs)
+	}
+	if strings.TrimSpace(out) != filepath.Join(dir, "specs", want, "spec.md") {
+		t.Fatalf("spec new %s: out %q, want %s", slug, out, want)
+	}
+	if b := tgit(t, dir, "branch", "--show-current"); b != "docs/"+want {
+		t.Fatalf("spec new %s: branch %q", slug, b)
+	}
+}
+
+func TestSpecNewSkipsLocalBranchNumbers(t *testing.T) {
 	dir := gitRepo(t)
 	tgit(t, dir, "branch", "docs/001-dup")
-	head := tgit(t, dir, "rev-parse", "HEAD")
-	code, _, errs := do(t, "spec", "new", "dup", dir)
-	if code != 2 || !strings.Contains(errs, "docs/001-dup already exists") {
-		t.Fatalf("%d %s", code, errs)
+	specNewAt(t, dir, "dup", "002-dup")
+}
+
+// Two specs in flight on unmerged branches must not share a number.
+func TestSpecNewInFlightBranches(t *testing.T) {
+	dir := gitRepo(t)
+	specNewAt(t, dir, "alpha", "001-alpha")
+	tgit(t, dir, "add", "-A")
+	tgit(t, dir, "commit", "-m", "alpha")
+	tgit(t, dir, "switch", "dev")
+	specNewAt(t, dir, "beta", "002-beta")
+}
+
+// withOrigin gives dir a bare origin remote.
+func withOrigin(t *testing.T, dir string) {
+	t.Helper()
+	remote := filepath.Join(t.TempDir(), "origin.git")
+	tgit(t, dir, "init", "--bare", "-b", "main", remote)
+	tgit(t, dir, "remote", "add", "origin", remote)
+}
+
+// pushCommit commits files on a throwaway branch, pushes it to origin as
+// dst, and deletes the local branch; the working tree is left as it was.
+func pushCommit(t *testing.T, dir, dst string, files ...string) {
+	t.Helper()
+	tgit(t, dir, "switch", "-q", "-c", "tmp-push", "dev")
+	for _, f := range files {
+		write(t, dir, f, "x\n")
+		tgit(t, dir, "add", "--", f)
 	}
-	if tgit(t, dir, "rev-parse", "HEAD") != head || tgit(t, dir, "branch", "--show-current") != "main" || tgit(t, dir, "status", "--porcelain") != "" {
-		t.Fatal("repo changed")
+	tgit(t, dir, "commit", "-q", "--allow-empty", "-m", "remote")
+	tgit(t, dir, "push", "-q", "origin", "tmp-push:"+dst)
+	tgit(t, dir, "switch", "-q", "main")
+	tgit(t, dir, "branch", "-D", "tmp-push")
+}
+
+func TestSpecNewRemoteNumbering(t *testing.T) {
+	t.Run("remote docs branch", func(t *testing.T) {
+		dir := gitRepo(t)
+		withOrigin(t, dir)
+		pushCommit(t, dir, "docs/004-remote")
+		specNewAt(t, dir, "next", "005-next")
+	})
+	t.Run("origin dev specs", func(t *testing.T) {
+		dir := gitRepo(t)
+		withOrigin(t, dir)
+		pushCommit(t, dir, "dev", "specs/006-merged/spec.md")
+		specNewAt(t, dir, "next", "007-next")
+	})
+}
+
+func TestADRNewUsesDevAndOriginDev(t *testing.T) {
+	dir := gitRepo(t)
+	write(t, dir, ".pal-harness/templates/adr.md", "# <NNNN>\n")
+	tgit(t, dir, "switch", "-q", "dev")
+	write(t, dir, "doc/ADR/0003-on-dev.md", "x\n")
+	tgit(t, dir, "add", "--", "doc/ADR/0003-on-dev.md")
+	tgit(t, dir, "commit", "-q", "-m", "adr on dev")
+	tgit(t, dir, "switch", "-q", "main")
+	code, out, errs := do(t, "adr", "new", "a", dir)
+	if code != 0 || strings.TrimSpace(out) != filepath.Join(dir, "doc", "ADR", "0004-a.md") {
+		t.Fatalf("dev: %d %q %s", code, out, errs)
 	}
-	if _, err := os.Stat(filepath.Join(dir, "specs")); err == nil {
-		t.Fatal("specs created")
+	withOrigin(t, dir)
+	// Untracked doc/ADR/0004-a.md stays in the tree through the switches.
+	pushCommit(t, dir, "dev", "doc/ADR/0009-on-origin.md")
+	code, out, errs = do(t, "adr", "new", "b", dir)
+	if code != 0 || strings.TrimSpace(out) != filepath.Join(dir, "doc", "ADR", "0010-b.md") {
+		t.Fatalf("origin/dev: %d %q %s", code, out, errs)
 	}
 }
 
@@ -461,10 +655,6 @@ func TestSpecNewPreconditions(t *testing.T) {
 	if err := os.Remove(filepath.Join(dir, "dirty.txt")); err != nil {
 		t.Fatal(err)
 	}
-	tgit(t, dir, "branch", "docs/001-a")
-	if code, _, errs := do(t, "spec", "new", "a", dir); code != 2 || !strings.Contains(errs, "exists") {
-		t.Fatalf("branch exists: %d %s", code, errs)
-	}
 	if code, _, _ := do(t, "spec", "new", "a", t.TempDir()); code != 2 {
 		t.Fatalf("no project.yaml: %d", code)
 	}
@@ -509,6 +699,7 @@ func TestADRNew(t *testing.T) {
 	now = func() time.Time { return time.Date(2026, 10, 17, 9, 0, 0, 0, time.UTC) }
 	defer func() { now = old }()
 	dir := t.TempDir()
+	write(t, dir, "project.yaml", "version: 1\n")
 	write(t, dir, ".pal-harness/templates/adr.md", "# <NNNN>. <Title>\nDate: <Date>\n")
 	code, out, errs := do(t, "adr", "new", "use-sqlite", dir)
 	if code != 0 {
@@ -530,6 +721,7 @@ func TestADRNew(t *testing.T) {
 
 func TestADRNewConflict(t *testing.T) {
 	dir := t.TempDir()
+	write(t, dir, "project.yaml", "version: 1\n")
 	write(t, dir, ".pal-harness/templates/adr.md", "plain\n")
 	write(t, dir, ".pal-harness/templates/adr-conflict.md", "C <NNNN> <Title>\n")
 	code, _, errs := do(t, "adr", "new", "clash", "--conflict", dir)
@@ -542,7 +734,62 @@ func TestADRNewConflict(t *testing.T) {
 }
 
 func TestADRNewNoTemplate(t *testing.T) {
-	if code, _, errs := do(t, "adr", "new", "x", t.TempDir()); code != 2 || !strings.Contains(errs, "template") {
-		t.Fatalf("%d %s", code, errs)
+	dir := t.TempDir()
+	write(t, dir, "project.yaml", "version: 1\n")
+	code, _, errs := do(t, "adr", "new", "x", dir)
+	want := "template .pal-harness/templates/adr.md not found; " + notRoot + "\n"
+	if code != 2 || errs != want {
+		t.Fatalf("%d %q", code, errs)
+	}
+}
+
+const notRoot = "run from the SSOT root (the folder with project.yaml)"
+
+func TestCommandsOutsideSSOTRoot(t *testing.T) {
+	for _, c := range [][]string{{"adr", "new", "x"}, {"adr", "new", "x", "--conflict"}, {"pin"}, {"spec", "new", "x"}} {
+		dir := t.TempDir()
+		write(t, dir, ".pal-harness/templates/adr.md", "x\n")
+		write(t, dir, ".pal-harness/templates/adr-conflict.md", "x\n")
+		code, out, errs := do(t, append(c, dir)...)
+		if code != 2 || errs != notRoot+"\n" || out != "" {
+			t.Errorf("%v: code %d out=%q err=%q", c, code, out, errs)
+		}
+		entries, _ := os.ReadDir(dir)
+		if len(entries) != 1 {
+			t.Errorf("%v: wrote files: %v", c, entries)
+		}
+	}
+}
+
+func TestPinKeepsOverrides(t *testing.T) {
+	dir := fixture(t)
+	write(t, dir, ".pal-harness/practices/workflow.md", "local patch\n")
+	write(t, dir, ".pal-harness/practices/testing.md", "drifted\n")
+	proj := strings.Replace(read(t, dir, "project.yaml"), "overrides: []",
+		"overrides:\n    - item: practices/workflow.md\n      source: 1.0.0-rc.1+patch\n      reason: r\n      since: 2026-10-17", 1)
+	write(t, dir, "project.yaml", proj)
+	if code, _, errs := do(t, "pin", dir); code != 0 {
+		t.Fatalf("pin: %d %s", code, errs)
+	}
+	if got := read(t, dir, ".pal-harness/practices/workflow.md"); got != "local patch\n" {
+		t.Fatalf("override overwritten: %q", got)
+	}
+	if got := read(t, dir, ".pal-harness/practices/testing.md"); got == "drifted\n" {
+		t.Fatal("non-overridden file not restored")
+	}
+	if code, out, _ := do(t, "check", dir); code != 0 {
+		t.Fatalf("check: %d %s", code, out)
+	}
+}
+
+func TestPinInvalidProject(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "project.yaml", "version: 3\n")
+	code, _, errs := do(t, "pin", dir)
+	if code != 2 || !strings.Contains(errs, "project.yaml: version: must be 1\n") {
+		t.Fatalf("%d %q", code, errs)
+	}
+	if _, err := os.Stat(filepath.Join(dir, ".pal-harness")); err == nil {
+		t.Fatal("pin wrote files for an invalid project")
 	}
 }

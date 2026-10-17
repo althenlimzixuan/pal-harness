@@ -18,14 +18,14 @@ client UAT gate, a Figma sign-off, a staged rollout). State the scope at kickoff
 - Branch per change from `dev`: `feature/ fix/ chore/ docs/`; `hotfix/` branches from `main`, PRs to `main`, then merges back into `staging` and `dev`. `main` always deployable; no direct commits to `main`.
 - **TDD**: write the failing test from a JSON fixture first (`testing.md`), then implement.
 - Follow the stack practice (`go_api` / `nextjs_web` / `react_native` / `django_admin`).
-- Every PR keeps the API contract in sync: regenerate `openapi.yaml`, update `doc/API.md`, serve Swagger UI.
+- Keep the API contract in sync by the split rule in `product_docs.md`: the provider's PR regenerates `openapi.yaml` and serves Swagger UI; in the same piece of work, the SSOT repo's PR updates its `doc/openapi.yaml` copy and `doc/API.md`.
 - **Gate**: PR with tests + lint + typecheck green.
 
 ## 3. Test
 - Coverage gate **80% minimum**, enforced in CI.
 - Layers: unit → integration → E2E (`testing.md`).
 - Contract tests validate the API against `openapi.yaml`.
-- **Gate**: all layers + coverage pass → squash-merge feature PRs into `dev`; promote `dev → staging → main` with merge commits.
+- **Gate**: all layers + coverage pass → merge the feature PR into `dev` (it may be squash-merged); promote `dev → staging → main` with merge commits.
 
 ## 4. Deliver
 - CI/CD per surface (`devops_cicd.md`): build → scan → deploy.

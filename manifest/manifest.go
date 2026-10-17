@@ -7,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"path"
 	"regexp"
 	"strings"
 	"time"
+	"unicode"
 	"unicode/utf8"
 
 	"gopkg.in/yaml.v3"
@@ -219,6 +221,36 @@ func (p *problems) roleRank(rolePath, rankPath, role string, rank int) {
 	}
 }
 
+// overrideItem checks an override item: a clean relative slash path inside
+// the pinned copy (relative to it), never the copy's VERSION file.
+func (p *problems) overrideItem(at, v string) {
+	switch {
+	case strings.Contains(v, `\`):
+		p.add(at, "must use forward slashes")
+	case strings.HasPrefix(v, "/"):
+		p.add(at, "must be relative")
+	case oneOf("..", strings.Split(v, "/")):
+		p.add(at, `must not contain ".."`)
+	case v == ".":
+		p.add(at, `must not be "."`)
+	case !isClean(v):
+		p.add(at, "must be a clean path")
+	case strings.HasPrefix(v, ".pal-harness/"):
+		p.add(at, `must not start with ".pal-harness/"`)
+	case v == "VERSION":
+		p.add(at, `must not be "VERSION"`)
+	}
+}
+
+// isClean reports whether s is already in path.Clean form.
+func isClean(s string) bool { return path.Clean(s) == s }
+
+// hasTableBreaker reports a character that would break a generated table row
+// or its code span: |, a backtick, or a control character.
+func hasTableBreaker(s string) bool {
+	return strings.ContainsAny(s, "|`") || strings.IndexFunc(s, unicode.IsControl) >= 0
+}
+
 // Validate reports every problem in the project manifest.
 func (pr *Project) Validate() error {
 	p := &problems{}
@@ -291,6 +323,9 @@ func (pr *Project) Validate() error {
 				p.add(path+"."+f.n, "must not be empty")
 			}
 		}
+		if strings.TrimSpace(o.Item) != "" {
+			p.overrideItem(path+".item", o.Item)
+		}
 		if _, err := time.Parse("2006-01-02", o.Since); err != nil || !dateRe.MatchString(o.Since) {
 			p.add(path+".since", "must be YYYY-MM-DD")
 		}
@@ -324,6 +359,12 @@ func (w *Workspace) Validate() error {
 			p.add(path+".folder", "must use forward slashes")
 		case oneOf("..", strings.Split(e.Folder, "/")):
 			p.add(path+".folder", `must not contain ".."`)
+		case e.Folder == ".":
+			p.add(path+".folder", `must not be "."`)
+		case !isClean(e.Folder):
+			p.add(path+".folder", "must be a clean path")
+		case hasTableBreaker(e.Folder):
+			p.add(path+".folder", "must not contain |, ` or control characters")
 		case folders[e.Folder]:
 			p.add(path+".folder", "duplicate %q", e.Folder)
 		}
@@ -359,7 +400,14 @@ func decodeStrict(data []byte, out any) error {
 		}
 		return err
 	}
-	return nil
+	var extra yaml.Node
+	switch err := dec.Decode(&extra); {
+	case errors.Is(err, io.EOF):
+		return nil
+	case err != nil:
+		return err
+	}
+	return errors.New("manifest has more than one YAML document")
 }
 
 // ParseProject decodes project.yaml (unknown fields are errors) and validates it.
@@ -400,7 +448,9 @@ func ParsePointer(data []byte) (*Pointer, error) {
 
 // ---- marshal ----
 
-var flowMapRe = regexp.MustCompile(`(?m)^(\s*[a-z_]+: )\{(.+)\}$`)
+// flowMapRe matches only the board lines, the one place the standard writes
+// flow maps, so text inside a multi-line string is never touched.
+var flowMapRe = regexp.MustCompile(`(?m)^(  (?:backlog|roadmap|feedback): )\{(.+)\}$`)
 
 func encode(v any) ([]byte, error) {
 	var buf bytes.Buffer

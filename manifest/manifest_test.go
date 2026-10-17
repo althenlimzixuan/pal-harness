@@ -154,6 +154,28 @@ func TestParseProjectRejects(t *testing.T) {
 		{name: "slack prefix pal", yaml: mustReplace(t, base, "slack_prefix: fhph", "slack_prefix: pal"), want: `inbox.slack_prefix: must not be "pal"`},
 		{name: "rank provider", yaml: mustReplace(t, base, "role: provider          # provider | platform | consumer\n    rank: 1", "role: provider\n    rank: 2"), want: "components[0].rank: must be 1 for role provider"},
 	}
+	override := func(item string) string {
+		return mustReplace(t, base, "overrides: []", "overrides:\n    - item: "+item+"\n      source: b\n      reason: c\n      since: 2026-10-17")
+	}
+	for _, c := range []struct{ item, want string }{
+		{`a\b`, "must use forward slashes"},
+		{"/practices/x.md", "must be relative"},
+		{"../x", `must not contain ".."`},
+		{"practices/../x", `must not contain ".."`},
+		{"practices//x.md", "must be a clean path"},
+		{"./practices", "must be a clean path"},
+		{"practices/", "must be a clean path"},
+		{".", `must not be "."`},
+		{".pal-harness/practices/x.md", `must not start with ".pal-harness/"`},
+		{"VERSION", `must not be "VERSION"`},
+	} {
+		cases = append(cases, struct {
+			name  string
+			yaml  string
+			want  string
+			field string
+		}{name: "override item " + c.item, yaml: override(c.item), want: "harness.overrides[0].item: " + c.want})
+	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := ParseProject([]byte(tc.yaml))
@@ -170,6 +192,63 @@ func TestParseProjectRejects(t *testing.T) {
 				t.Fatalf("missing problem %q in: %v", tc.want, err)
 			}
 		})
+	}
+}
+
+func TestOverrideItemAccepted(t *testing.T) {
+	base := readTestdata(t, "project.yaml")
+	for _, item := range []string{"practices/workflow.md", "templates", "skills/phase", "practices/..x.md"} {
+		y := mustReplace(t, base, "overrides: []", "overrides:\n    - item: "+item+"\n      source: b\n      reason: c\n      since: 2026-10-17")
+		if _, err := ParseProject([]byte(y)); err != nil {
+			t.Errorf("%s: %v", item, err)
+		}
+	}
+}
+
+func TestParseRejectsTrailingDocuments(t *testing.T) {
+	const want = "manifest has more than one YAML document"
+	for name, c := range map[string]struct {
+		parse func([]byte) error
+		file  string
+	}{
+		"project":   {func(b []byte) error { _, err := ParseProject(b); return err }, "project.yaml"},
+		"workspace": {func(b []byte) error { _, err := ParseWorkspace(b); return err }, "workspace.yaml"},
+		"pointer":   {func(b []byte) error { _, err := ParsePointer(b); return err }, "ssot.yaml"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			base := readTestdata(t, c.file)
+			if err := c.parse([]byte(base)); err != nil {
+				t.Fatalf("base: %v", err)
+			}
+			if err := c.parse([]byte(base + "---\nversion: 1\n")); err == nil || err.Error() != want {
+				t.Fatalf("got %v, want %q", err, want)
+			}
+			if err := c.parse([]byte(base + "---\n[\n")); err == nil {
+				t.Fatal("malformed trailing document should fail")
+			}
+		})
+	}
+}
+
+func TestMarshalProjectKeepsMultilineReason(t *testing.T) {
+	p, err := ParseProject([]byte(readTestdata(t, "project.yaml")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	p.Harness.Overrides = []Override{{Item: "practices/workflow.md", Source: "1.0.0+patch", Reason: "first line\nx: {y}\n  backlog: {z}", Since: "2026-10-17"}}
+	out, err := MarshalProject(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p2, err := ParseProject(out)
+	if err != nil {
+		t.Fatalf("%v\n%s", err, out)
+	}
+	if !reflect.DeepEqual(p, p2) {
+		t.Fatalf("round trip differs:\n%q\n%q\n%s", p.Harness.Overrides[0].Reason, p2.Harness.Overrides[0].Reason, out)
+	}
+	if !strings.Contains(string(out), "  backlog: { owner: althenlimzixuan, number: 0 }\n") {
+		t.Fatalf("boards no longer spaced:\n%s", out)
 	}
 }
 
@@ -231,6 +310,13 @@ func TestParseWorkspace(t *testing.T) {
 		{"bad summary", mustReplace(t, base, "summary: Group-trip itinerary planner", "summary: a|b"), "projects[0].summary: must be one line of 1–120 characters without |"},
 		{"bad key", mustReplace(t, base, "key: etp", "key: E"), "projects[0].key: must match ^[a-z0-9]{2,6}$"},
 		{"bad name", mustReplace(t, base, "name: Essential Traveller Planner", `name: ""`), "projects[0].name: must be one line of 1–60 characters"},
+		{"dot folder", mustReplace(t, base, "folder: ETP-Essential Traveller Planner", "folder: ."), `projects[0].folder: must not be "."`},
+		{"unclean folder", mustReplace(t, base, "folder: ETP-Essential Traveller Planner", "folder: a/./b"), "projects[0].folder: must be a clean path"},
+		{"trailing slash folder", mustReplace(t, base, "folder: ETP-Essential Traveller Planner", "folder: a/"), "projects[0].folder: must be a clean path"},
+		{"double slash folder", mustReplace(t, base, "folder: ETP-Essential Traveller Planner", "folder: a//b"), "projects[0].folder: must be a clean path"},
+		{"pipe folder", mustReplace(t, base, "folder: ETP-Essential Traveller Planner", "folder: a|b"), "projects[0].folder: must not contain |, ` or control characters"},
+		{"backtick folder", mustReplace(t, base, "folder: ETP-Essential Traveller Planner", "folder: a`b"), "projects[0].folder: must not contain |, ` or control characters"},
+		{"control folder", mustReplace(t, base, "folder: ETP-Essential Traveller Planner", `folder: "a\tb"`), "projects[0].folder: must not contain |, ` or control characters"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -249,6 +335,15 @@ func TestParseWorkspace(t *testing.T) {
 	noSummary := strings.ReplaceAll(base, "    summary: Group-trip itinerary planner   # optional, one line\n", "")
 	if _, err := ParseWorkspace([]byte(noSummary)); err != nil {
 		t.Fatalf("summary should be optional: %v", err)
+	}
+	// an empty registry is valid
+	if w, err := ParseWorkspace([]byte("version: 1\nprojects: []\n")); err != nil || len(w.Projects) != 0 {
+		t.Fatalf("empty projects: %v %v", w, err)
+	}
+	// nested folders and spaces stay valid
+	nested := mustReplace(t, base, "folder: ETP-Essential Traveller Planner", "folder: _IT-Internal-Tools/PC-Pal Center")
+	if _, err := ParseWorkspace([]byte(nested)); err != nil {
+		t.Fatalf("nested folder: %v", err)
 	}
 }
 
