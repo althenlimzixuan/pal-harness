@@ -1,0 +1,14 @@
+version: 1
+projects:
+  - key: etp
+    name: Essential Traveller Planner
+    folder: ETP-Essential Traveller Planner      # relative to the workspace root
+    ssot: https://github.com/althenlimzixuan/etp-docs
+    status: active        # active | paused | dormant | archived
+    summary: Group-trip itinerary planner   # optional, one line
+  - key: fhph
+    name: FrostHaven Party Helper
+    folder: FHPH-FrostHaven Party Helper
+    ssot: https://github.com/althenlimzixuan/fhph-docs
+    status: active
+    summary: Frosthaven party, character and session companion (web + Discord)
