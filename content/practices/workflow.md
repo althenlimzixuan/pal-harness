@@ -20,8 +20,9 @@ client UAT gate, a Figma sign-off, a staged rollout). State the scope at kickoff
 - Follow the stack practice (`go_api` / `nextjs_web` / `react_native` / `django_admin`).
 - Keep the API contract in sync by the split rule in `product_docs.md`: the provider's PR regenerates `openapi.yaml` and serves Swagger UI; in the same piece of work, the SSOT repo's PR updates its `doc/openapi.yaml` copy and `doc/API.md`.
 - **Review**: Before opening a PR that changes UI or code, run `pal-review` (`uiux` for UI changes, `code` always), handle the findings by the severity table, and put the report in the PR body: the verdict, every major and critical finding with the owner's decision, and the minor ones with what Claude did. When the work has a spec folder, also save the full report as `specs/NNN-slug/reviews/codex-<kind>-YYYY-MM-DD-HHmm.md` in the SSOT repo.
+  - `pal-review.exe` is not on PATH: call it by the absolute path in the session-start line `Codex review CLI: "<path>\pal-review.exe"` (written `pal-review` here). Run each command with a Bash timeout of 600000 ms (the 120 s default would cut it off). `run` prints `Review <id> queued` first.
   - Run from the SSOT root: `pal-review run --kind uiux` for UI changes and `pal-review run --kind code` always (`--repo <path>` takes a project-root-relative repo path such as `api`).
-  - Exit codes: 0 report printed; 3 still running (run `pal-review wait <id>` again); 4 failed; 5 skipped (put the printed reason in the PR body as the recorded skip: "Codex review: skipped (<reason>)").
+  - Exit codes: 0 report printed; 3 still running (run `pal-review wait <id>` with the id from `Review <id> queued`, same Bash timeout, until it ends); 4 failed; 5 skipped (put the printed reason in the PR body as the recorded skip: "Codex review: skipped (<reason>)").
   - Severity:
 
     | Level | Meaning | What the session does |
