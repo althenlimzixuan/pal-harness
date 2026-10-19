@@ -17,6 +17,11 @@ client UAT gate, a Figma sign-off, a staged rollout). State the scope at kickoff
 ## 2. Develop
 - Branch per change from `dev`: `feature/ fix/ chore/ docs/`; `hotfix/` branches from `main`, PRs to `main`, then merges back into `staging` and `dev`. `main` always deployable; no direct commits to `main`.
 - **TDD**: write the failing test from a JSON fixture first (`testing.md`), then implement.
+- **Code patterns** (every component, every stack):
+  - **Clean layers**: business logic lives only in the use-case layer (Go: `usecase/`; other stacks: a use-case module per domain, kept out of components, screens, stores and views). Entities and models are plain data: no operations, no I/O, no framework calls. Handlers, screens and admin views stay thin: parse input, call a use case, render the result.
+  - **SOLID**: one responsibility per type and file; small interfaces; depend on interfaces, not concrete implementations.
+  - **DRY**: one home for each rule, value and query. Search for an existing helper before writing one; a second copy of the same logic is a defect.
+  - A breach of these patterns is a review finding like any other.
 - Follow the stack practice (`go_api` / `nextjs_web` / `react_native` / `django_admin`).
 - Keep the API contract in sync by the split rule in `product_docs.md`: the provider's PR regenerates `openapi.yaml` and serves Swagger UI; in the same piece of work, the SSOT repo's PR updates its `doc/openapi.yaml` copy and `doc/API.md`.
 - **Review**: Before opening a PR that changes UI or code, run `pal-review` (`uiux` for UI changes, `code` always), handle the findings by the severity table, and put the report in the PR body: the verdict, every major and critical finding with the owner's decision, and the minor ones with what Claude did. When the work has a spec folder, also save the full report as `specs/NNN-slug/reviews/codex-<kind>-YYYY-MM-DD-HHmm.md` in the SSOT repo.
