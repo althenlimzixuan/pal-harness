@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0 — 2026-10-19
+
+- Added the **Review** rule to the Develop phase of `workflow.md`: sessions run `pal-review` (Codex) before a PR that changes UI or code, handle findings by the severity table, and report the result in the PR.
+
 ## 1.0.0 — 2026-10-17
 
 Final-review fixes.
