@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0 — 2026-10-19
+
+- Added the **Code patterns** rule to the Develop phase of `workflow.md`: clean layers (business logic only in the use-case layer), SOLID and DRY apply to every component on every stack, and a breach is a review finding.
+
 ## 1.1.0 — 2026-10-19
 
 - Added the **Review** rule to the Develop phase of `workflow.md`: sessions run `pal-review` (Codex) before a PR that changes UI or code, handle findings by the severity table, and report the result in the PR.
