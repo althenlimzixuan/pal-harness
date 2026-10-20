@@ -53,7 +53,7 @@ Ask, with a recommended answer and its reason:
      exit codes, the version rule, severity and 3 fix rounds as in `references/review.md`).
   4. Its PR into `staging` merges on its own after the review and green CI, with
      `gh pr merge <n> -R <owner/repo> --merge` (never squash); staging (or the local
-     stack) redeploys. Then PR the same branch into `dev` too.
+     stack) redeploys. Then PR the same branch into `dev` too, merged with `--merge`.
   5. The step reopens: the feature becomes `retest`, and the owner runs that step again.
 - **defer** — only a backlog issue is filed:
   1. `gh issue create -R <owner/repo>` with label `bug` and a body starting

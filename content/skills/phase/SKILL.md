@@ -149,7 +149,8 @@ At every stop:
 5. When the owner replies: record the answer (owner answers to questions go in
    `doc/decisions.md`), clear `waiting_on_owner`, update `last_progress_at`, commit and push.
 6. Work state: at a stop run `pal-work status --session <name> --state waiting` (the `Work CLI:`
-   line gives the path), after the owner's reply `--state working`, at `done` `--state idle`.
+   line gives the path; `<name>` is the session name in phase-state `session:`; skip this when the
+   line is missing or the CLI exits 5), after the owner's reply `--state working`, at `done` `--state idle`.
 7. Then compact before continuing: run `/compact` when this session can, or reload from
    `phase-state.yaml`, the stage's reference and the approved files, never from memory of the
    earlier stage.
@@ -174,11 +175,13 @@ kind, reviews from a worktree set and the Features tab need 0.4.0 or later. The 
 `Work CLI: "<path>"`, `Capture CLI: "<path>"` and `Codex review CLI: "<path>"` give the paths of
 `pal-work`, `pal-capture` and `pal-review`. A CLI that exits 5 means Pal Center is not running. With
 no version line, an older version or exit 5, use the interim rows.
+With Pal Center 0.4.0 or later the staging test collects results with `wait-results --phase NNN`
+armed through Monitor, and `results --phase NNN` after a resume (`references/staging-test.md` section 3).
 
 | Missing piece | Do this |
 |---|---|
 | Pal Center older than 0.4.0 (no `doc` kind, no worktree-set reviews) | Record "Codex spec review: not available" and `<kind>: not available (worktree set)` in `codex.skipped` and go on; never run `pal-review` from the owner's checkout for a phase |
-| Features tab and `pal-work` (older than 0.4.0, or exit 5) | Walk the owner through the test script step by step through Remote Control and record the results in `doc/features.yaml` (`env: local` until the project has staging). Otherwise `references/staging-test.md` section 3: `wait-results --phase NNN` armed through Monitor, and `results --phase NNN` after a resume or compaction |
+| Features tab and `pal-work` (older than 0.4.0, or exit 5) | Walk the owner through the test script step by step through Remote Control and record the results in `doc/features.yaml` (`env: local` until the project has staging) |
 | Capture command (no `Capture CLI:` line, or exit 5) | Retro ideas go to `_feedbacks/YYYY-MM-DD-HHmm.md` |
 | Scheduled pickup, stuck alerts | `/pm pickup` runs the ladder by hand; there is no stuck alert, so send "needs you" yourself when stuck |
 | CI report jobs, fingerprint skip | Run the reports once, locally, on the final commit |

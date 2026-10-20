@@ -257,7 +257,7 @@ func TestContentComplete(t *testing.T) {
 		}
 	}
 	for _, p := range []string{"skills/phase/references/review.md", "skills/quick-fix/SKILL.md",
-		"skills/phase/references/staging-test.md"} {
+		"skills/phase/references/staging-test.md", "skills/pm/SKILL.md"} {
 		if strings.Contains(text(p), "--squash") {
 			t.Errorf("%s: session PRs merge with --merge, never --squash", p)
 		}

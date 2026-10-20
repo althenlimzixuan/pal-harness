@@ -19,7 +19,7 @@ No stage may be skipped; the one exception is the tests on a promotion whose tre
 
 - `main` is always deployable to production; production deploys run only from `main`
 - Work branches from `dev`: `feature/`, `fix/`, `chore/`, `docs/` prefixes; `hotfix/` branches from `main`, PRs to `main`, then merges back into `staging` and `dev`
-- **Branch model before production:** a phase PR into `dev` (it may be squash-merged) merges on its own once CI and the reviews pass. The owner merges the `[HUMAN GATE]` sign-off PR `dev → staging`. `staging → main` merges on its own after the owner's staging test (passed or deferred). Promotions use merge commits.
+- **Branch model before production:** a phase PR into `dev` (one the owner merges by hand may be squash-merged; a session merges its own with `gh pr merge --merge`) merges on its own once CI and the reviews pass. The owner merges the `[HUMAN GATE]` sign-off PR `dev → staging`. `staging → main` merges on its own after the owner's staging test (passed or deferred). Promotions use merge commits.
 - **In production:** the project adds the owner's gate on `main` as a Workflow Override.
 - A "fix now" during a staging test branches from `staging`, PRs into `staging` (staging redeploys), and is merged back into `dev`
 - No direct commits to `main`
