@@ -2,7 +2,7 @@
 
 ## GitHub Actions Pipeline
 
-Every repository must pass all stages before a PR merges (and before each promotion toward `main`):
+Every repository must pass all stages on a PR's final commit before it merges:
 
 | Stage | Go API | Next.js Web | React Native |
 |---|---|---|---|
@@ -13,7 +13,7 @@ Every repository must pass all stages before a PR merges (and before each promot
 | Build | `make build` | `next build` | `eas build --platform all` |
 | Docker build | Yes (API only) | — (Vercel) | — (EAS) |
 
-No stage may be skipped. Flaky tests must be fixed, not retried.
+No stage may be skipped; the one exception is the tests on a promotion whose tree hash already passed (below). Flaky tests must be fixed, not retried.
 
 ## Branch & Merge Strategy
 

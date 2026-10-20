@@ -8,9 +8,10 @@ override specifics under a **Workflow Overrides** heading (a client UAT gate, a 
 ## The flow
 
 North star, then Pal picks a bundle, then spec, plan, build, review, sign-off, the owner's staging
-test, ship, retro. The owner stops the flow at four points only: the **spec**, the **plan**, the
-**sign-off** PR and the **staging test**. Everything sent to the owner opens with numbered points,
-reads in about 10 minutes and works on a phone. Never wait on the owner anywhere else.
+test, ship, retro. The four planned owner stops are the **spec**, the **plan**, the **sign-off** PR
+and the **staging test**. Besides those, a session asks the owner only for a major or critical
+finding, an exhausted fix-round limit, or a stuck build, always with a "needs you" notification.
+Everything sent to the owner opens with numbered points, reads in about 10 minutes and works on a phone.
 
 1. **Choose.** `/pm` proposes a bundle (one roadmap feature plus nearby fixes, about a working day) and
    a vehicle: `phase`, `quick-fix` (no spec or plan, still reviewed, adds a test step) or `owner-task`.
@@ -18,7 +19,8 @@ reads in about 10 minutes and works on a phone. Never wait on the owner anywhere
    everything else goes to `doc/later.md`.
 2. **Spec.** Draft it alone from the north star, the card and `doc/decisions.md`. Small choices go in
    "Calls I made". Ask only what changes the build: numbered, at the top, each with a recommended
-   answer. Each feature carries a numbered test script (step: what you do, what you should see).
+   answer, so one reply works: `accept all` takes every recommended answer; `accept all except 2: B`
+   changes one. Each feature carries a numbered test script (step: what you do, what you should see).
    Codex reviews the spec first; after the owner asks for changes, Codex re-checks unless the reply
    says `skip Codex` (recorded). Codex never reviews the plan.
 3. **Plan.** After the spec is approved. Every task names its repo, files, the failing test and JSON
@@ -31,10 +33,11 @@ reads in about 10 minutes and works on a phone. Never wait on the owner anywhere
    notify only for needs you, done and stuck.
 5. **Review.** Codex reviews code every phase and the UI when screens changed. Claude's six reviewers
    (code, tests, errors, security, contract, UI) run when their trigger applies. Fix rounds: 3, or 5
-   for per-task reviews in a larger build; then ask the owner.
-6. **Sign-off.** Tests and reports (`testing.md`) pass, then one `[HUMAN GATE]` sign-off PR per phase in
+   for per-task reviews in a larger build; then ask the owner ("needs you").
+6. **Sign-off.** Tests and reports (`testing.md`) pass (regression too, until the project has staging), then one `[HUMAN GATE]` sign-off PR per phase in
    the SSOT repo, readable in 10 minutes. Merging it approves the whole phase.
-7. **Staging test.** Staging is built fresh with seed data. The owner runs each feature's test script:
+7. **Staging test.** Staging is built fresh with seed data; regression (and an opted-in load test) runs
+   there and its report joins the phase folder before the owner starts. The owner runs each feature's test script:
    pass or fail per step. A failure is **fix now** or **defer** (a backlog issue; the feature is
    `deferred`, not done). Anything else the owner raises: fix now when small and within the phase,
    otherwise defer as `feedback`. A feature is done when it passes on staging.

@@ -131,7 +131,7 @@ func TestContentComplete(t *testing.T) {
 
 	// The phase flow practices (design §3-§11, §12.8).
 	has("practices/workflow.md", ".pal-harness/skills/phase/SKILL.md", "before production", "[HUMAN GATE]",
-		"spec", "plan", "sign-off", "staging test", "retro", "10 minutes", "Code patterns", "pal-review")
+		"spec", "plan", "sign-off", "staging test", "retro", "10 minutes", "Code patterns", "pal-review", "accept all")
 	lacks("practices/workflow.md", "Four phases, each with a gate")
 	has("practices/testing.md", "_test_reports/<component>/", "summary.md", "tree hash", "80%", "20%",
 		"5 points", "include load test", "n/a")

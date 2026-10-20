@@ -61,14 +61,18 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
   only builds and deploys. Reports live in the SSOT repo, so committing them never changes the code
   under test. Until CI has report jobs, the session runs the reports once, locally, on the final commit.
 - **Location:** `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/` in the SSOT repo, committed.
-- **Every phase:** `unit_test.html`, `test_coverage.html`, `regression.html` (after staging deploys),
+- **Every phase:** `unit_test.html`, `test_coverage.html`, `regression.html`,
   `profiling.html`, and a numbered `summary.md` (pass/fail counts, coverage %, slowest calls, change
   since the last report, verdict against the thresholds below).
+- **Regression timing:** once the project has staging, regression (and the opted-in load test) runs on
+  staging after the sign-off PR merges, and its report joins the phase folder before the owner's staging
+  test. Until the project has staging, regression runs with the other reports on the final commit,
+  before the sign-off PR.
 - **On request only:** `load_test.html`, a load test against staging. The owner asks by adding
   "include load test" to the plan approval.
 - **Blocking problems:** coverage under 80%; a failing test; an API call's p95 more than 20% slower,
   or a web page's Lighthouse performance score 5 points or more lower, than the previous phase's report
-  (the first phase sets the baseline). Claude gets 3 fix rounds, then asks the owner.
+  (the first phase sets the baseline). Claude gets 3 fix rounds, then the session asks the owner (a "needs you" notification).
 - A missing, empty or stale report (not from the final commit) is a review finding.
 - **A report the project cannot make yet.** One that does not apply to the stack (Lighthouse with no web
   surface) is recorded as "n/a" with the reason. One that applies but has no tooling becomes a task in
