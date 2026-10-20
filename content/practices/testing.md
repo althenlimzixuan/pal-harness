@@ -53,3 +53,25 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
 - Generated code (wire_gen.go, swaggo docs, shadcn/ui components)
 - One-line utility functions with no branching logic
 - Third-party library behaviour
+
+## Test reports
+
+- **One run, on the final commit.** CI runs the tests once on each PR's final commit; that run makes
+  the reports. A promotion whose code fingerprint (git tree hash) already passed skips the tests and
+  only builds and deploys. Reports live in the SSOT repo, so committing them never changes the code
+  under test. Until CI has report jobs, the session runs the reports once, locally, on the final commit.
+- **Location:** `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/` in the SSOT repo, committed.
+- **Every phase:** `unit_test.html`, `test_coverage.html`, `regression.html` (after staging deploys),
+  `profiling.html`, and a numbered `summary.md` (pass/fail counts, coverage %, slowest calls, change
+  since the last report, verdict against the thresholds below).
+- **On request only:** `load_test.html`, a load test against staging. The owner asks by adding
+  "include load test" to the plan approval.
+- **Blocking problems:** coverage under 80%; a failing test; an API call's p95 more than 20% slower,
+  or a web page's Lighthouse performance score 5 points or more lower, than the previous phase's report
+  (the first phase sets the baseline). Claude gets 3 fix rounds, then asks the owner.
+- A missing, empty or stale report (not from the final commit) is a review finding.
+- **A report the project cannot make yet.** One that does not apply to the stack (Lighthouse with no web
+  surface) is recorded as "n/a" with the reason. One that applies but has no tooling becomes a task in
+  the project's first plan; until it ships, the report is a recorded skip, not a blocker.
+- **Suggested tools:** gotestsum and Go's cover tool, jest-html-reporter and Istanbul, pytest-html,
+  Playwright's HTML report, pprof, Lighthouse, k6 (load).

@@ -129,6 +129,17 @@ func TestContentComplete(t *testing.T) {
 		lacks(p, "squash-merge feature PRs", "squash-merge into")
 	}
 
+	// The phase flow practices (design §3-§11, §12.8).
+	has("practices/workflow.md", ".pal-harness/skills/phase/SKILL.md", "before production", "[HUMAN GATE]",
+		"spec", "plan", "sign-off", "staging test", "retro", "10 minutes", "Code patterns", "pal-review")
+	lacks("practices/workflow.md", "Four phases, each with a gate")
+	has("practices/testing.md", "_test_reports/<component>/", "summary.md", "tree hash", "80%", "20%",
+		"5 points", "include load test", "n/a")
+	has("practices/ssot_standard.md", "doc/features.yaml", "doc/north-star.md", "doc/decisions.md",
+		"doc/later.md", "_test_reports/", "phase-state.yaml")
+	lacks("practices/ssot_standard.md", "superpowers writes its design and plan into that folder")
+	has("practices/devops_cicd.md", "before production", "staging → main")
+
 	has("templates/adr-conflict.md", "- **Status:** Accepted\n")
 
 	// The phase flow templates (design §5, §6, §10.1, §11.3, §12.8.6).
