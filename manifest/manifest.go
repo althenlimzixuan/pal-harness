@@ -85,8 +85,9 @@ type Inbox struct {
 }
 
 type Harness struct {
-	Version   string     `yaml:"version"`
-	Overrides []Override `yaml:"overrides"`
+	Version           string     `yaml:"version"`
+	LegacySpecsBefore string     `yaml:"legacy_specs_before,omitempty"`
+	Overrides         []Override `yaml:"overrides"`
 }
 
 type Override struct {
@@ -133,6 +134,7 @@ var (
 	folderRe   = regexp.MustCompile(`^[a-z][a-z0-9_-]{0,29}$`)
 	repoRe     = regexp.MustCompile(`^https://github\.com/([A-Za-z0-9][A-Za-z0-9-]*)/([A-Za-z0-9._-]+?)(\.git)?$`)
 	semverRe   = regexp.MustCompile(`^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$`)
+	specNumRe  = regexp.MustCompile(`^\d{3}$`)
 	dateRe     = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
 	driveRe    = regexp.MustCompile(`^[A-Za-z]:`)
 	reserved   = []string{"doc", "specs", "context", "postman", "_feedbacks"}
@@ -315,6 +317,9 @@ func (pr *Project) Validate() error {
 
 	if !semverRe.MatchString(pr.Harness.Version) {
 		p.add("harness.version", "must be semver")
+	}
+	if v := pr.Harness.LegacySpecsBefore; v != "" && !specNumRe.MatchString(v) {
+		p.add("harness.legacy_specs_before", "must be three digits")
 	}
 	for i, o := range pr.Harness.Overrides {
 		path := fmt.Sprintf("harness.overrides[%d]", i)

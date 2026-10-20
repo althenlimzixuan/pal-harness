@@ -409,3 +409,32 @@ func TestRankFor(t *testing.T) {
 		}
 	}
 }
+
+func TestLegacySpecsBefore(t *testing.T) {
+	base := readTestdata(t, "project.yaml")
+	with := func(v string) string {
+		return mustReplace(t, base, "overrides: []", "legacy_specs_before: "+v+"\n  overrides: []")
+	}
+	p, err := ParseProject([]byte(with(`"097"`)))
+	if err != nil || p.Harness.LegacySpecsBefore != "097" {
+		t.Fatalf("valid: %v %+v", err, p)
+	}
+	out, err := MarshalProject(p)
+	if err != nil || !strings.Contains(string(out), "legacy_specs_before:") {
+		t.Fatalf("marshal: %v\n%s", err, out)
+	}
+	q, err := ParseProject([]byte(base))
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err = MarshalProject(q)
+	if err != nil || strings.Contains(string(out), "legacy_specs_before") {
+		t.Fatalf("unset must be omitted: %v\n%s", err, out)
+	}
+	for _, v := range []string{`"97"`, `"0097"`, `"abc"`, `"09a"`} {
+		_, err := ParseProject([]byte(with(v)))
+		if !hasProblem(err, "harness.legacy_specs_before: must be three digits") {
+			t.Errorf("%s: %v", v, err)
+		}
+	}
+}

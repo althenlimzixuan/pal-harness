@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.2 — 2026-10-21
+
+A project that adopts the phase flow late can leave its old specs alone.
+
+- Added the optional `harness.legacy_specs_before` field to `project.yaml` (three digits). `check` skips `phase-state.yaml` in `specs/NNN-*` below it; later specs are validated as before.
+
 ## 1.3.1 — 2026-10-20
 
 The phase flow uses Pal Center 0.4.0.
