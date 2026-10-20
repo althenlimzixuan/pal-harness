@@ -865,3 +865,38 @@ func TestCheckReportsLoaderDrift(t *testing.T) {
 		t.Fatalf("code %d out %q", code, out)
 	}
 }
+
+func TestRenderMissingDiagram(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "spec.md", "# T\n\n[Flow](diagrams/none.mmd)\n")
+	code, _, stderr := do(t, "render", filepath.Join(dir, "spec.md"))
+	if code != 1 || stderr != "render: diagrams/none.mmd: file not found\n" {
+		t.Errorf("code %d stderr %q", code, stderr)
+	}
+	if exists(filepath.Join(dir, "spec.html")) {
+		t.Error("spec.html written")
+	}
+}
+
+func TestRenderWritesHTML(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "spec.md", "# Hello\n\n[Flow](diagrams/flow.mmd)\n")
+	write(t, dir, "diagrams/flow.mmd", "graph TD; A-->B")
+	code, _, stderr := do(t, "render", filepath.Join(dir, "spec.md"))
+	if code != 0 {
+		t.Fatalf("code %d stderr %q", code, stderr)
+	}
+	html := read(t, dir, "spec.html")
+	if !strings.Contains(html, "<title>Hello</title>") || !strings.Contains(html, "A--&gt;B") {
+		t.Errorf("html = %s", html)
+	}
+}
+
+func TestRenderArgCount(t *testing.T) {
+	if code, _, _ := do(t, "render"); code != 2 {
+		t.Errorf("no args: code %d", code)
+	}
+	if code, _, _ := do(t, "render", "a.md", "b.md"); code != 2 {
+		t.Errorf("two args: code %d", code)
+	}
+}

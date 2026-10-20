@@ -19,6 +19,7 @@ import (
 	"github.com/althenlimzixuan/pal-harness/manifest"
 	"github.com/althenlimzixuan/pal-harness/number"
 	"github.com/althenlimzixuan/pal-harness/pin"
+	"github.com/althenlimzixuan/pal-harness/render"
 	"github.com/althenlimzixuan/pal-harness/state"
 	"gopkg.in/yaml.v3"
 )
@@ -34,6 +35,7 @@ const usage = `usage:
   pal-harness pin [dir]
   pal-harness spec new <slug> [dir]
   pal-harness adr new <slug> [--conflict] [dir]
+  pal-harness render <file.md>
   pal-harness version
 `
 
@@ -69,6 +71,11 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return runGenerate(dir, stderr)
 		}
 		return runPin(dir, stderr)
+	case "render":
+		if len(rest) != 1 {
+			return usageErr(stderr, "render takes one Markdown file")
+		}
+		return runRender(rest[0], stderr)
 	case "spec", "adr":
 		if len(rest) == 0 || rest[0] != "new" {
 			return usageErr(stderr, "expected: "+args[0]+" new <slug>")
@@ -551,5 +558,27 @@ func newSpec(dir, slug string, stdout, stderr io.Writer) int {
 		return fail(stderr, "%v (rolled back to %s)", err, orig)
 	}
 	fmt.Fprintln(stdout, path)
+	return 0
+}
+
+// runRender writes <file>.html beside the Markdown file. Diagram links are
+// read relative to the Markdown file's folder; nothing is written on error.
+func runRender(file string, stderr io.Writer) int {
+	md, err := os.ReadFile(file)
+	if err != nil {
+		return fail(stderr, "render: %v", err)
+	}
+	base := filepath.Dir(file)
+	page, err := render.Page(md, func(rel string) ([]byte, error) {
+		return os.ReadFile(filepath.Join(base, filepath.FromSlash(rel)))
+	})
+	if err != nil {
+		fmt.Fprintln(stderr, "render: "+err.Error())
+		return 1
+	}
+	out := strings.TrimSuffix(file, filepath.Ext(file)) + ".html"
+	if err := os.WriteFile(out, page, 0o644); err != nil {
+		return fail(stderr, "render: %v", err)
+	}
 	return 0
 }
