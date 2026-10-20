@@ -23,6 +23,7 @@ func TestContentComplete(t *testing.T) {
 		"content/practices/ssot_standard.md",
 		"content/practices/testing.md",
 		"content/practices/workflow.md",
+		"content/skills/pm/SKILL.md",
 		"content/templates/adr-conflict.md",
 		"content/templates/adr.md",
 		"content/templates/decisions.md",
@@ -162,6 +163,12 @@ func TestContentComplete(t *testing.T) {
 	if _, f := state.ParseFeatures([]byte(text("templates/features.yaml"))); len(f) != 0 {
 		t.Errorf("templates/features.yaml findings: %v", f)
 	}
+
+	// The pm skill: choosing the work (design §3, §4, §12.8.1/5/9).
+	has("skills/pm/SKILL.md", "name: pm", "up to 6", "at least one roadmap feature", "bundle",
+		"about one working day", "quick-fix", "owner-task", "doc/later.md", "every 5 phases",
+		"doc/north-star.md", "doc/features.yaml", "Approved to run", "Recommended next", "Todo",
+		"/pm pickup", "retest", "deferred", "seed")
 
 	// Size caps (anti-goal: rule growth) and front matter for skills and agents.
 	front := func(p string) map[string]string {
