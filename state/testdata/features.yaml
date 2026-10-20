@@ -1,0 +1,22 @@
+- id: F-012
+  name: Trip budget
+  label: need
+  why: Know before the trip whether the plan fits the money.
+  use_case: Set a budget, see each day's spend against it.
+  status: building
+  phase: "096"
+  test_script:
+    - {step: 1, do: "Open a trip and set a budget of 500", expect: "The budget shows 500 on the trip page"}
+    - {step: 2, do: "Add a 120 expense", expect: "The day shows 120 of 500"}
+  results: []
+- id: F-013
+  name: Shared packing list
+  label: might
+  why: Nobody forgets the charger.
+  use_case: Each member ticks items off a shared list.
+  status: todo
+  phase: ""
+  test_script:
+    - {step: 1, do: "Tick an item", expect: "The item is ticked for everyone"}
+  results:
+    - {date: 2026-10-20, env: staging, step: 1, result: pass, note: "", issue: ""}
