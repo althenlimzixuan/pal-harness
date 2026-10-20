@@ -96,6 +96,7 @@ Tools: `pal-harness <command>` runs as
 - `spec.md` follows the harness template: numbered summary, questions, calls I made, features with
   test scripts, UX outline, contract (only when the API changes), out of scope, appendix.
 - Each Roadmap card names its `specs/NNN-slug/`, and the folder names the card (§4.6).
+- A project that adopts the phase flow late sets `harness.legacy_specs_before` to its first phase-flow spec number; older specs keep their old format and are history.
 
 ## 6. Which source wins, and the boards (§12.8, §5.4)
 
