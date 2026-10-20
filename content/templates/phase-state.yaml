@@ -1,0 +1,18 @@
+phase: "096"
+slug: trip-budget
+title: Trip budget
+vehicle: phase                 # phase | quick-fix
+bundle: {features: [F-012], issues: ["owner/repo#431"]}
+stage: spec                    # spec | spec-review | planning | plan-review | building | code-review
+                               # | signoff | staging-test | shipping | done
+waiting_on_owner: null         # or {kind: spec-review|plan-review|questions|findings|signoff|staging-test,
+                               #      since: <RFC3339>, link: <phone page or PR URL>, questions: 2}
+approach: inline               # inline | subagent
+session: ""                    # name of the Claude session running this phase
+tasks: {done: 0, total: 0}
+ci: none                       # green | red | running | none
+load_test: false
+codex: {spec: 0, code: 0, uiux: 0, skipped: []}
+gates: {spec_approved: null, plan_approved: null, signoff_merged: null, staging_test_done: null}
+last_progress_at: 2026-01-01T09:00:00+08:00
+notes: []                      # one-line breadcrumbs

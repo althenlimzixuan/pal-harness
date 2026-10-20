@@ -14,11 +14,12 @@ where `<version>` is the project's `harness.version`. `dir` defaults to `.`.
 
 | Command | What it does |
 |---|---|
-| `check [dir]` | In an SSOT root (`project.yaml`): validates the manifest, checks that the generated blocks in `README.md` and `CLAUDE.md` match it, that `.pal-harness/` matches this release (overridden items skipped), and that `.github/workflows/ssot.yml` calls `check.yml@v<version>` with that version. In the workspace root (`workspace.yaml`): checks the registry block in `CLAUDE.md`. On a `harness.version` mismatch it reports only that and the command to run instead. |
+| `check [dir]` | In an SSOT root (`project.yaml`): validates the manifest, checks that the generated blocks in `README.md` and `CLAUDE.md` match it, that `.pal-harness/` matches this release (overridden items skipped), and that `.github/workflows/ssot.yml` calls `check.yml@v<version>` with that version. It also validates `doc/features.yaml` and `specs/*/phase-state.yaml`, and reports drift in the loaders under `.claude/`. In the workspace root (`workspace.yaml`): checks the registry block in `CLAUDE.md`. On a `harness.version` mismatch it reports only that and the command to run instead. |
 | `generate [dir]` | Rewrites the generated blocks from the manifest. Writes nothing if any block is missing or broken. |
-| `pin [dir]` | Writes this release's `.pal-harness/` copy, leaving overridden items untouched. SSOT root only. |
+| `pin [dir]` | Writes this release's `.pal-harness/` copy, leaving overridden items untouched, and the skill and agent loaders into `.claude/skills/` and `.claude/agents/`. SSOT root only. |
 | `spec new <slug> [dir]` | On a clean tree, creates branch `docs/NNN-slug` from `dev` with `specs/NNN-slug/spec.md`. `NNN` is one past the highest number in `specs/`, on `dev` and `origin/dev`, and in any `docs/NNN-*` branch, local or remote. SSOT root only. |
 | `adr new <slug> [--conflict] [dir]` | Creates `doc/ADR/NNNN-slug.md` from the ADR (or conflict ADR) template. `NNNN` is one past the highest number in `doc/ADR/`, on `dev` and on `origin/dev`. SSOT root only. |
+| `render <file.md>` | Renders a Markdown file as a phone-readable page. |
 | `version` | Prints the harness version. |
 
 Exit codes: `0` clean or done, `1` findings (or a block `generate` cannot write), `2` usage,

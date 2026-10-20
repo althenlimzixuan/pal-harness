@@ -793,3 +793,110 @@ func TestPinInvalidProject(t *testing.T) {
 		t.Fatal("pin wrote files for an invalid project")
 	}
 }
+
+func stateFixture(t *testing.T, name string) string {
+	t.Helper()
+	b, err := os.ReadFile("../../state/testdata/" + name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(b)
+}
+
+func TestCheckWithoutStateFiles(t *testing.T) {
+	dir := fixture(t)
+	code, out, errs := do(t, "check", dir)
+	if code != 0 || out != "" {
+		t.Fatalf("code %d out=%q err=%q", code, out, errs)
+	}
+}
+
+func TestCheckStateFindings(t *testing.T) {
+	dir := fixture(t)
+	write(t, dir, "doc/features.yaml", strings.Replace(stateFixture(t, "features.yaml"), "label: need", "label: maybe", 1))
+	write(t, dir, "specs/004-x/phase-state.yaml", strings.Replace(stateFixture(t, "phase-state.yaml"), "stage: building", "stage: validate", 1))
+	code, out, errs := do(t, "check", dir)
+	if code != 1 {
+		t.Fatalf("code %d out=%q err=%q", code, out, errs)
+	}
+	for _, want := range []string{
+		"doc/features.yaml: F-012: label must be need or might",
+		`specs/004-x/phase-state.yaml: stage "validate" is not one of`,
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("missing %q in %q", want, out)
+		}
+	}
+}
+
+func TestCheckStateValidFiles(t *testing.T) {
+	dir := fixture(t)
+	write(t, dir, "doc/features.yaml", stateFixture(t, "features.yaml"))
+	write(t, dir, "specs/004-x/phase-state.yaml", stateFixture(t, "phase-state.yaml"))
+	code, out, errs := do(t, "check", dir)
+	if code != 0 {
+		t.Fatalf("code %d out=%q err=%q", code, out, errs)
+	}
+}
+
+func TestCheckStateUnreadable(t *testing.T) {
+	dir := fixture(t)
+	write(t, dir, "doc/features.yaml/x", "dir where a file should be\n")
+	code, _, errs := do(t, "check", dir)
+	if code != 2 || !strings.Contains(errs, "doc/features.yaml") {
+		t.Fatalf("code %d err=%q", code, errs)
+	}
+}
+
+func TestCheckReportsLoaderDrift(t *testing.T) {
+	ls := pin.Loaders()
+	if len(ls) == 0 {
+		t.Fatal("no embedded loaders")
+	}
+	dir := fixture(t)
+	if code, out, _ := do(t, "check", dir); code != 0 {
+		t.Fatalf("clean fixture: %d %s", code, out)
+	}
+	if err := os.Remove(filepath.Join(dir, filepath.FromSlash(ls[0].Path))); err != nil {
+		t.Fatal(err)
+	}
+	code, out, _ := do(t, "check", dir)
+	if code != 1 || !strings.Contains(out, "missing "+ls[0].Path) {
+		t.Fatalf("code %d out %q", code, out)
+	}
+}
+
+func TestRenderMissingDiagram(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "spec.md", "# T\n\n[Flow](diagrams/none.mmd)\n")
+	code, _, stderr := do(t, "render", filepath.Join(dir, "spec.md"))
+	if code != 1 || stderr != "render: diagrams/none.mmd: file not found\n" {
+		t.Errorf("code %d stderr %q", code, stderr)
+	}
+	if exists(filepath.Join(dir, "spec.html")) {
+		t.Error("spec.html written")
+	}
+}
+
+func TestRenderWritesHTML(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "spec.md", "# Hello\n\n[Flow](diagrams/flow.mmd)\n")
+	write(t, dir, "diagrams/flow.mmd", "graph TD; A-->B")
+	code, _, stderr := do(t, "render", filepath.Join(dir, "spec.md"))
+	if code != 0 {
+		t.Fatalf("code %d stderr %q", code, stderr)
+	}
+	html := read(t, dir, "spec.html")
+	if !strings.Contains(html, "<title>Hello</title>") || !strings.Contains(html, "A--&gt;B") {
+		t.Errorf("html = %s", html)
+	}
+}
+
+func TestRenderArgCount(t *testing.T) {
+	if code, _, _ := do(t, "render"); code != 2 {
+		t.Errorf("no args: code %d", code)
+	}
+	if code, _, _ := do(t, "render", "a.md", "b.md"); code != 2 {
+		t.Errorf("two args: code %d", code)
+	}
+}
