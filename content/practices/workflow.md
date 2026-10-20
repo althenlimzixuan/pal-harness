@@ -51,7 +51,7 @@ Every 5 phases Pal walks the north star, the feature list and the later list wit
 ## Branches and merges (before production)
 
 - Work branches (`feature/ fix/ chore/ docs/`) branch from `dev` and return to `dev` by PR (a feature
-  PR merges with a merge commit, never squash). It merges on its own once CI and the reviews pass.
+  PR may be squash-merged). It merges on its own once CI and the reviews pass.
 - The owner merges the `[HUMAN GATE]` sign-off PR `dev → staging`. `staging → main` merges on its own
   after the owner's staging test is passed or deferred. Promotions use merge commits.
 - A project in production adds the owner's gate on `main` as a Workflow Override.
