@@ -27,9 +27,17 @@ Run them in parallel.
 
 1. **Codex** (`pal-review` by the path in the session-start context, Bash timeout 600000 ms, from the
    set's root, `--repo <component path>` per repo): `pal-review run --kind code` every phase;
-   `pal-review run --kind uiux` only when the phase changed something on screen. Save each report as
-   `specs/NNN-slug/reviews/codex-<kind>-YYYY-MM-DD-HHmm.md`; add 1 to `codex.code` or `codex.uiux`.
-   Exit 5: add `code: skipped (<reason>)` (or `uiux: …`) to `codex.skipped`.
+   `pal-review run --kind uiux` only when the phase changed something on screen. Exit codes:
+   - 0: the report is printed. Save it as `specs/NNN-slug/reviews/codex-<kind>-YYYY-MM-DD-HHmm.md`;
+     add 1 to `codex.code` or `codex.uiux`.
+   - 3: still running. `pal-review wait <id>` (same Bash timeout) until it ends.
+   - 4: failed. Record it in the log, retry once; failed again → add `<kind>: failed (<reason>)` to
+     `codex.skipped` and go on with a note for the sign-off PR.
+   - 5: skipped. Add `<kind>: skipped (<reason>)` to `codex.skipped`.
+
+   Until Pal Center 0.4.0 resolves a worktree set to its project, `pal-review` cannot run from the
+   set: add `<kind>: not available (worktree set)` to `codex.skipped` and go on. Never run it from
+   the owner's checkout for a phase; it would review the owner's code, not the phase's.
 2. **Claude's reviewers**, each a subagent by its agent name, given the spec, the plan, the branch
    list with base `origin/dev`, and the report folder:
 

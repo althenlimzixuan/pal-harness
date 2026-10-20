@@ -6,9 +6,13 @@ the owner's approval for the whole phase. Only the owner merges it.
 ## 1. Before opening it
 
 1. **One staging at a time.** Read the `phase-state.yaml` of every other live phase of this project
-   (`origin/docs/[0-9]*` branches). One in `staging-test` or `shipping` → wait until it is `done`:
-   add a note `waiting for phase MMM's staging test`, update `last_progress_at`, push, and check
-   again when it moves.
+   (`origin/docs/[0-9]*` branches). One in `staging-test` or `shipping` holds staging, so pause:
+   1. Set `waiting_on_owner` to `{kind: staging-test, since: <now>, link: <that phase's test link
+      from its waiting_on_owner>, questions: 0}`, add a note `waiting for phase MMM's staging
+      test`, write a log entry, commit and push.
+   2. Tell the owner in the session; do not poll. `/pm`'s start-of-session note shows the wait.
+   3. The owner (or a later session) continues with `/phase resume NNN` once phase MMM is `done`;
+      the resume clears `waiting_on_owner` and starts this section again.
 2. Check: every component PR is merged into `dev`; the reports come from the final commits and pass
    (or are recorded "n/a" or skips); no major or critical finding is open; regression passed (until
    the project has staging).

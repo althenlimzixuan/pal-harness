@@ -52,6 +52,13 @@ Write the owner's one test step for what the fix changes (do → expect), concre
    something on screen changed) plus the `pal-review-code` agent; add `pal-review-security` when the
    fix touches login, user data, payments or credentials. Save each report under
    `specs/NNN-slug/reviews/`.
+   - `pal-review` exit codes (Bash timeout 600000 ms): 0 the report is printed; 3 still running →
+     `pal-review wait <id>` (same timeout) until it ends; 4 failed → record it, retry once, then
+     add `<kind>: failed (<reason>)` to `codex.skipped` and go on with a note; 5 skipped → add
+     `<kind>: skipped (<reason>)` to `codex.skipped`.
+   - Until Pal Center 0.4.0 resolves a worktree set to its project, add
+     `<kind>: not available (worktree set)` to `codex.skipped` and go on. Never run `pal-review`
+     from the owner's checkout for a quick fix.
 3. Severity, 3 fix rounds and leftover findings as in `references/review.md` sections 3–5.
 4. Open the PR into `dev` with the Codex summary in its body; it merges on its own once CI is green.
    `stage: code-review` while reviewing, then `stage: signoff`.

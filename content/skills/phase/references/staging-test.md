@@ -47,7 +47,7 @@ Ask, with a recommended answer and its reason:
   2. In each repo involved, the fix branches from staging: `fix/NNN-<short>`, a worktree in the
      set from `origin/staging`. The next phase's work on `dev` never reaches staging this way.
   3. Test first, then the fix; one review (`pal-review-code` and `pal-review run --kind code`;
-     severity and 3 fix rounds as in `references/review.md`).
+     exit codes, the worktree-set rule, severity and 3 fix rounds as in `references/review.md`).
   4. Its PR into `staging` merges on its own after the review and green CI; staging (or the local
      stack) redeploys. Then PR the same branch into `dev` too.
   5. The step reopens: the feature becomes `retest`, and the owner runs that step again.

@@ -44,7 +44,7 @@ under `<workspace>/.pal-worktrees/<KEY>-<NNN>/`: the SSOT repo at the set's root
 repo the phase touches at its project path inside it (`<KEY>-096/api`). `<workspace>` is the folder
 holding `workspace.yaml` (a parent of the project); `<KEY>` is `project.yaml` `key`. A session Pal
 Center started inside such a set already works there. Use absolute paths or `git -C <path>` for
-every command, so the owner's checkouts never move. `/pm` uses `<KEY>-pm-<YYYYMMDD>` for its own
+every command and never `cd` into the set, so the owner's checkouts never move. `/pm` uses `<KEY>-pm-<YYYYMMDD>` for its own
 bookkeeping, never a phase's set.
 
 ## Start
@@ -53,10 +53,13 @@ bookkeeping, never a phase's set.
    the bundle features from `doc/features.yaml` on `origin/dev` after `git fetch origin`.
 2. Unless already in a set, create the SSOT worktree:
    1. `git -C <project root> worktree add --detach <workspace>/.pal-worktrees/<KEY>-new-<slug> origin/dev`
-   2. In it, run `pal-harness spec new <slug>`. It creates `specs/NNN-slug/spec.md` on the new
-      branch `docs/NNN-slug` from the local `dev` (none yet → `git branch dev origin/dev` first).
-      If `git rev-parse dev` differs from `origin/dev`, run `git reset --keep origin/dev` next (the
-      new folder is untracked and stays).
+   2. `pal-harness spec new <slug> <workspace>/.pal-worktrees/<KEY>-new-<slug>` (the folder
+      argument; never `cd` into the set, since Windows cannot move a folder that is a process's
+      current folder). It creates `specs/NNN-slug/spec.md` on the new branch `docs/NNN-slug` from
+      the local `dev` (none yet → `git -C <project root> branch dev origin/dev` first).
+      If `git -C <project root> rev-parse dev` differs from `origin/dev`, run
+      `git -C <workspace>/.pal-worktrees/<KEY>-new-<slug> reset --keep origin/dev` next: this moves
+      only `docs/NNN-slug` (the new folder is untracked and stays); never reset `dev`.
    3. `git -C <project root> worktree move <workspace>/.pal-worktrees/<KEY>-new-<slug> <workspace>/.pal-worktrees/<KEY>-<NNN>`
    Component worktrees join the set when building starts (`references/build.md`).
 3. Write `specs/NNN-slug/phase-state.yaml` from `.pal-harness/templates/phase-state.yaml`: phase,
@@ -78,8 +81,10 @@ bookkeeping, never a phase's set.
 3. Read `phase-state.yaml`, the last entries of `phase-log.md` and the stage's reference. They and
    `git log` win over anything you remember.
 4. Set `session:` to this session's name if known, write a "resumed" log entry, push.
-5. `waiting_on_owner` set → send its link again and wait (**Owner stops** step 4). Otherwise carry on
-   with the stage.
+5. `waiting_on_owner` set → send its link again and wait (**Owner stops** step 4). Exception: at
+   `stage: signoff` waiting for another phase's staging test, check that phase; once it is `done`,
+   clear `waiting_on_owner`, push and carry on (`references/signoff.md` section 1). Otherwise carry
+   on with the stage.
 
 ## Saved state
 
@@ -162,6 +167,7 @@ project's `CLAUDE.md`.
 | Missing piece | Do this |
 |---|---|
 | Codex `doc` review kind (Pal Center 0.4.0) | Record "Codex spec review: not available" and go on |
+| Codex reviews from a worktree set (Pal Center 0.4.0) | Pal Center cannot yet resolve `.pal-worktrees/` to its project, and from the project root it would review the owner's checkout. Record `<kind>: not available (worktree set)` in `codex.skipped` and go on; never run `pal-review` from the owner's checkout for a phase |
 | Features tab and its `pal-work` CLI | When the session-start context names a `pal-work` CLI path, collect test results with it. Otherwise walk the owner through the test script step by step through Remote Control and record the results in `doc/features.yaml` (`env: local` until the project has staging) |
 | Capture command | Retro ideas go to `_feedbacks/YYYY-MM-DD-HHmm.md` |
 | Scheduled pickup, stuck alerts | `/pm pickup` runs the ladder by hand; there is no stuck alert, so send "needs you" yourself when stuck |

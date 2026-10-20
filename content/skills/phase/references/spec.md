@@ -51,14 +51,21 @@ Run it before the owner sees the spec. `pal-review` is the absolute path from th
 line `Codex review CLI: "<path>\pal-review.exe"`; run each command with a Bash timeout of
 600000 ms.
 
-1. From the set's root: `pal-review run --kind doc`. Exit 3 → `pal-review wait <id>` until it ends.
-2. Save the report as `specs/NNN-slug/reviews/codex-doc-YYYY-MM-DD-HHmm.md`; add 1 to `codex.spec`.
+1. **Not available yet:** no CLI path in the session-start context, `--kind doc` rejected, or the
+   phase works in a worktree set while Pal Center cannot resolve one to its project (all until
+   Pal Center 0.4.0). Add `doc: not available` (or `doc: not available (worktree set)`) to
+   `codex.skipped`, write "Codex spec review: not available" in the log and in the spec's Calls I
+   made, and go on. Never run `pal-review` from the owner's checkout for a phase: it would review
+   the owner's code, not the phase's.
+2. Otherwise, from the set's root: `pal-review run --kind doc`. Exit codes:
+   - 0: the report is printed. Save it as `specs/NNN-slug/reviews/codex-doc-YYYY-MM-DD-HHmm.md`;
+     add 1 to `codex.spec`.
+   - 3: still running. `pal-review wait <id>` (same Bash timeout) until it ends.
+   - 4: failed. Record it in the log, retry once; failed again → add `doc: failed (<reason>)` to
+     `codex.skipped` and go on with a note in Calls I made.
+   - 5: skipped. Add `doc: skipped (<reason>)` to `codex.skipped` and go on.
 3. Minor findings: fix them in the spec first. Major and critical findings join the questions for
    the owner, each with its reason, impact and a recommended answer (critical first).
-4. Exit 5 (skipped): add `spec: skipped (<reason>)` to `codex.skipped` and go on.
-5. No CLI path in the session-start context, or `--kind doc` rejected (Pal Center before 0.4.0):
-   add `spec: not available` to `codex.skipped`, write "Codex spec review: not available" in the
-   log and in the spec's Calls I made, and go on.
 
 Codex never reviews the plan.
 
@@ -74,7 +81,7 @@ Codex never reviews the plan.
 1. `accept all` takes every recommended answer. `accept all except 2: B` takes the rest and changes
    one. A reply that answers every question and asks for no change approves the spec.
 2. A request for changes: revise the spec, then Codex checks the revision again (section 4) unless
-   the reply says `skip Codex`; then add `spec rN: owner said skip Codex` to `codex.skipped`.
+   the reply says `skip Codex`; then add `doc rN: owner said skip Codex` to `codex.skipped`.
    Render, publish and send again (section 5).
 3. An unclear reply: ask one short follow-up in the session.
 
