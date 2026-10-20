@@ -22,7 +22,7 @@ Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listi
 2. **Coverage of the spec:** every feature and every step of the spec's test script is covered by a test; list the uncovered ones.
 3. **Coverage threshold:** coverage is 80% or more per `test_coverage.html` and `summary.md`; under 80% is a major finding.
 4. **Tests ran and pass:** `summary.md` shows the pass and fail counts; a failing test is critical.
-5. **Performance thresholds:** an API call's p95 more than 20% slower, or a web page's Lighthouse performance score 5 points or more lower, than the previous phase's report is a major finding (the first phase sets the baseline).
+5. **Performance thresholds:** an API call's p95 more than 20% slower, or a web page's Lighthouse performance score 5 points or more lower, than the previous phase's report is a major finding (the previous phase's report is the newest folder for that component under `_test_reports/<component>/`; the first phase sets the baseline).
 6. **Reports present and fresh:** each required report exists and is not empty. A report is stale when it is not from the final commit: compare the tree hash in `summary.md` with `git rev-parse <branch>^{tree}`. A missing, empty or stale report is a finding.
 7. **n/a reports:** a report that does not apply is accepted only as "n/a" with a reason; one with no tooling must be a recorded skip with a plan task, not silently absent.
 8. **Fixtures:** shared fixture files are reused, not copied per test.

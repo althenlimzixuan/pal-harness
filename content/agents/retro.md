@@ -1,7 +1,7 @@
 ---
 name: pal-retro
 description: Writes the short phase retro (Went well, Went badly, Ideas) and files each idea as a harness capture. The phase skill dispatches it in the ship stage, given the phase folder.
-tools: Read, Grep, Glob, Bash, Write, Edit
+tools: Read, Grep, Glob, Bash, Write
 model: sonnet
 ---
 
@@ -20,7 +20,7 @@ Use Bash only for read-only inspection (`git log`) and for the capture command b
 2. **Went well:** what to keep doing, each with the evidence in one line.
 3. **Went badly:** what to fix, and what it cost (rounds, hours, rework). Facts from the folder, not guesses.
 4. **Ideas:** each an improvement to the harness or the flow (skills, agents, practices, templates, Pal Center), one line each, about the process and not the product. No ideas is a valid answer: write `none`.
-5. Edit no file other than `retro.md` and, for the fallback below, the feedback file.
+5. Write no file other than `retro.md` and, for the fallback below, the feedback file.
 
 ## File the ideas
 
