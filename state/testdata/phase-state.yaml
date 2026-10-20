@@ -1,0 +1,16 @@
+phase: "096"
+slug: trip-budget
+title: Trip budget
+vehicle: phase
+bundle: {features: [F-012], issues: ["althenlimzixuan/etp#431", "althenlimzixuan/etp#455"]}
+stage: building
+waiting_on_owner: null
+approach: subagent
+session: etp-096-trip-budget
+tasks: {done: 4, total: 9}
+ci: green
+load_test: false
+codex: {spec: 1, code: 0, uiux: 0, skipped: []}
+gates: {spec_approved: 2026-10-18, plan_approved: "2026-10-19", signoff_merged: null, staging_test_done: null}
+last_progress_at: 2026-10-20T09:12:00+08:00
+notes: []

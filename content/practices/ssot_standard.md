@@ -7,7 +7,7 @@ to the SSOT standard design spec.
 Tools: `pal-harness <command>` runs as
 `go run github.com/althenlimzixuan/pal-harness/cmd/pal-harness@v<VERSION> <command>`, where
 `<VERSION>` is the content of `.pal-harness/VERSION`. Commands: `check`, `generate`,
-`spec new <slug>`, `adr new <slug> [--conflict]`.
+`render <file.md>`, `spec new <slug>`, `adr new <slug> [--conflict]`.
 
 ## 1. Tiers and the precedence ladder (§2)
 
@@ -39,21 +39,26 @@ Tools: `pal-harness <command>` runs as
 | Environments, deploy, cost (facts only) | `doc/infra/` |
 | External API facts (auth, limits, pricing) | `doc/third-party/` |
 | Runbooks, release notes | `doc/runbooks/`, `doc/releases/` |
-| Designed work | `specs/NNN-slug/` |
+| Features: status, test script, results | `doc/features.yaml` |
+| North star | `doc/north-star.md` |
+| Owner answers to phase questions | `doc/decisions.md` |
+| Parked reviewer findings | `doc/later.md` |
+| Designed work and saved phase state | `specs/NNN-slug/` |
+| Test reports | `_test_reports/<component>/<date-phase>/` |
 | Raw feedback notes | `_feedbacks/YYYY-MM-DD-HHmm.md` |
 | Read-only reference material | `context/` |
 | Postman collections and environments | `postman/` (no secret values) |
 | Pinned harness copy | `.pal-harness/` |
 | Project-specific agents and marked overrides | `.claude/` |
 | Component code, code-level detail, its bugs and issues | the component repo |
-| Backlog and phase status | the boards, not a file |
+| Backlog (bugs, findings) | the backlog issues, not a file |
 
 - **Placement rule:** folders a tool owns stay where the tool expects them (`.github/`, `.claude/`,
   `.postman/`, `postman/`, and in components `.vercel/`, `eas.json`). Everything people write goes
   under `doc/`. Config only one component uses stays in that component; the SSOT records its
   facts in `doc/infra/`.
 - **Deliberately absent from the SSOT repo:** `docs/`, `.specify/`, `feedbacks/`, `doc/feedback/`,
-  loose files at the root, markdown backlog or roadmap ledgers, and anything holding credentials.
+  loose files at the root (`_test_reports/` and `_feedbacks/` are the allowed root folders), markdown backlog or roadmap ledgers, and anything holding credentials.
   Do not create them.
 - Tech-stack decisions are recorded in an SSOT ADR. A component may mirror one, citing the ADR
   number; the SSOT wins.
@@ -76,27 +81,32 @@ Tools: `pal-harness <command>` runs as
 - `feature/*`, `fix/*`, `chore/*`, `docs/*` branch from `dev` and return to `dev` by PR.
 - Promote `dev` to `staging`, then `staging` to `main`, with merge commits (not squash).
 - Feature PRs into `dev` may be squash-merged.
+- Before production, which promotions merge on their own and which wait for the owner: `workflow.md`.
 - `hotfix/*` branches from `main`, PRs to `main`, then is merged back into `staging` and `dev`.
 - Each repo's GitHub default branch is `dev`, so new PRs target it.
 - No direct commits to `main`. Branch protection is not enforced; the rule is by convention.
 
-## 5. Specs and plans (§4.4)
+## 5. The phase folder (§12.3)
 
 - `specs/NNN-slug/` is the only home for designed work. Start one with `pal-harness spec new <slug>`
-  (creates `specs/NNN-slug/spec.md` on branch `docs/NNN-slug` from `dev`).
-- superpowers writes its design and plan into that folder (`design.md`, `plan.md`), never into
-  `docs/superpowers/`.
-- `spec.md` follows the template: user stories P1-P3, UX Outline when a surface is active,
-  `FR-NNN` requirements, `SC-NNN` success criteria naming their deciding predicate, Key Entities,
-  Assumptions. `[NEEDS CLARIFICATION: ...]` markers are allowed.
+  (creates the folder on branch `docs/NNN-slug` from `dev`). Never use `docs/superpowers/`.
+- It holds `phase-state.yaml` (saved state, written only by the session), `phase-log.md` (append-only
+  journal), `spec.md` and `plan.md` (each with a generated `.html`), `diagrams/*.mmd`, `reviews/`
+  (Codex and Claude reviewer reports) and `retro.md`.
+- `spec.md` follows the harness template: numbered summary, questions, calls I made, features with
+  test scripts, UX outline, contract (only when the API changes), out of scope, appendix.
 - Each Roadmap card names its `specs/NNN-slug/`, and the folder names the card (§4.6).
 
-## 6. Boards (§5.4, §4.6)
+## 6. Which source wins, and the boards (§12.8, §5.4)
 
-- The Backlog, Roadmap and Feedback boards are the truth for backlog and phase status. Never keep
-  a backlog or roadmap ledger in a repo; a markdown roadmap is at most a generated snapshot.
+- `doc/features.yaml` is the truth for features: status, test script, results. The Roadmap board is a
+  projection of it (a draft card titled `F-012 — <name>`), and stays the truth only for the owner's
+  intent on a card (approved or not). Backlog issues stay the truth for bugs and findings.
+- `doc/decisions.md` holds owner answers to phase questions; expensive architecture choices still go
+  to ADRs. `doc/later.md` holds parked findings, kept out of GitHub so they stop feeding the backlog.
+- Never keep a backlog or roadmap ledger in a repo; a markdown roadmap is at most a generated snapshot.
 - Product-level feedback files to the SSOT repo; a bug or issue for one component files to that
-  component's repo.
+  component's repo. Issue references are repo-qualified (`owner/repo#431`).
 
 ## 7. Generated artifacts flow down the ladder (§4.5)
 

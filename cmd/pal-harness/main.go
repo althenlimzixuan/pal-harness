@@ -19,6 +19,8 @@ import (
 	"github.com/althenlimzixuan/pal-harness/manifest"
 	"github.com/althenlimzixuan/pal-harness/number"
 	"github.com/althenlimzixuan/pal-harness/pin"
+	"github.com/althenlimzixuan/pal-harness/render"
+	"github.com/althenlimzixuan/pal-harness/state"
 	"gopkg.in/yaml.v3"
 )
 
@@ -33,6 +35,7 @@ const usage = `usage:
   pal-harness pin [dir]
   pal-harness spec new <slug> [dir]
   pal-harness adr new <slug> [--conflict] [dir]
+  pal-harness render <file.md>
   pal-harness version
 `
 
@@ -68,6 +71,11 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return runGenerate(dir, stderr)
 		}
 		return runPin(dir, stderr)
+	case "render":
+		if len(rest) != 1 {
+			return usageErr(stderr, "render takes one Markdown file")
+		}
+		return runRender(rest[0], stderr)
 	case "spec", "adr":
 		if len(rest) == 0 || rest[0] != "new" {
 			return usageErr(stderr, "expected: "+args[0]+" new <slug>")
@@ -201,6 +209,20 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 		for _, f := range diff {
 			add("%s: %s", pin.Dir, f)
 		}
+		ldiff, lerr := pin.LoaderDiff(dir, p.Harness.Overrides)
+		if lerr != nil {
+			fmt.Fprintf(stderr, ".claude: %v\n", lerr)
+			return 2
+		}
+		findings = append(findings, ldiff...)
+	}
+	if mode == "project" {
+		sf, serr := stateFindings(dir)
+		if serr != nil {
+			fmt.Fprintln(stderr, serr)
+			return 2
+		}
+		findings = append(findings, sf...)
 	}
 	if mode == "project" && !callsCheck(dir) {
 		add(".github/workflows/ssot.yml: must call %s with version %s", checkUses, harness.Version)
@@ -212,6 +234,43 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return 0
+}
+
+// stateFindings validates the optional doc/features.yaml and every
+// specs/*/phase-state.yaml, prefixing each finding with its slash path from
+// dir. A file that exists but cannot be read is an error (exit 2).
+func stateFindings(dir string) ([]string, error) {
+	var out []string
+	check := func(rel string, parse func([]byte) []string) error {
+		b, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(rel)))
+		if errors.Is(err, fs.ErrNotExist) {
+			return nil
+		}
+		if err != nil {
+			return fmt.Errorf("%s: %w", rel, err)
+		}
+		for _, f := range parse(b) {
+			out = append(out, rel+": "+f)
+		}
+		return nil
+	}
+	if err := check("doc/features.yaml", func(b []byte) []string { _, f := state.ParseFeatures(b); return f }); err != nil {
+		return nil, err
+	}
+	matches, err := filepath.Glob(filepath.Join(dir, "specs", "*", "phase-state.yaml"))
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range matches {
+		rel, err := filepath.Rel(dir, m)
+		if err != nil {
+			return nil, err
+		}
+		if err := check(filepath.ToSlash(rel), func(b []byte) []string { _, f := state.ParsePhaseState(b); return f }); err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
 }
 
 // manifestFindings turns a manifest error into findings: one per validation
@@ -499,5 +558,27 @@ func newSpec(dir, slug string, stdout, stderr io.Writer) int {
 		return fail(stderr, "%v (rolled back to %s)", err, orig)
 	}
 	fmt.Fprintln(stdout, path)
+	return 0
+}
+
+// runRender writes <file>.html beside the Markdown file. Diagram links are
+// read relative to the Markdown file's folder; nothing is written on error.
+func runRender(file string, stderr io.Writer) int {
+	md, err := os.ReadFile(file)
+	if err != nil {
+		return fail(stderr, "render: %v", err)
+	}
+	base := filepath.Dir(file)
+	page, err := render.Page(md, func(rel string) ([]byte, error) {
+		return os.ReadFile(filepath.Join(base, filepath.FromSlash(rel)))
+	})
+	if err != nil {
+		fmt.Fprintln(stderr, "render: "+err.Error())
+		return 1
+	}
+	out := strings.TrimSuffix(file, filepath.Ext(file)) + ".html"
+	if err := os.WriteFile(out, page, 0o644); err != nil {
+		return fail(stderr, "render: %v", err)
+	}
 	return 0
 }
