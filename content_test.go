@@ -13,6 +13,14 @@ import (
 
 func TestContentComplete(t *testing.T) {
 	want := []string{
+		"content/agents/retro.md",
+		"content/agents/review-code.md",
+		"content/agents/review-contract.md",
+		"content/agents/review-errors.md",
+		"content/agents/review-plan.md",
+		"content/agents/review-security.md",
+		"content/agents/review-tests.md",
+		"content/agents/review-ui.md",
 		"content/practices/conflict_protocol.md",
 		"content/practices/devops_cicd.md",
 		"content/practices/django_admin.md",
@@ -205,6 +213,20 @@ func TestContentComplete(t *testing.T) {
 	has("skills/phase/references/ship.md", "torn down", "48 hours", "smoke check", "retro", "recommended next",
 		"harness capture")
 	has("skills/quick-fix/SKILL.md", "name: quick-fix", "one review", "test step")
+
+	// The agents (design §6.3, §8, §9.5, §11.3).
+	for _, a := range []string{"review-code", "review-tests", "review-errors", "review-security",
+		"review-contract", "review-ui", "review-plan"} {
+		has("agents/"+a+".md", "none", "minor", "major", "critical", "specs/NNN-slug/reviews/")
+	}
+	has("agents/review-code.md", "TDD", "clean layers", "SOLID", "DRY")
+	has("agents/review-tests.md", "80%", "fixture", "stale", "_test_reports/")
+	has("agents/review-errors.md", "silent")
+	has("agents/review-security.md", "secrets")
+	has("agents/review-contract.md", "openapi.yaml", "API.md")
+	has("agents/review-ui.md", "contrast", "screen-reader")
+	has("agents/review-plan.md", "every spec feature", "code patterns", "contract", "one working day", "test file")
+	has("agents/retro.md", "Went well", "Went badly", "harness capture", "_feedbacks/")
 
 	// Size caps (anti-goal: rule growth) and front matter for skills and agents.
 	front := func(p string) map[string]string {
