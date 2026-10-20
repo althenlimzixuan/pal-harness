@@ -61,6 +61,7 @@ type PhaseState struct {
 	Stage          string    `yaml:"stage"`
 	WaitingOnOwner *Waiting  `yaml:"waiting_on_owner"`
 	Approach       string    `yaml:"approach"`
+	Session        string    `yaml:"session"`
 	Tasks          Tasks     `yaml:"tasks"`
 	CI             string    `yaml:"ci"`
 	LoadTest       bool      `yaml:"load_test"`
@@ -208,8 +209,8 @@ func ParseFeatures(b []byte) ([]Feature, []string) {
 			if !validDate(r.Date) {
 				add(id, "result %d: date must be YYYY-MM-DD", n)
 			}
-			if r.Env != "staging" && r.Env != "prod" {
-				add(id, "result %d: env must be staging or prod", n)
+			if !oneOf(r.Env, []string{"local", "staging", "prod"}) {
+				add(id, "result %d: env must be local, staging or prod", n)
 			}
 			if !steps[r.Step] {
 				add(id, "result %d: step %d is not in the test script", n, r.Step)

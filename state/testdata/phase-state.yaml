@@ -6,6 +6,7 @@ bundle: {features: [F-012], issues: ["althenlimzixuan/etp#431", "althenlimzixuan
 stage: building
 waiting_on_owner: null
 approach: subagent
+session: etp-096-trip-budget
 tasks: {done: 4, total: 9}
 ci: green
 load_test: false

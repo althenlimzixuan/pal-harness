@@ -77,7 +77,8 @@ func TestValidateFeaturesFindings(t *testing.T) {
 		{"steps", rep("step: 2", "step: 3"), []string{"F-001: test_script steps must be numbered 1, 2, 3, …"}},
 		{"empty expect", rep(`expect: "e"}`, `expect: ""}`), []string{"F-001: test_script step 1 has no expect"}},
 		{"result env", rep("results: []", "results:\n    - {date: 2026-10-20, env: dev, step: 1, result: pass}"),
-			[]string{"F-001: result 1: env must be staging or prod"}},
+			[]string{"F-001: result 1: env must be local, staging or prod"}},
+		{"result env local", rep("results: []", "results:\n    - {date: 2026-10-20, env: local, step: 1, result: pass}"), nil},
 		{"result step", rep("results: []", "results:\n    - {date: 2026-10-20, env: prod, step: 9, result: fail}"),
 			[]string{"F-001: result 1: step 9 is not in the test script"}},
 		{"result value", rep("results: []", "results:\n    - {date: 2026-10-20, env: prod, step: 1, result: ok}"),
@@ -103,6 +104,9 @@ func TestParsePhaseStateValid(t *testing.T) {
 	}
 	if ps.Stage != "building" || ps.Tasks.Done != 4 || ps.Tasks.Total != 9 || ps.WaitingOnOwner != nil {
 		t.Errorf("ps = %+v", ps)
+	}
+	if ps.Session != "etp-096-trip-budget" {
+		t.Errorf("session = %q", ps.Session)
 	}
 	if ps.Gates.SpecApproved == nil || *ps.Gates.SpecApproved != "2026-10-18" || ps.Gates.SignoffMerged != nil {
 		t.Errorf("gates = %+v", ps.Gates)

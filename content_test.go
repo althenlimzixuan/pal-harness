@@ -2,11 +2,13 @@ package harness_test
 
 import (
 	"io/fs"
+	"path"
 	"sort"
 	"strings"
 	"testing"
 
 	harness "github.com/althenlimzixuan/pal-harness"
+	"github.com/althenlimzixuan/pal-harness/state"
 )
 
 func TestContentComplete(t *testing.T) {
@@ -23,7 +25,16 @@ func TestContentComplete(t *testing.T) {
 		"content/practices/workflow.md",
 		"content/templates/adr-conflict.md",
 		"content/templates/adr.md",
+		"content/templates/decisions.md",
+		"content/templates/features.yaml",
+		"content/templates/later.md",
+		"content/templates/north-star.md",
+		"content/templates/phase-state.yaml",
+		"content/templates/plan.md",
+		"content/templates/retro.md",
+		"content/templates/signoff-pr.md",
 		"content/templates/spec.md",
+		"content/templates/test-summary.md",
 	}
 	var got []string
 	err := fs.WalkDir(harness.Content, "content", func(p string, d fs.DirEntry, err error) error {
@@ -69,13 +80,6 @@ func TestContentComplete(t *testing.T) {
 	}
 	if n := lines("content/practices/conflict_protocol.md"); n > 60 {
 		t.Errorf("conflict_protocol.md has %d lines, max 60", n)
-	}
-
-	spec, _ := harness.Content.ReadFile("content/templates/spec.md")
-	for _, h := range []string{"## User Scenarios", "## UX Outline", "## Requirements", "## Success Criteria", "## Key Entities", "## Assumptions"} {
-		if !strings.Contains(string(spec), h) {
-			t.Errorf("spec.md lacks heading %q", h)
-		}
 	}
 
 	text := func(p string) string {
@@ -126,4 +130,86 @@ func TestContentComplete(t *testing.T) {
 	}
 
 	has("templates/adr-conflict.md", "- **Status:** Accepted\n")
+
+	// The phase flow templates (design §5, §6, §10.1, §11.3, §12.8.6).
+	has("templates/spec.md", "## Summary", "## Questions for the owner", "## Calls I made", "## Features",
+		"## UX outline", "## Contract", "## Out of scope", "## Appendix",
+		"Delete this section when the phase does not change the API.",
+		"**Why:**", "**Use case:**", "**Test script:**")
+	if sp := text("templates/spec.md"); strings.Index(sp, "Delete this section when the phase does not change the API.") < strings.Index(sp, "## Contract") {
+		t.Errorf("spec.md: the delete line must sit under ## Contract")
+	}
+	has("templates/plan.md", "## Summary", "## Build approach", "## Reports", "## Tasks", "include load test")
+	has("templates/signoff-pr.md", "[HUMAN GATE]", "## Summary", "## Calls I made", "## Review results",
+		"## Test reports", "## When you merge", "## Your test scripts")
+	has("templates/retro.md", "## Went well", "## Went badly", "## Ideas")
+	has("templates/test-summary.md", "1.", "coverage", "p95")
+
+	if _, f := state.ParsePhaseState([]byte(text("templates/phase-state.yaml"))); len(f) != 0 {
+		t.Errorf("templates/phase-state.yaml findings: %v", f)
+	}
+	if _, f := state.ParseFeatures([]byte(text("templates/features.yaml"))); len(f) != 0 {
+		t.Errorf("templates/features.yaml findings: %v", f)
+	}
+
+	// Size caps (anti-goal: rule growth) and front matter for skills and agents.
+	front := func(p string) map[string]string {
+		m := map[string]string{}
+		ls := strings.Split(text(p), "\n")
+		if ls[0] != "---" {
+			t.Errorf("%s has no front matter", p)
+			return m
+		}
+		for _, l := range ls[1:] {
+			if l == "---" {
+				return m
+			}
+			if k, v, ok := strings.Cut(l, ":"); ok {
+				m[strings.TrimSpace(k)] = strings.TrimSpace(v)
+			}
+		}
+		t.Errorf("%s front matter is not closed", p)
+		return m
+	}
+	for _, g := range []struct {
+		pattern string
+		max     int
+	}{
+		{"content/skills/*/SKILL.md", 250},
+		{"content/skills/*/references/*.md", 150},
+		{"content/agents/*.md", 120},
+	} {
+		matches, err := fs.Glob(harness.Content, g.pattern)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, p := range matches {
+			if n := lines(p); n > g.max {
+				t.Errorf("%s has %d lines, max %d", p, n, g.max)
+			}
+		}
+	}
+	skills, _ := fs.Glob(harness.Content, "content/skills/*/SKILL.md")
+	for _, p := range skills {
+		fm := front(strings.TrimPrefix(p, "content/"))
+		if want := path.Base(path.Dir(p)); fm["name"] != want {
+			t.Errorf("%s name = %q, want %q", p, fm["name"], want)
+		}
+		if fm["description"] == "" {
+			t.Errorf("%s has no description", p)
+		}
+	}
+	agents, _ := fs.Glob(harness.Content, "content/agents/*.md")
+	for _, p := range agents {
+		fm := front(strings.TrimPrefix(p, "content/"))
+		if want := "pal-" + strings.TrimSuffix(path.Base(p), ".md"); fm["name"] != want {
+			t.Errorf("%s name = %q, want %q", p, fm["name"], want)
+		}
+		if fm["description"] == "" || fm["model"] == "" {
+			t.Errorf("%s needs a description and a model", p)
+		}
+		if !strings.Contains(fm["tools"], "Read") {
+			t.Errorf("%s tools = %q, must include Read", p, fm["tools"])
+		}
+	}
 }
