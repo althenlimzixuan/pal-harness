@@ -7,7 +7,7 @@ to the SSOT standard design spec.
 Tools: `pal-harness <command>` runs as
 `go run github.com/althenlimzixuan/pal-harness/cmd/pal-harness@v<VERSION> <command>`, where
 `<VERSION>` is the content of `.pal-harness/VERSION`. Commands: `check`, `generate`,
-`spec new <slug>`, `adr new <slug> [--conflict]`.
+`render <file.md>`, `spec new <slug>`, `adr new <slug> [--conflict]`.
 
 ## 1. Tiers and the precedence ladder (§2)
 

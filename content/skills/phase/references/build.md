@@ -68,8 +68,8 @@ task keeps that honest.
 
 ## 6. Done building
 
-1. Open each `feature/NNN-slug` PR into `dev` (`gh pr create -R <owner/repo> --base dev`); do not
-   merge yet. Set `ci: running`; watch with `gh pr checks <n> --watch`.
+1. Open each `feature/NNN-slug` PR into `dev` (`gh pr create -R <owner/repo> --base dev --head feature/NNN-slug`); do
+   not merge yet. Set `ci: running`; watch with `gh pr checks <n> -R <owner/repo> --watch`.
 2. CI red → fix, push, watch again (each fix is a round; 3 rounds, then section 5). Green on every
    PR → `ci: green`.
 3. `stage: code-review`; bundle features `code-review`. Commit and push.

@@ -851,7 +851,7 @@ func TestCheckStateUnreadable(t *testing.T) {
 func TestCheckReportsLoaderDrift(t *testing.T) {
 	ls := pin.Loaders()
 	if len(ls) == 0 {
-		t.Skip("no embedded skills yet")
+		t.Fatal("no embedded loaders")
 	}
 	dir := fixture(t)
 	if code, out, _ := do(t, "check", dir); code != 0 {

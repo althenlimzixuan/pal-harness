@@ -44,7 +44,7 @@ under `<workspace>/.pal-worktrees/<KEY>-<NNN>/`: the SSOT repo at the set's root
 repo the phase touches at its project path inside it (`<KEY>-096/api`). `<workspace>` is the folder
 holding `workspace.yaml` (a parent of the project); `<KEY>` is `project.yaml` `key`. A session Pal
 Center started inside such a set already works there. Use absolute paths or `git -C <path>` for
-every command and never `cd` into the set, so the owner's checkouts never move. `/pm` uses `<KEY>-pm-<YYYYMMDD>` for its own
+every command and never `cd` into the set, so the owner's checkouts never move. `/pm` uses `<KEY>-pm-<YYYYMMDD-HHmm>` for its own
 bookkeeping, never a phase's set.
 
 ## Start
@@ -77,7 +77,9 @@ bookkeeping, never a phase's set.
 2. Use the set at `<workspace>/.pal-worktrees/<KEY>-<NNN>/` if it exists; check `git status` and
    unpushed commits in each worktree before anything else. Missing → recreate it:
    `git -C <project root> worktree add <set> docs/NNN-slug` (git makes the local branch from the
-   remote one), then each component's `feature/NNN-slug` the same way.
+   remote one), then each component's `feature/NNN-slug` the same way. A local branch that already exists
+   (`docs/NNN-slug`, `feature/NNN-slug`) is reattached, then `git -C <path> pull --ff-only` in that
+   worktree.
 3. Read `phase-state.yaml`, the last entries of `phase-log.md` and the stage's reference. They and
    `git log` win over anything you remember.
 4. Set `session:` to this session's name if known, write a "resumed" log entry, push.
@@ -113,7 +115,7 @@ a new session, the phase continues from it and `git log` alone.
 
 The four planned stops are the **spec**, the **plan**, the **sign-off** PR and the **staging test**.
 Besides those, ask the owner only for a major or critical finding, an exhausted fix-round limit (3;
-5 for per-task reviews in a larger build), or a stuck build — always with a "needs you"
+5 for per-task reviews in a larger build), a stuck build, or a question that would change the approved spec or plan — always with a "needs you"
 notification. Everything else is decided by you and listed under "Calls I made".
 
 | Stop | `waiting_on_owner.kind` | `link` |
@@ -138,7 +140,8 @@ At every stop:
 3. Set `waiting_on_owner: {kind, since, link, questions}` (`questions` counts the numbered
    questions, 0 if none) and the bundle features' statuses; commit and push.
 4. Send a PushNotification that starts "needs you": the phase, what to read, how long it takes, the
-   link. Keep the session open and waiting; the owner reads on the phone and answers in this
+   link. If the PushNotification tool is not available, write the "needs you" text in the session,
+   say it could not notify, and keep waiting. Keep the session open and waiting; the owner reads on the phone and answers in this
    session through Remote Control. Do not end the session and do not poll.
 5. When the owner replies: record the answer (owner answers to questions go in
    `doc/decisions.md`), clear `waiting_on_owner`, update `last_progress_at`, commit and push.
@@ -178,10 +181,12 @@ project's `CLAUDE.md`.
 
 - One card at a time per project (pm skill, **One card at a time**). The next phase may build while
   this one waits for the staging test; its sign-off PR waits until this test is done.
+- Never force-push. On a rejected push, fetch and merge (or `git -C <path> pull --ff-only`), then push.
 - Never merge a `[HUMAN GATE]` PR and never turn on auto-merge for one.
 - Secrets come from the environment only. Never open `.env` or credential files.
 - Read a build or test result from the command's own exit code, unpiped.
 - The process itself changes only through retro ideas, never by editing `.pal-harness/`.
 - Remove the set when the phase is `done` and nothing in it is unpushed (`git status` clean and
-  `git log @{u}..` empty in every worktree): `git worktree remove` each component worktree, then the
+  `git log '@{u}..'` empty in every worktree; run git through Bash, and on a detached HEAD compare
+  with `git -C <path> log origin/<branch>..<branch>`): `git worktree remove` each component worktree, then the
   SSOT one (`references/ship.md`).

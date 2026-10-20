@@ -7,7 +7,7 @@ The owner runs each bundle feature's test script. A feature is done only when it
 1. **The project has staging:** staging is built from nothing from the `staging` branches, with
    fresh seed data: the owner's test accounts (the same ones Codex's UI review uses, from
    `doc/review-brief.md`) plus sample data. Never production data.
-2. **No staging yet:** start the local stack from `origin/staging` of each repo (in the set:
+2. **No staging yet:** start the local stack from `origin/staging` of each repo (in the set: `git -C <set>/<component> fetch origin`, then
    `git -C <set>/<component> switch --detach origin/staging`), with fresh seed data the same way.
    Results are recorded with `env: local`.
 3. **Workflow Overrides say "test on production":** run the promotion and deploy of
@@ -45,7 +45,7 @@ Ask, with a recommended answer and its reason:
 - **fix now** — a session fixes it now:
   1. The feature becomes `fixing`.
   2. In each repo involved, the fix branches from staging: `fix/NNN-<short>`, a worktree in the
-     set from `origin/staging`. The next phase's work on `dev` never reaches staging this way.
+     set from `origin/staging` (run `git -C <set>/<component> fetch origin` first). The next phase's work on `dev` never reaches staging this way.
   3. Test first, then the fix; one review (`pal-review-code` and `pal-review run --kind code`;
      exit codes, the worktree-set rule, severity and 3 fix rounds as in `references/review.md`).
   4. Its PR into `staging` merges on its own after the review and green CI; staging (or the local

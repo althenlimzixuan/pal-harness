@@ -9,7 +9,7 @@ You write the retro for one finished phase. Keep it short: a few lines per secti
 
 ## Read
 
-1. The phase folder `specs/NNN-slug/`: `spec.md`, `plan.md`, `reviews/*`, the staging-test notes, the log in `phase-state.yaml`, and the `doc/decisions.md` entries for the phase.
+1. The phase folder `specs/NNN-slug/`: `spec.md`, `plan.md`, `reviews/*`, the staging-test notes, `phase-log.md`, and the `doc/decisions.md` entries for the phase.
 2. Where time went: rounds of review fixes, owner stops, "needs you" and "stuck" alerts, retests, deferred findings.
 
 Use Bash only for read-only inspection (`git log`) and for the capture command below.

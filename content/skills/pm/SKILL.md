@@ -57,13 +57,14 @@ closed. Every other status belongs to the phase or quick-fix session. Feature st
   - Never change the `Status` field's options: replacing them drops every card's status.
 - **Files** (`doc/features.yaml` statuses, `doc/later.md`, `doc/decisions.md`, the seed): never switch
   branches in the owner's checkout. Work in a worktree from `origin/dev`:
-  `git worktree add <workspace>/.pal-worktrees/<KEY>-pm-<YYYYMMDD> -b docs/pm-<YYYYMMDD> origin/dev`
-  (`<workspace>` is the folder holding `workspace.yaml`; `<KEY>` is `project.yaml` `key`). Make all of
-  this session's file edits there, run
-  `go run github.com/althenlimzixuan/pal-harness/cmd/pal-harness@v<harness.version> check`, commit,
-  push, open one PR into `dev`, merge it once CI is green (`gh pr checks <n> --watch`, then
-  `gh pr merge <n> --squash --delete-branch`), and remove the worktree. It is bookkeeping, not a gate;
-  a failing check is fixed, never merged over.
+  `git worktree add <workspace>/.pal-worktrees/<KEY>-pm-<YYYYMMDD-HHmm> -b docs/pm-<YYYYMMDD-HHmm> origin/dev`
+  (`<workspace>` is the folder holding `workspace.yaml`; `<KEY>` is `project.yaml` `key`; the name carries the run's date and time so no two runs collide).
+  Make all of this session's file edits there, run
+  `go run github.com/althenlimzixuan/pal-harness/cmd/pal-harness@v<harness.version> check <pm worktree path>`, commit,
+  push, open one PR into `dev`, merge it once CI is green (`gh pr checks <n> -R <owner/repo> --watch`,
+  then `gh pr merge <n> -R <owner/repo> --squash`; no `--delete-branch`, the branch is checked out in
+  the worktree), remove the worktree, then delete the local branch (`git branch -D docs/pm-<YYYYMMDD-HHmm>`).
+  It is bookkeeping, not a gate; a failing check is fixed, never merged over.
 
 ## Reconcile
 
@@ -185,7 +186,8 @@ Numbered, about ten lines, phone-readable:
 3. Draft `doc/features.yaml` from `.pal-harness/templates/features.yaml`, replacing its example: one
    entry per user-facing feature, ids from `F-001`, `why` and `use_case` in one line each, a
    proposed label. Status `todo` when not built; `not-tested` when built (the owner tests it later).
-   Leave `test_script` empty for `todo` features (the spec writes it); draft one for built ones.
+   Write a 3–6 step `test_script` for every feature that is already built (status `not-tested`);
+   `todo` features get their script later, in their spec.
 4. Copy `.pal-harness/templates/decisions.md` and `later.md` to `doc/` when missing.
 5. Ask the owner to confirm the labels: a numbered list, one line each (id, name, proposed label,
    reason), so "accept all" or "accept all except 3: might" answers it.

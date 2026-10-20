@@ -39,7 +39,8 @@ write the retro, close out.
 
 ## 5. Retro
 
-1. Dispatch the `pal-retro` agent with the phase folder. It writes `specs/NNN-slug/retro.md` from
+1. Dispatch the `pal-retro` agent with the phase folder; the session files nothing itself and
+   reports what the agent filed. The agent writes `specs/NNN-slug/retro.md` from
    `.pal-harness/templates/retro.md`: what went well (keep), what went badly (fix), and the ideas.
    Keep it short.
 2. File each idea as a harness capture in Pal Center's inbox (the capture command, once the
@@ -50,18 +51,20 @@ write the retro, close out.
 ## 6. Close out
 
 1. `stage: done`; clear `waiting_on_owner`; update `last_progress_at`.
-2. Open the close-out PR from `docs/NNN-slug` into `dev` (the branch's second PR): the retro, the
+2. Open the close-out PR (`gh pr create -R <owner/repo> --base dev --head docs/NNN-slug`) from
+   `docs/NNN-slug` into `dev` (the branch's second PR): the retro, the
    results and statuses in `doc/features.yaml`, the final `phase-state.yaml`, any `_feedbacks/`
-   note. It merges on its own once CI is green (`gh pr merge <n> --merge`). Pal Center reads
+   note. It merges on its own once CI is green (`gh pr merge <n> -R <owner/repo> --merge`). Pal Center reads
    the phase from `dev` from now on.
-3. Once production deployed and the close-out PR merged, write **recommended next**: run the
+3. Once deployed (or, with no production yet, once staging → main merges) and the close-out PR merged, write **recommended next**: run the
    pm skill's **Recommended next** (`.pal-harness/skills/pm/SKILL.md`), which writes through its own
    worktree.
 4. PushNotification: "done: phase NNN shipped — <one line>. Retest: N. Deferred: N."
 
 ## 7. Clean up
 
-1. In every worktree of the set: `git status` clean and `git log @{u}..` empty. Anything unpushed →
+1. In every worktree of the set: `git status` clean and `git log '@{u}..'` empty (run git through Bash; on a detached HEAD use
+   `git -C <path> log origin/<branch>..<branch>`). Anything unpushed →
    push it or say what it is; never remove a worktree that holds unpushed work.
 2. `git -C <project root>/<component> worktree remove <set>/<component>` for each component, then
    `git -C <project root> worktree remove <set>`. Delete the phase's merged local branches.

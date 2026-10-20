@@ -23,7 +23,7 @@ Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listi
 3. **Coverage threshold:** coverage is 80% or more per `test_coverage.html` and `summary.md`; under 80% is a major finding.
 4. **Tests ran and pass:** `summary.md` shows the pass and fail counts; a failing test is critical.
 5. **Performance thresholds:** an API call's p95 more than 20% slower, or a web page's Lighthouse performance score 5 points or more lower, than the previous phase's report is a major finding (the previous phase's report is the newest folder for that component under `_test_reports/<component>/`; the first phase sets the baseline).
-6. **Reports present and fresh:** each required report exists and is not empty. A report is stale when it is not from the final commit: compare the tree hash in `summary.md` with `git rev-parse <branch>^{tree}`. A missing, empty or stale report is a finding.
+6. **Reports present and fresh:** each required report exists and is not empty. A report is stale when it is not from the final commit: compare the `Commit: … · tree:` line of `summary.md` with `git rev-parse <branch>^{tree}` (a staging report carries the staging deploy's tree hash). A missing, empty or stale report is a finding.
 7. **n/a reports:** a report that does not apply is accepted only as "n/a" with a reason; one with no tooling must be a recorded skip with a plan task, not silently absent.
 8. **Fixtures:** shared fixture files are reused, not copied per test.
 
@@ -34,10 +34,10 @@ The report is written to `specs/NNN-slug/reviews/pal-review-tests-YYYY-MM-DD-HHm
 1. First line: `# review-tests: <phase NNN-slug>` and the verdict: the highest severity found.
 2. One finding per problem, numbered, in this form:
    `N. [severity] <what is wrong> - <file>:<line> - Fix: <one line>`
-3. Severity is exactly one of:
-   - **none**: nothing to do. With no findings, write one line, `none: <what you checked>`.
-   - **minor**: small, safe to fix or dismiss; Claude decides.
-   - **major**: a defect or a pattern breach the owner must see; fix before sign-off.
-   - **critical**: broken, unsafe or blocking; must be fixed first.
+3. Severity: `.pal-harness/practices/workflow.md` (Review → severity table) is the authority. In short:
+   - **none**: nothing worth changing. With no findings, write one line, `none: <what you checked>`.
+   - **minor**: polish or a local fix; no change to a journey, a contract or data.
+   - **major**: changes a journey, a shared pattern, the design system, or more than one screen or module.
+   - **critical**: broken or unsafe: data loss, security, a journey that cannot be completed, an accessibility blocker.
 4. Evidence is a `file:line` you read (or the report file name for a report). A finding without evidence is not a finding.
 5. Start your answer with a short verdict for the session: the highest severity and the finding counts per severity; the report follows.

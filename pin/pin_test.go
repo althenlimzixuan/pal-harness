@@ -245,6 +245,9 @@ func writeLoaders(t *testing.T, root string, crlf bool) []File {
 
 func TestWriteWritesLoaders(t *testing.T) {
 	root := written(t)
+	if len(Loaders()) == 0 {
+		t.Fatal("no embedded loaders")
+	}
 	for _, f := range Loaders() {
 		b, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(f.Path)))
 		if err != nil || string(b) != f.Content {

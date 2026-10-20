@@ -31,10 +31,10 @@ The report is written to `specs/NNN-slug/reviews/pal-review-plan-YYYY-MM-DD-HHmm
 1. First line: `# review-plan: <phase NNN-slug>` and the verdict: the highest severity found.
 2. One finding per problem, numbered, in this form:
    `N. [severity] <what is wrong> - <task or heading> - Fix: <one line>`
-3. Severity is exactly one of:
-   - **none**: nothing to do. With no findings, write one line, `none: <what you checked>`.
-   - **minor**: small, safe to fix or dismiss; Claude decides.
-   - **major**: a defect or a pattern breach the owner must see; fix before sign-off.
-   - **critical**: broken, unsafe or blocking; must be fixed first.
+3. Severity: `.pal-harness/practices/workflow.md` (Review → severity table) is the authority. In short:
+   - **none**: nothing worth changing. With no findings, write one line, `none: <what you checked>`.
+   - **minor**: polish or a local fix; no change to a journey, a contract or data.
+   - **major**: changes a journey, a shared pattern, the design system, or more than one screen or module.
+   - **critical**: broken or unsafe: data loss, security, a journey that cannot be completed, an accessibility blocker.
 4. Evidence is the task number or plan heading, plus the spec feature it concerns. A finding without evidence is not a finding.
 5. Start your answer with a short verdict for the session: the highest severity and the finding counts per severity; the report follows.

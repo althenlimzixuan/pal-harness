@@ -22,8 +22,8 @@ the owner's approval for the whole phase. Only the owner merges it.
 1. The branch carries the spec, the plan, the reviews, the reports, `doc/features.yaml` statuses,
    `doc/decisions.md`, `doc/later.md` and `phase-state.yaml` (`stage: signoff`).
 2. Open its PR into `dev` just before the sign-off PR. It merges on its own once CI is green, with a
-   merge commit so the same branch can PR again at ship: `gh pr checks <n> --watch`, then
-   `gh pr merge <n> --merge`. Keep the branch: Pal Center reads `phase-state.yaml` from it, and the
+   merge commit so the same branch can PR again at ship: `gh pr checks <n> -R <owner/repo> --watch`, then
+   `gh pr merge <n> -R <owner/repo> --merge`. Keep the branch: Pal Center reads `phase-state.yaml` from it, and the
    close-out PR at ship comes from it.
 
 ## 3. Write the sign-off PR
@@ -45,12 +45,12 @@ Fill `.pal-harness/templates/signoff-pr.md` (the template's first line is the ti
 ## 4. Open it and wait
 
 1. Write the body to a file, then in the SSOT repo:
-   `gh pr create --base staging --head dev --title "[HUMAN GATE] Phase NNN — <Title>" --body-file <file>`.
+   `gh pr create -R <owner/repo> --base staging --head dev --title "[HUMAN GATE] Phase NNN — <Title>" --body-file <file>`.
 2. Never merge it yourself and never turn on auto-merge for it.
 3. Owner stop (SKILL.md, **Owner stops**): `waiting_on_owner` with `kind: signoff` and the PR URL as
    the link. Push `docs/NNN-slug`. PushNotification: "needs you: sign-off for phase NNN — <PR URL>,
    about 10 minutes. Reply 'merged' when done."
-4. On any reply, read the PR: `gh pr view <n> --json state,mergedAt`.
+4. On any reply, read the PR: `gh pr view <n> -R <owner/repo> --json state,mergedAt`.
    - Changes asked: fix them on the branch they belong to (a component fix by the usual PR into
      `dev`; a docs fix on `docs/NNN-slug`, merged into `dev` the same way), update the PR body and
      notify again.

@@ -41,7 +41,7 @@ func TestPageDiagramLink(t *testing.T) {
 	}
 	wantContains(t, got, `<pre class="mermaid">graph TD; A--&gt;B</pre>`, "<figcaption>Flow</figcaption>",
 		`<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>`,
-		`<script>mermaid.initialize({startOnLoad: true});</script>`, "<figure>")
+		`<script>mermaid.initialize({startOnLoad: true, theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'});</script>`, "<figure>")
 }
 
 func TestPageFencedMermaid(t *testing.T) {

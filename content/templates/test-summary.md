@@ -2,6 +2,8 @@
 
 Verdict: (pass, or blocked: the reason in one line)
 
+Commit: (sha) · tree: (tree hash) — a staging report carries the staging deploy's tree hash
+
 1. Tests: (passed) of (total) passed, (failed) failed.
 2. Test coverage: (percent). Minimum is 80%; below that blocks the sign-off.
 3. Slowest calls: (name) p95 (ms); (name) p95 (ms).

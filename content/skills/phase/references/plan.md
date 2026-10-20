@@ -53,7 +53,7 @@ goes in the tasks, not the summary.
 
 ## 4. Send it
 
-1. `pal-harness render specs/NNN-slug/plan.md`, then publish `plan.html` (SKILL.md, **Owner stops**).
+1. `pal-harness render <set>/specs/NNN-slug/plan.md`, then publish `plan.html` (SKILL.md, **Owner stops**).
 2. `stage: plan-review`; bundle features `plan-review`; `waiting_on_owner` with `kind: plan-review`,
    the page link and the number of questions. Commit and push.
 3. PushNotification: "needs you: plan NNN — N tasks, <approach>, about 10 minutes". Reply "approved"

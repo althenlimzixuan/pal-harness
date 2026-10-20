@@ -71,7 +71,7 @@ Codex never reviews the plan.
 
 ## 5. Send it
 
-1. `pal-harness render specs/NNN-slug/spec.md`, then publish `spec.html` (SKILL.md, **Owner stops**).
+1. `pal-harness render <set>/specs/NNN-slug/spec.md`, then publish `spec.html` (SKILL.md, **Owner stops**).
 2. `stage: spec-review`; bundle features `spec-review`; `waiting_on_owner` with `kind: spec-review`,
    the page link and the number of questions. Commit and push.
 3. PushNotification: "needs you: spec NNN — <title>, N questions, about 10 minutes". Wait.

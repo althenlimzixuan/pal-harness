@@ -88,7 +88,7 @@ Each finding not fixed goes to one place, recorded for the sign-off PR's review 
 1. Each `feature/NNN-slug` PR body carries the Codex report summary: the verdict, every major and
    critical finding with the owner's decision, the minor ones with what Claude did (`workflow.md`).
 2. Each PR into `dev` merges on its own once CI is green and the reviews pass:
-   `gh pr checks <n> --watch`, then `gh pr merge <n> -R <owner/repo> --squash`. Do not pass
+   `gh pr checks <n> -R <owner/repo> --watch`, then `gh pr merge <n> -R <owner/repo> --squash`. Do not pass
    `--delete-branch` from inside a worktree; branches go when the set is removed.
 3. `stage: signoff`. Commit and push `docs/NNN-slug`.
 4. Go to `.pal-harness/skills/phase/references/signoff.md`.

@@ -78,7 +78,7 @@ Every 5 phases Pal walks the north star, the feature list and the later list wit
 Before opening a PR that changes UI or code, run `pal-review`. Kinds: `uiux` for UI changes, `code` always, `doc` for specs (arrives with Pal Center 0.4.0; until then record "Codex spec review: not available" and go on). Handle findings by the severity table and put the report in the PR body: the verdict, every major and critical finding with the owner's decision, and the minor ones with what Claude did. Also save the full report as `specs/NNN-slug/reviews/codex-<kind>-YYYY-MM-DD-HHmm.md` in the SSOT repo.
 
 - `pal-review.exe` is not on PATH: call it by the absolute path in the session-start line `Codex review CLI: "<path>\pal-review.exe"` (written `pal-review` here). Run each command with a Bash timeout of 600000 ms (the 120 s default would cut it off). `run` prints `Review <id> queued` first.
-- Run from the SSOT root: `pal-review run --kind uiux`, `pal-review run --kind code` (`--repo <path>` takes a project-root-relative repo path such as `api`).
+- Run from the SSOT root (a phase runs it from its worktree set; see the phase skill): `pal-review run --kind uiux`, `pal-review run --kind code` (`--repo <path>` takes a project-root-relative repo path such as `api`).
 - Exit codes: 0 report printed; 3 still running (run `pal-review wait <id>` with the id from `Review <id> queued`, same Bash timeout, until it ends); 4 failed; 5 skipped (put the printed reason in the PR body as the recorded skip: "Codex review: skipped (<reason>)").
 - Severity:
 
