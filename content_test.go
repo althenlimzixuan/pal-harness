@@ -23,7 +23,16 @@ func TestContentComplete(t *testing.T) {
 		"content/practices/ssot_standard.md",
 		"content/practices/testing.md",
 		"content/practices/workflow.md",
+		"content/skills/phase/SKILL.md",
+		"content/skills/phase/references/build.md",
+		"content/skills/phase/references/plan.md",
+		"content/skills/phase/references/review.md",
+		"content/skills/phase/references/ship.md",
+		"content/skills/phase/references/signoff.md",
+		"content/skills/phase/references/spec.md",
+		"content/skills/phase/references/staging-test.md",
 		"content/skills/pm/SKILL.md",
+		"content/skills/quick-fix/SKILL.md",
 		"content/templates/adr-conflict.md",
 		"content/templates/adr.md",
 		"content/templates/decisions.md",
@@ -169,6 +178,33 @@ func TestContentComplete(t *testing.T) {
 		"about one working day", "quick-fix", "owner-task", "doc/later.md", "every 5 phases",
 		"doc/north-star.md", "doc/features.yaml", "Approved to run", "Recommended next", "Todo",
 		"/pm pickup", "retest", "deferred", "seed")
+
+	// The phase and quick-fix skills: running the work (design §5-§11, §12.3, §12.5, §12.8.2-4/7/8).
+	has("skills/phase/SKILL.md", "name: phase",
+		"references/spec.md", "references/plan.md", "references/build.md", "references/review.md",
+		"references/signoff.md", "references/staging-test.md", "references/ship.md", "retro",
+		"`spec`", "`spec-review`", "`planning`", "`plan-review`", "`building`", "`code-review`",
+		"`signoff`", "`staging-test`", "`shipping`", "`done`",
+		"phase-state.yaml", "last_progress_at", "waiting_on_owner", "10 minutes", "pal-harness render",
+		"Remote Control", "PushNotification", "superpowers:writing-plans",
+		"superpowers:subagent-driven-development", "not available", "_feedbacks/", "local stack",
+		".pal-worktrees/<KEY>-<NNN>/", "session:", "docs/NNN-slug", "needs you", "pal-work")
+	has("skills/phase/references/spec.md", "Calls I made", "recommended answer", "accept all", "skip Codex",
+		"--kind doc", "doc/decisions.md", "test script", "contract", "split the phase")
+	has("skills/phase/references/plan.md", "test file", "fixture", "pal-review-plan", "include load test",
+		"Building starts only after the owner approves the plan")
+	has("skills/phase/references/build.md", "quick fix", "up to ~4 tasks", "5 or more tasks", "feature/NNN-slug",
+		"needs you", "stuck", "1 hour")
+	has("skills/phase/references/review.md", "pal-review-code", "pal-review-tests", "pal-review-errors",
+		"pal-review-security", "pal-review-contract", "pal-review-ui", "--kind code", "--kind uiux",
+		"minor", "major", "critical", "3 rounds", "5 rounds", "doc/later.md")
+	has("skills/phase/references/signoff.md", "[HUMAN GATE]", "templates/signoff-pr.md", "docs/NNN-slug",
+		"dev → staging")
+	has("skills/phase/references/staging-test.md", "fresh seed data", "fix now", "defer", "branches from staging",
+		"feedback", "retest", "Expo Go")
+	has("skills/phase/references/ship.md", "torn down", "48 hours", "smoke check", "retro", "recommended next",
+		"harness capture")
+	has("skills/quick-fix/SKILL.md", "name: quick-fix", "one review", "test step")
 
 	// Size caps (anti-goal: rule growth) and front matter for skills and agents.
 	front := func(p string) map[string]string {
