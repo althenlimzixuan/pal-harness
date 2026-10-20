@@ -31,7 +31,7 @@ one-line reason.
 | `doc/north-star.md`, `doc/decisions.md`, `doc/later.md` | the direction, past owner answers, parked findings |
 
 - Never state a fact on a board's authority. When a board disagrees with its source, correct the
-  board without asking.
+  board without asking, except the held cards in reconcile step 6.
 - A board `number` of 0 means the board does not exist yet: skip its reads and writes, say so once.
 - Read files from `origin/dev` after `git fetch` (`git show origin/dev:doc/features.yaml`), never from
   whatever the owner's checkout has open.
@@ -73,15 +73,21 @@ Run it before your first status line. Never report what you have not reconciled.
 2. Find live phases: `git branch -r --list "origin/docs/[0-9]*"`; read each branch's
    `specs/NNN-slug/phase-state.yaml` (stage, `waiting_on_owner`, tasks, ci, bundle). Done phases
    are on `origin/dev` (`git ls-tree -d --name-only origin/dev specs/`).
+   **Merged view:** a live phase's session writes its bundle features' statuses on its own branch.
+   Take `origin/dev`'s `doc/features.yaml`, then for each live (not `done`) phase replace the
+   features in its `bundle.features` with that branch's entries. Everything below (reconcile,
+   counts, recommendations) uses the merged view.
 3. If the `pal-work` CLI is available (its path is in the session-start context), collect pending
    test runs with `pal-work results --project <key>`; otherwise skip this step.
 4. For each `deferred` feature, check the issue in its last failing result
    (`gh issue view <n> -R <owner/repo> --json state --jq .state`). `CLOSED` → set the feature `retest`.
 5. Read the Roadmap board. Owner intent first: a feature card the owner moved to `Approved to run`
-   sets the feature `picked`; a card moved to `Discard` is a question for the owner (drop the
-   feature?), never moved back on your own.
+   sets the feature `picked`. A card in `Discard` without a `Discarded by Pal:` line is a question
+   for the owner (drop the feature?). Never move a card out of `Discard` on your own.
 6. Project every feature onto the Roadmap board by this mapping. Match cards by their `F-NNN` title
-   prefix; move an existing card, never add a second one for the same feature.
+   prefix; move an existing card, never add a second one for the same feature. **Held cards:** leave
+   a `picked` or `recommended` feature's card alone while it sits in `In flight` (claimed by
+   pickup), `Waiting on you` (an owner-task or a missing vehicle) or `Discard`.
 
    | Feature status | Roadmap column |
    |---|---|
@@ -196,7 +202,8 @@ the owner's authority.
    `In flight` before any other work; if that write fails, stop. Re-read the truth from the files,
    never the card, then route by vehicle (**Bundle and vehicle** step 4). No vehicle on the card →
    `Waiting on you` with "set the vehicle". Not runnable (no matching feature or issue, a goal too
-   vague, a prerequisite unmet) → `Discard` with the reason written on the card, and tell the owner.
+   vague, a prerequisite unmet) → `Discard`, with `Discarded by Pal: <reason>` as the first line of
+   the card's body (a comment on an issue card), and tell the owner.
 2. **Pal's recommended card** (the lead card in `Recommended next`). Refuse it, leaving it where it
    is, when starting it needs cost (anything that moves the monthly bill), credentials or sensitive
    data, a product-direction decision or a breaking contract change, or a human gate already known.
