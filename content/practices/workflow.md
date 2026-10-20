@@ -51,7 +51,7 @@ Every 5 phases Pal walks the north star, the feature list and the later list wit
 ## Branches and merges (before production)
 
 - Work branches (`feature/ fix/ chore/ docs/`) branch from `dev` and return to `dev` by PR (a feature
-  PR may be squash-merged). It merges on its own once CI and the reviews pass.
+  PR merges with a merge commit, never squash). It merges on its own once CI and the reviews pass.
 - The owner merges the `[HUMAN GATE]` sign-off PR `dev → staging`. `staging → main` merges on its own
   after the owner's staging test is passed or deferred. Promotions use merge commits.
 - A project in production adds the owner's gate on `main` as a Workflow Override.
@@ -75,7 +75,7 @@ Every 5 phases Pal walks the north star, the feature list and the later list wit
 
 ## Codex review
 
-Before opening a PR that changes UI or code, run `pal-review`. Kinds: `uiux` for UI changes, `code` always, `doc` for specs (arrives with Pal Center 0.4.0; until then record "Codex spec review: not available" and go on). Handle findings by the severity table and put the report in the PR body: the verdict, every major and critical finding with the owner's decision, and the minor ones with what Claude did. Also save the full report as `specs/NNN-slug/reviews/codex-<kind>-YYYY-MM-DD-HHmm.md` in the SSOT repo.
+Before opening a PR that changes UI or code, run `pal-review`. Kinds: `uiux` for UI changes, `code` always, `doc` for specs (needs Pal Center 0.4.0 or later, run as `pal-review run --kind doc --spec specs/NNN-slug`; with an older version record "Codex spec review: not available" and go on). Handle findings by the severity table and put the report in the PR body: the verdict, every major and critical finding with the owner's decision, and the minor ones with what Claude did. Also save the full report as `specs/NNN-slug/reviews/codex-<kind>-YYYY-MM-DD-HHmm.md` in the SSOT repo.
 
 - `pal-review.exe` is not on PATH: call it by the absolute path in the session-start line `Codex review CLI: "<path>\pal-review.exe"` (written `pal-review` here). Run each command with a Bash timeout of 600000 ms (the 120 s default would cut it off). `run` prints `Review <id> queued` first.
 - Run from the SSOT root (a phase runs it from its worktree set; see the phase skill): `pal-review run --kind uiux`, `pal-review run --kind code` (`--repo <path>` takes a project-root-relative repo path such as `api`).

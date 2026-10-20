@@ -78,8 +78,8 @@ Run it before your first status line. Never report what you have not reconciled.
    Take `origin/dev`'s `doc/features.yaml`, then for each live (not `done`) phase replace the
    features in its `bundle.features` with that branch's entries. Everything below (reconcile,
    counts, recommendations) uses the merged view.
-3. If the `pal-work` CLI is available (its path is in the session-start context), collect pending
-   test runs with `pal-work results --project <key>`; otherwise skip this step.
+3. With the session-start line `Work CLI: "<path>"`, collect pending test runs with
+   `"<path>" results --project <key>`; with no line or exit 5 (Pal Center not running), skip this step.
 4. For each `deferred` feature, check the issue in its last failing result
    (`gh issue view <n> -R <owner/repo> --json state --jq .state`). `CLOSED` → set the feature `retest`.
 5. Read the Roadmap board. Owner intent first: a feature card the owner moved to `Approved to run`

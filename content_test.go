@@ -228,6 +228,41 @@ func TestContentComplete(t *testing.T) {
 	has("agents/review-plan.md", "every spec feature", "code patterns", "contract", "one working day", "test file")
 	has("agents/retro.md", "Went well", "Went badly", "harness capture", "_feedbacks/")
 
+	// Pal Center 0.4.0 CLIs (pal-work, pal-capture, doc kind, worktree-set reviews).
+	has("skills/phase/references/staging-test.md", "wait-results --phase NNN", "Monitor", "results --phase NNN",
+		"Pal Center version:", "gh pr merge", "--merge")
+	has("skills/phase/SKILL.md", "wait-results --phase NNN", "Monitor", "results --phase NNN",
+		"Pal Center version:", "status --session", "older than 0.4.0", "exits 5", "gh pr merge --merge")
+	has("skills/phase/references/spec.md", "--spec specs/NNN-slug")
+	has("agents/retro.md", "Capture CLI:")
+	has("skills/phase/references/ship.md", "Capture CLI:")
+	has("skills/pm/SKILL.md", "Work CLI:")
+	has("skills/quick-fix/SKILL.md", "gh pr merge --merge", "Pal Center version:")
+	has("skills/phase/references/review.md", "gh pr merge", "--merge", "Pal Center version:")
+	for _, p := range []string{"skills/phase/SKILL.md", "skills/phase/references/review.md",
+		"skills/phase/references/spec.md", "skills/quick-fix/SKILL.md"} {
+		s := text(p)
+		const phrase = "not available (worktree set)"
+		for i := 0; ; {
+			j := strings.Index(s[i:], phrase)
+			if j < 0 {
+				break
+			}
+			j += i
+			lo, hi := max(0, j-300), min(len(s), j+300)
+			if !strings.Contains(s[lo:hi], "older than 0.4.0") {
+				t.Errorf("%s: %q is not beside \"older than 0.4.0\"", p, phrase)
+			}
+			i = j + len(phrase)
+		}
+	}
+	for _, p := range []string{"skills/phase/references/review.md", "skills/quick-fix/SKILL.md",
+		"skills/phase/references/staging-test.md"} {
+		if strings.Contains(text(p), "--squash") {
+			t.Errorf("%s: session PRs merge with --merge, never --squash", p)
+		}
+	}
+
 	// Size caps (anti-goal: rule growth) and front matter for skills and agents.
 	front := func(p string) map[string]string {
 		m := map[string]string{}
