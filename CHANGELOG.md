@@ -5,6 +5,7 @@
 A project that adopts the phase flow late can leave its old specs alone.
 
 - Added the optional `harness.legacy_specs_before` field to `project.yaml` (three digits). `check` skips `phase-state.yaml` in `specs/NNN-*` below it; later specs are validated as before.
+- `workflow.md`: check before every push and PR — the repo's own lint and tests at CI's pinned versions; never push unchecked. `go_api.md`: pin one golangci-lint version in CI and `make lint`, never `@latest`.
 
 ## 1.3.1 — 2026-10-20
 
