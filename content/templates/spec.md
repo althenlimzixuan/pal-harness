@@ -2,54 +2,73 @@
 
 - **Status:** Draft
 - **Roadmap card:**
+- **Vehicle:** phase
 
-> `[NEEDS CLARIFICATION: ...]` markers are allowed while the spec is Draft. Resolve every one
-> before the spec is approved.
+> Reads in about 10 minutes: about 1,500 words plus diagrams. Detail that does not fit goes in the
+> Appendix. If it still does not fit, split the phase.
 
-## User Scenarios
+## Summary
 
-### User Story 1 — (title) (Priority: P1)
+1. (What this phase builds, in one sentence.)
+2. (Which features it covers, by id and name.)
+3. (What you will be able to do at the end.)
+4. (The biggest choice made for you, and why.)
+5. (Questions below that need your answer: how many.)
 
-(Who does what, and why it matters.)
+## Questions for the owner
 
-**Acceptance scenarios**
+Only questions that change what gets built. Reply in one line, like "accept all" or
+"accept all except 2: B".
 
-1. **Given** (state), **when** (action), **then** (outcome).
+1. (The question.) Options: A) (…) B) (…). **Recommended: A** — (why, in one line).
 
-### User Story 2 — (title) (Priority: P2)
+## Calls I made
 
-(Who does what, and why it matters.)
+Small decisions already made. Tell me if you disagree with any.
 
-**Acceptance scenarios**
+1. (The call, and the reason in one line.)
 
-1. **Given** (state), **when** (action), **then** (outcome).
+## Features
 
-### User Story 3 — (title) (Priority: P3)
+One block per feature. Approving this spec approves how you will test it.
 
-(Who does what, and why it matters.)
+### F-000 — (name)
 
-**Acceptance scenarios**
+**Why:** (One or two lines: the need behind it.)
 
-1. **Given** (state), **when** (action), **then** (outcome).
+**Use case:** (One or two lines: who does what with it.)
 
-## UX Outline
+**Test script:**
 
-(Mandatory when a surface is active: screens, states, navigation, empty and error states.)
+1. Do: (what you do) → Expect: (what you should see)
+2. Do: (what you do) → Expect: (what you should see)
 
-## Requirements
+## UX outline
 
-- **FR-001**: The system MUST (testable requirement).
-- **FR-002**: The system MUST (testable requirement).
+(Screens or steps in plain words, one short line each. Delete this section when nothing on screen
+changes.)
 
-## Success Criteria
+## Contract
 
-- **SC-001**: (Measurable outcome.) Decided by: (the predicate that settles pass or fail).
-- **SC-002**: (Measurable outcome.) Decided by: (the predicate that settles pass or fail).
+Delete this section when the phase does not change the API.
 
-## Key Entities
+| Method and path | What it does | Errors |
+|---|---|---|
+| `POST /api/v1/(path)` | (one line) | 401, 403, 422 |
 
-- **(Entity)**: (what it is, key attributes, relationships).
+[diagram](diagrams/(name).mmd)
 
-## Assumptions
+A breaking change goes in Questions for the owner, with its impact.
 
-- (Assumption made where the brief was silent.)
+## Out of scope
+
+- (Something a reader might expect, and is not in this phase.)
+
+## Appendix
+
+<details>
+<summary>Detail for those who want it</summary>
+
+(Edge cases, data shapes, alternatives considered.)
+
+</details>
