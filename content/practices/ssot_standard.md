@@ -80,7 +80,7 @@ Tools: `pal-harness <command>` runs as
 
 - `feature/*`, `fix/*`, `chore/*`, `docs/*` branch from `dev` and return to `dev` by PR.
 - Promote `dev` to `staging`, then `staging` to `main`, with merge commits (not squash).
-- Feature PRs into `dev` may be squash-merged.
+- Feature PRs into `dev` that the owner merges by hand may be squash-merged. PRs a session merges itself (phase, fix-now, quick fix, pm) use `gh pr merge --merge`.
 - Before production, which promotions merge on their own and which wait for the owner: `workflow.md`.
 - `hotfix/*` branches from `main`, PRs to `main`, then is merged back into `staging` and `dev`.
 - Each repo's GitHub default branch is `dev`, so new PRs target it.
