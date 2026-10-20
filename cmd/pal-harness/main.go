@@ -19,6 +19,7 @@ import (
 	"github.com/althenlimzixuan/pal-harness/manifest"
 	"github.com/althenlimzixuan/pal-harness/number"
 	"github.com/althenlimzixuan/pal-harness/pin"
+	"github.com/althenlimzixuan/pal-harness/state"
 	"gopkg.in/yaml.v3"
 )
 
@@ -202,6 +203,14 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 			add("%s: %s", pin.Dir, f)
 		}
 	}
+	if mode == "project" {
+		sf, serr := stateFindings(dir)
+		if serr != nil {
+			fmt.Fprintln(stderr, serr)
+			return 2
+		}
+		findings = append(findings, sf...)
+	}
 	if mode == "project" && !callsCheck(dir) {
 		add(".github/workflows/ssot.yml: must call %s with version %s", checkUses, harness.Version)
 	}
@@ -212,6 +221,43 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return 0
+}
+
+// stateFindings validates the optional doc/features.yaml and every
+// specs/*/phase-state.yaml, prefixing each finding with its slash path from
+// dir. A file that exists but cannot be read is an error (exit 2).
+func stateFindings(dir string) ([]string, error) {
+	var out []string
+	check := func(rel string, parse func([]byte) []string) error {
+		b, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(rel)))
+		if errors.Is(err, fs.ErrNotExist) {
+			return nil
+		}
+		if err != nil {
+			return fmt.Errorf("%s: %w", rel, err)
+		}
+		for _, f := range parse(b) {
+			out = append(out, rel+": "+f)
+		}
+		return nil
+	}
+	if err := check("doc/features.yaml", func(b []byte) []string { _, f := state.ParseFeatures(b); return f }); err != nil {
+		return nil, err
+	}
+	matches, err := filepath.Glob(filepath.Join(dir, "specs", "*", "phase-state.yaml"))
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range matches {
+		rel, err := filepath.Rel(dir, m)
+		if err != nil {
+			return nil, err
+		}
+		if err := check(filepath.ToSlash(rel), func(b []byte) []string { _, f := state.ParsePhaseState(b); return f }); err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
 }
 
 // manifestFindings turns a manifest error into findings: one per validation
