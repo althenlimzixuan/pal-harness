@@ -202,6 +202,12 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 		for _, f := range diff {
 			add("%s: %s", pin.Dir, f)
 		}
+		ldiff, lerr := pin.LoaderDiff(dir, p.Harness.Overrides)
+		if lerr != nil {
+			fmt.Fprintf(stderr, ".claude: %v\n", lerr)
+			return 2
+		}
+		findings = append(findings, ldiff...)
 	}
 	if mode == "project" {
 		sf, serr := stateFindings(dir)

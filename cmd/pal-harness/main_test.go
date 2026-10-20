@@ -847,3 +847,21 @@ func TestCheckStateUnreadable(t *testing.T) {
 		t.Fatalf("code %d err=%q", code, errs)
 	}
 }
+
+func TestCheckReportsLoaderDrift(t *testing.T) {
+	ls := pin.Loaders()
+	if len(ls) == 0 {
+		t.Skip("no embedded skills yet")
+	}
+	dir := fixture(t)
+	if code, out, _ := do(t, "check", dir); code != 0 {
+		t.Fatalf("clean fixture: %d %s", code, out)
+	}
+	if err := os.Remove(filepath.Join(dir, filepath.FromSlash(ls[0].Path))); err != nil {
+		t.Fatal(err)
+	}
+	code, out, _ := do(t, "check", dir)
+	if code != 1 || !strings.Contains(out, "missing "+ls[0].Path) {
+		t.Fatalf("code %d out %q", code, out)
+	}
+}
