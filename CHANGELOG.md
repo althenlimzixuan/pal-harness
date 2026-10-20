@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.1 — 2026-10-20
+
+The phase flow uses Pal Center 0.4.0.
+
+- Phase, quick-fix and pm skills use the `Work CLI:`, `Capture CLI:` and `Codex review CLI:` session-start lines (`pal-work`, `pal-capture`, `pal-review`), and `wait-results` through Monitor for the staging test.
+- Spec review runs `pal-review run --kind doc --spec specs/NNN-slug`; worktree-set reviews run with Pal Center 0.4.0 or later (`Pal Center version:` line).
+- Sessions Pal Center starts (`<KEY>-1`, `-2`) count as worktree sets.
+- Session PRs merge with `gh pr merge --merge`, never squash.
+
 ## 1.3.0 — 2026-10-20
 
 The phase flow.

@@ -26,9 +26,9 @@ Use Bash only for read-only inspection (`git log`) and for the capture command b
 
 File every idea once, as a harness capture:
 
-1. When the session-start context names the capture CLI (a line giving the absolute path of `pal-capture`), run it once per idea:
-   `"<that path>" --kind harness --project <key> "<idea>"`. `<key>` is the project key from `project.yaml`. Note a failure beside the idea in `retro.md`.
-2. Otherwise write the ideas to `_feedbacks/YYYY-MM-DD-HHmm.md` in the SSOT repo, one line each, marked `harness`, and say so in your answer.
+1. With the session-start line `Capture CLI: "<path>"` (the absolute path of `pal-capture`), run it once per idea:
+   `"<path>" --kind harness --project <key> "<idea>"`. `<key>` is the project key from `project.yaml`. Exit 0 prints the capture id; 4 means rejected and 5 means Pal Center is not running: note it beside the idea in `retro.md`.
+2. With no such line, or on exit 5, write the ideas to `_feedbacks/YYYY-MM-DD-HHmm.md` in the SSOT repo, one line each, marked `harness`, and say so in your answer.
 3. The good points stay in `retro.md`; they are not filed.
 
 ## Return

@@ -51,13 +51,13 @@ Run it before the owner sees the spec. `pal-review` is the absolute path from th
 line `Codex review CLI: "<path>\pal-review.exe"`; run each command with a Bash timeout of
 600000 ms.
 
-1. **Not available yet:** no CLI path in the session-start context, `--kind doc` rejected, or the
-   phase works in a worktree set while Pal Center cannot resolve one to its project (all until
-   Pal Center 0.4.0). Add `doc: not available` (or `doc: not available (worktree set)`) to
+1. **Not available:** no CLI path in the session-start context, or Pal Center older than 0.4.0 (the
+   `Pal Center version:` line): it has no `doc` kind and cannot resolve a worktree set to its
+   project. Add `doc: not available` (or `doc: not available (worktree set)`) to
    `codex.skipped`, write "Codex spec review: not available" in the log and in the spec's Calls I
    made, and go on. Never run `pal-review` from the owner's checkout for a phase: it would review
    the owner's code, not the phase's.
-2. Otherwise, from the set's root: `pal-review run --kind doc`. Exit codes:
+2. Otherwise, from the set's root: `pal-review run --kind doc --spec specs/NNN-slug`. Exit codes:
    - 0: the report is printed. Save it as `specs/NNN-slug/reviews/codex-doc-YYYY-MM-DD-HHmm.md`;
      add 1 to `codex.spec`.
    - 3: still running. `pal-review wait <id>` (same Bash timeout) until it ends.

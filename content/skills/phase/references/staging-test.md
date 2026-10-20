@@ -31,8 +31,11 @@ then "needs you".
 3. PushNotification: "needs you: phase NNN is ready for your test — N steps". In the session, say
    where to test: the URL, the test account for each role (names, never passwords), Expo Go.
 4. Collect the results:
-   - When the session-start context names a `pal-work` CLI path, collect them with
-     `pal-work results --project <key>`.
+   - With a `Work CLI: "<path>"` line and `Pal Center version:` 0.4.0 or later, arm
+     `"<path>" wait-results --phase NNN --timeout 9m` through Monitor and re-arm it on exit 3 (still
+     waiting). Exit 0 prints the runs as JSON: record them in step 5. After a resume or compaction
+     run `"<path>" results --phase NNN` first. Exit 5 (Pal Center not running) or no line: the
+     walk-through below.
    - Otherwise walk the owner through each test script step by step through Remote Control: show
      one step (do, expect), wait for pass or fail with an optional note, then the next.
 5. Record every step in the feature's `results` in `doc/features.yaml`:
@@ -47,9 +50,10 @@ Ask, with a recommended answer and its reason:
   2. In each repo involved, the fix branches from staging: `fix/NNN-<short>`, a worktree in the
      set from `origin/staging` (run `git -C <set>/<component> fetch origin` first). The next phase's work on `dev` never reaches staging this way.
   3. Test first, then the fix; one review (`pal-review-code` and `pal-review run --kind code`;
-     exit codes, the worktree-set rule, severity and 3 fix rounds as in `references/review.md`).
-  4. Its PR into `staging` merges on its own after the review and green CI; staging (or the local
-     stack) redeploys. Then PR the same branch into `dev` too.
+     exit codes, the version rule, severity and 3 fix rounds as in `references/review.md`).
+  4. Its PR into `staging` merges on its own after the review and green CI, with
+     `gh pr merge <n> -R <owner/repo> --merge` (never squash); staging (or the local
+     stack) redeploys. Then PR the same branch into `dev` too, merged with `--merge`.
   5. The step reopens: the feature becomes `retest`, and the owner runs that step again.
 - **defer** — only a backlog issue is filed:
   1. `gh issue create -R <owner/repo>` with label `bug` and a body starting

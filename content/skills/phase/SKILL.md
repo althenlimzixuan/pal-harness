@@ -43,7 +43,9 @@ Sessions never switch branches in the owner's checkout. A phase works in its own
 under `<workspace>/.pal-worktrees/<KEY>-<NNN>/`: the SSOT repo at the set's root and each component
 repo the phase touches at its project path inside it (`<KEY>-096/api`). `<workspace>` is the folder
 holding `workspace.yaml` (a parent of the project); `<KEY>` is `project.yaml` `key`. A session Pal
-Center started inside such a set already works there. Use absolute paths or `git -C <path>` for
+Center started works in a set already: `<workspace>/.pal-worktrees/<KEY>-1` or `-2`. Any session
+whose folder is under `.pal-worktrees/` is in a set; a session the owner starts by hand uses
+`<KEY>-<NNN>`. Use absolute paths or `git -C <path>` for
 every command and never `cd` into the set, so the owner's checkouts never move. `/pm` uses `<KEY>-pm-<YYYYMMDD-HHmm>` for its own
 bookkeeping, never a phase's set.
 
@@ -51,7 +53,8 @@ bookkeeping, never a phase's set.
 
 1. Read the bundle and vehicle from the lead card's first line (`Bundle: … · vehicle: phase`), and
    the bundle features from `doc/features.yaml` on `origin/dev` after `git fetch origin`.
-2. Unless already in a set, create the SSOT worktree:
+2. Unless started in a set already (any folder under `.pal-worktrees/`: `<KEY>-1`, `-2` or `<KEY>-<NNN>`),
+   create the SSOT worktree:
    1. `git -C <project root> worktree add --detach <workspace>/.pal-worktrees/<KEY>-new-<slug> origin/dev`
    2. `pal-harness spec new <slug> <workspace>/.pal-worktrees/<KEY>-new-<slug>` (the folder
       argument; never `cd` into the set, since Windows cannot move a folder that is a process's
@@ -145,7 +148,10 @@ At every stop:
    session through Remote Control. Do not end the session and do not poll.
 5. When the owner replies: record the answer (owner answers to questions go in
    `doc/decisions.md`), clear `waiting_on_owner`, update `last_progress_at`, commit and push.
-6. Then compact before continuing: run `/compact` when this session can, or reload from
+6. Work state: at a stop run `pal-work status --session <name> --state waiting` (the `Work CLI:`
+   line gives the path; `<name>` is the session name in phase-state `session:`; skip this when the
+   line is missing or the CLI exits 5), after the owner's reply `--state working`, at `done` `--state idle`.
+7. Then compact before continuing: run `/compact` when this session can, or reload from
    `phase-state.yaml`, the stage's reference and the approved files, never from memory of the
    earlier stage.
 
@@ -164,18 +170,26 @@ the session) and **stuck** (from Pal Center over Slack, once it exists).
 
 ## Until Pal Center and CI catch up
 
-Each row stops applying once its missing piece exists; check the session-start context and the
-project's `CLAUDE.md`.
+The session-start line `Pal Center version: X.Y.Z` is the installed Pal Center. The `doc` Codex
+kind, reviews from a worktree set and the Features tab need 0.4.0 or later. The lines
+`Work CLI: "<path>"`, `Capture CLI: "<path>"` and `Codex review CLI: "<path>"` give the paths of
+`pal-work`, `pal-capture` and `pal-review`. A CLI that exits 5 means Pal Center is not running. With
+no version line, an older version or exit 5, use the interim rows.
+With Pal Center 0.4.0 or later the staging test collects results with `wait-results --phase NNN`
+armed through Monitor, and `results --phase NNN` after a resume (`references/staging-test.md` section 3).
 
 | Missing piece | Do this |
 |---|---|
-| Codex `doc` review kind (Pal Center 0.4.0) | Record "Codex spec review: not available" and go on |
-| Codex reviews from a worktree set (Pal Center 0.4.0) | Pal Center cannot yet resolve `.pal-worktrees/` to its project, and from the project root it would review the owner's checkout. Record `<kind>: not available (worktree set)` in `codex.skipped` and go on; never run `pal-review` from the owner's checkout for a phase |
-| Features tab and its `pal-work` CLI | When the session-start context names a `pal-work` CLI path, collect test results with it. Otherwise walk the owner through the test script step by step through Remote Control and record the results in `doc/features.yaml` (`env: local` until the project has staging) |
-| Capture command | Retro ideas go to `_feedbacks/YYYY-MM-DD-HHmm.md` |
+| Pal Center older than 0.4.0 (no `doc` kind, no worktree-set reviews) | Record "Codex spec review: not available" and `<kind>: not available (worktree set)` in `codex.skipped` and go on; never run `pal-review` from the owner's checkout for a phase |
+| Features tab and `pal-work` (older than 0.4.0, or exit 5) | Walk the owner through the test script step by step through Remote Control and record the results in `doc/features.yaml` (`env: local` until the project has staging) |
+| Capture command (no `Capture CLI:` line, or exit 5) | Retro ideas go to `_feedbacks/YYYY-MM-DD-HHmm.md` |
 | Scheduled pickup, stuck alerts | `/pm pickup` runs the ladder by hand; there is no stuck alert, so send "needs you" yourself when stuck |
 | CI report jobs, fingerprint skip | Run the reports once, locally, on the final commit |
 | On-demand staging | The owner tests on the local stack before `staging` → `main`, so the order of sign-off, test and ship holds. A project whose Workflow Overrides say "test on production" merges to `main` first and tests after |
+
+Session PRs (phase build PRs, fix-now PRs, quick-fix PRs) merge with `gh pr merge --merge`, never
+squash: Pal Center tells a session folder's work is safely on GitHub from the merge commit after
+the branch is deleted.
 
 ## Rules for every stage
 

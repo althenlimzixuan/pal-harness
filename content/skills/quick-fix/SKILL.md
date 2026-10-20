@@ -56,11 +56,12 @@ Write the owner's one test step for what the fix changes (do → expect), concre
      `pal-review wait <id>` (same timeout) until it ends; 4 failed → record it, retry once, then
      add `<kind>: failed (<reason>)` to `codex.skipped` and go on with a note; 5 skipped → add
      `<kind>: skipped (<reason>)` to `codex.skipped`.
-   - Until Pal Center 0.4.0 resolves a worktree set to its project, add
+   - With Pal Center older than 0.4.0 (the `Pal Center version:` line), which cannot resolve a
+     worktree set to its project, add
      `<kind>: not available (worktree set)` to `codex.skipped` and go on. Never run `pal-review`
      from the owner's checkout for a quick fix.
 3. Severity, 3 fix rounds and leftover findings as in `references/review.md` sections 3–5.
-4. Open the PR into `dev` with the Codex summary in its body; it merges on its own once CI is green.
+4. Open the PR into `dev` with the Codex summary in its body; it merges on its own once CI is green, with `gh pr merge --merge` (never squash).
    `stage: code-review` while reviewing, then `stage: signoff`.
 
 ## 5. Sign-off, the owner's test, ship
