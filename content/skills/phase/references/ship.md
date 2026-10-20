@@ -43,8 +43,9 @@ write the retro, close out.
    reports what the agent filed. The agent writes `specs/NNN-slug/retro.md` from
    `.pal-harness/templates/retro.md`: what went well (keep), what went badly (fix), and the ideas.
    Keep it short.
-2. File each idea as a harness capture in Pal Center's inbox (the capture command, once the
-   session-start context names it). Until then, write the ideas to
+2. File each idea as a harness capture in Pal Center's inbox with the session-start line
+   `Capture CLI: "<path>"`: `"<path>" --kind harness --project <key> "<idea>"` (exit 4 rejected, 5
+   Pal Center not running). With no line or exit 5, write the ideas to
    `_feedbacks/YYYY-MM-DD-HHmm.md` in the SSOT repo, one line each, marked `harness`.
 3. The good points stay in `retro.md`.
 

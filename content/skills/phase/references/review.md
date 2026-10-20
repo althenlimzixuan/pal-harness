@@ -35,9 +35,10 @@ Run them in parallel.
      `codex.skipped` and go on with a note for the sign-off PR.
    - 5: skipped. Add `<kind>: skipped (<reason>)` to `codex.skipped`.
 
-   Until Pal Center 0.4.0 resolves a worktree set to its project, `pal-review` cannot run from the
-   set: add `<kind>: not available (worktree set)` to `codex.skipped` and go on. Never run it from
-   the owner's checkout for a phase; it would review the owner's code, not the phase's.
+   Pal Center 0.4.0 or later (the `Pal Center version:` line) resolves a worktree set to its project:
+   run from the set's root. With Pal Center older than 0.4.0, `pal-review` cannot run from the set:
+   add `<kind>: not available (worktree set)` to `codex.skipped` and go on. Never run it from the
+   owner's checkout for a phase; it would review the owner's code, not the phase's.
 2. **Claude's reviewers**, each a subagent by its agent name, given the spec, the plan, the branch
    list with base `origin/dev`, and the report folder:
 
@@ -88,7 +89,7 @@ Each finding not fixed goes to one place, recorded for the sign-off PR's review 
 1. Each `feature/NNN-slug` PR body carries the Codex report summary: the verdict, every major and
    critical finding with the owner's decision, the minor ones with what Claude did (`workflow.md`).
 2. Each PR into `dev` merges on its own once CI is green and the reviews pass:
-   `gh pr checks <n> -R <owner/repo> --watch`, then `gh pr merge <n> -R <owner/repo> --squash`. Do not pass
+   `gh pr checks <n> -R <owner/repo> --watch`, then `gh pr merge <n> -R <owner/repo> --merge` (a merge commit, never squash). Do not pass
    `--delete-branch` from inside a worktree; branches go when the set is removed.
 3. `stage: signoff`. Commit and push `docs/NNN-slug`.
 4. Go to `.pal-harness/skills/phase/references/signoff.md`.
