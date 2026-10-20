@@ -13,7 +13,7 @@ Every repository must pass all stages on a PR's final commit before it merges:
 | Build | `make build` | `next build` | `eas build --platform all` |
 | Docker build | Yes (API only) | — (Vercel) | — (EAS) |
 
-No stage may be skipped; the one exception is the tests on a promotion whose tree hash already passed (below). Flaky tests must be fixed, not retried.
+No stage may be skipped; the one exception is the tests on a promotion whose tree hash already passed (`testing.md`, Test reports). Flaky tests must be fixed, not retried.
 
 ## Branch & Merge Strategy
 

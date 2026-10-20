@@ -57,7 +57,8 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
 ## Test reports
 
 - **One run, on the final commit.** CI runs the tests once on each PR's final commit; that run makes
-  the reports. A promotion whose code fingerprint (git tree hash) already passed skips the tests and
+  the reports, except the staging reports (regression, and the load test when requested), which come
+  from the staging deploy of the merged sign-off. A promotion whose code fingerprint (git tree hash) already passed skips the tests and
   only builds and deploys. Reports live in the SSOT repo, so committing them never changes the code
   under test. Until CI has report jobs, the session runs the reports once, locally, on the final commit.
 - **Location:** `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/` in the SSOT repo, committed.
@@ -73,7 +74,8 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
 - **Blocking problems:** coverage under 80%; a failing test; an API call's p95 more than 20% slower,
   or a web page's Lighthouse performance score 5 points or more lower, than the previous phase's report
   (the first phase sets the baseline). Claude gets 3 fix rounds, then the session asks the owner (a "needs you" notification).
-- A missing, empty or stale report (not from the final commit) is a review finding.
+- A missing, empty or stale report is a review finding. Staging reports must match the tree hash of
+  the staging deploy; every other report must come from the PR's final commit.
 - **A report the project cannot make yet.** One that does not apply to the stack (Lighthouse with no web
   surface) is recorded as "n/a" with the reason. One that applies but has no tooling becomes a task in
   the project's first plan; until it ships, the report is a recorded skip, not a blocker.
