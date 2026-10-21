@@ -133,6 +133,9 @@ All errors return `application/problem+json` (RFC 7807):
 Required linters in `.golangci.yml`:
 `errcheck`, `govet`, `staticcheck`, `revive`, `gosec`, `exhaustive`, `gofumpt`
 
+Pin one version in CI and in `make lint` (`go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@vX.Y.Z run ./...`),
+so a clean local run means a clean CI run. Never `@latest`: a new release adds checks overnight.
+
 ## Observability (Phased)
 
 - **Phase 1** (always): logrus JSON logs, `request_id` injected via middleware, propagated via context

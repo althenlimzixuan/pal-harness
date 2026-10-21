@@ -59,6 +59,10 @@ Every 5 phases Pal walks the north star, the feature list and the later list wit
   into `dev`.
 - `hotfix/` branches from `main`, PRs to `main`, then merges back into `staging` and `dev`. No direct
   commits to `main`.
+- **Check before every push and PR**: run the repo's own lint and tests at the tool versions CI pins
+  (CI never installs a linter `@latest`). If they cannot run, wait and run them again; never push
+  unchecked and leave it to CI. On Windows, a formatter that flags every file means CRLF endings:
+  lint in a checkout with `core.autocrlf input`.
 
 ## Build rules
 
