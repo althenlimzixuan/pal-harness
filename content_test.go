@@ -124,6 +124,10 @@ func TestContentComplete(t *testing.T) {
 		}
 	}
 
+	// Lint before every push, at CI's pinned version (an @latest linter failed a PR overnight).
+	has("practices/workflow.md", "Check before every push and PR", "CI never installs a linter `@latest`")
+	has("practices/go_api.md", "Pin one version in CI and in `make lint`", "Never `@latest`")
+
 	// R26: the contract-sync lines point to product_docs' split rule; no
 	// practice tells a component to carry doc/API.md.
 	for _, p := range []string{"practices/workflow.md", "practices/go_api.md"} {

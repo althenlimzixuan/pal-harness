@@ -900,3 +900,42 @@ func TestRenderArgCount(t *testing.T) {
 		t.Errorf("two args: code %d", code)
 	}
 }
+
+func setLegacy(t *testing.T, dir, before string) {
+	t.Helper()
+	b, err := os.ReadFile(filepath.Join(dir, "project.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	y := strings.Replace(string(b), "overrides:", "legacy_specs_before: \""+before+"\"\n  overrides:", 1)
+	write(t, dir, "project.yaml", y)
+}
+
+func TestCheckLegacySpecs(t *testing.T) {
+	old := "stage: old\n"
+	t.Run("skipped before the marker", func(t *testing.T) {
+		dir := fixture(t)
+		setLegacy(t, dir, "097")
+		write(t, dir, "specs/090-x/phase-state.yaml", old)
+		if code, out, errs := do(t, "check", dir); code != 0 {
+			t.Fatalf("code %d out=%q err=%q", code, out, errs)
+		}
+	})
+	t.Run("reported without the marker", func(t *testing.T) {
+		dir := fixture(t)
+		write(t, dir, "specs/090-x/phase-state.yaml", old)
+		code, out, _ := do(t, "check", dir)
+		if code != 1 || !strings.Contains(out, "specs/090-x/phase-state.yaml") {
+			t.Fatalf("code %d out=%q", code, out)
+		}
+	})
+	t.Run("reported at the marker", func(t *testing.T) {
+		dir := fixture(t)
+		setLegacy(t, dir, "097")
+		write(t, dir, "specs/097-y/phase-state.yaml", old)
+		code, out, _ := do(t, "check", dir)
+		if code != 1 || !strings.Contains(out, "specs/097-y/phase-state.yaml") {
+			t.Fatalf("code %d out=%q", code, out)
+		}
+	})
+}
