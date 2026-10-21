@@ -217,7 +217,11 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 		findings = append(findings, ldiff...)
 	}
 	if mode == "project" {
-		sf, serr := stateFindings(dir)
+		legacy := ""
+		if p != nil {
+			legacy = p.Harness.LegacySpecsBefore
+		}
+		sf, serr := stateFindings(dir, legacy)
 		if serr != nil {
 			fmt.Fprintln(stderr, serr)
 			return 2
@@ -238,8 +242,8 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 
 // stateFindings validates the optional doc/features.yaml and every
 // specs/*/phase-state.yaml, prefixing each finding with its slash path from
-// dir. A file that exists but cannot be read is an error (exit 2).
-func stateFindings(dir string) ([]string, error) {
+// dir. Specs numbered below legacyBefore (when set) are skipped. A file that exists but cannot be read is an error (exit 2).
+func stateFindings(dir, legacyBefore string) ([]string, error) {
 	var out []string
 	check := func(rel string, parse func([]byte) []string) error {
 		b, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(rel)))
@@ -266,11 +270,28 @@ func stateFindings(dir string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
+		if isLegacySpec(filepath.Base(filepath.Dir(m)), legacyBefore) {
+			continue
+		}
 		if err := check(filepath.ToSlash(rel), func(b []byte) []string { _, f := state.ParsePhaseState(b); return f }); err != nil {
 			return nil, err
 		}
 	}
 	return out, nil
+}
+
+// isLegacySpec reports whether a spec folder "NNN-slug" is numbered below the
+// project's legacy_specs_before marker. Both numbers are three digits.
+func isLegacySpec(folder, before string) bool {
+	if before == "" || len(folder) < 3 || folder[:3] >= before {
+		return false
+	}
+	for _, c := range folder[:3] {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 // manifestFindings turns a manifest error into findings: one per validation
