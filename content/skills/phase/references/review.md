@@ -20,6 +20,11 @@ files, the thresholds and the tools).
 4. Blocking: coverage under 80%; a failing test; an API call's p95 more than 20% slower, or a web
    page's Lighthouse performance score 5 points or more lower, than the previous phase's report
    (the first phase sets the baseline). Fix it, up to 3 rounds, then ask the owner ("needs you").
+5. Under `ci-test-summary` (SKILL.md, **Flow overrides**) make no report files. Once CI is green
+   on the final commit, take its test summary (tests passed and failed, and coverage, per
+   component; the contract drift check) from the run (`gh run view <id> -R <owner/repo>`) and save
+   it as `specs/NNN-slug/reviews/ci-summary-YYYY-MM-DD-HHmm.md`. The tests reviewer checks that
+   summary instead of the report files. Coverage under 80% and a failing test still block.
 
 ## 2. The reviewers
 
@@ -40,7 +45,8 @@ Run them in parallel.
    add `<kind>: not available (worktree set)` to `codex.skipped` and go on. Never run it from the
    owner's checkout for a phase; it would review the owner's code, not the phase's.
 2. **Claude's reviewers**, each a subagent by its agent name, given the spec, the plan, the branch
-   list with base `origin/dev`, and the report folder:
+   list with base `origin/dev`, and the report folder (under `ci-test-summary`, the CI summary file,
+   with a line saying it replaces `_test_reports/`):
 
    | Agent | When |
    |---|---|
@@ -48,7 +54,7 @@ Run them in parallel.
    | `pal-review-tests` | Every phase |
    | `pal-review-errors` | Every phase |
    | `pal-review-security` | When the phase touches login, user data, payments or credentials |
-   | `pal-review-contract` | When the API changed |
+   | `pal-review-contract` | When the API or the infrastructure changed |
    | `pal-review-ui` | When screens changed |
 
 3. The reviewers are read-only: save each returned report verbatim as
@@ -72,7 +78,9 @@ report with the reason, and the owner still sees it.
 1. A round fixes every open finding, then re-runs only the reviewers that raised them.
 2. This whole-branch review gets 3 rounds; the per-task reviews inside a larger build get 5 rounds.
 3. Still unfixed after the limit → "needs you" with what was tried (`kind: findings`).
-4. After the last code change, make the reports again, so every report comes from the final commit.
+4. After the last code change, make the reports again (under `ci-test-summary`, take the CI summary
+   again), so every report comes from the final commit (single-repo: the last commit that changes
+   code; SKILL.md, **Single-repo projects**).
    A missing, empty or stale report is a finding.
 
 ## 5. Leftover findings
@@ -91,5 +99,7 @@ Each finding not fixed goes to one place, recorded for the sign-off PR's review 
 2. Each PR into `dev` merges on its own once CI is green and the reviews pass:
    `gh pr checks <n> -R <owner/repo> --watch`, then `gh pr merge <n> -R <owner/repo> --merge` (a merge commit, never squash). Do not pass
    `--delete-branch` from inside a worktree; branches go when the set is removed.
-3. `stage: signoff`. Commit and push `docs/NNN-slug`.
-4. Go to `.pal-harness/skills/phase/references/signoff.md`.
+3. Single-repo: the code PR `docs/NNN-slug` → `dev` merges here the same way, with the reviews and
+   the reports on it. Keep the branch.
+4. `stage: signoff`. Commit and push `docs/NNN-slug`.
+5. Go to `.pal-harness/skills/phase/references/signoff.md`.

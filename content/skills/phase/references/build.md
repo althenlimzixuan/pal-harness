@@ -24,13 +24,16 @@ Without superpowers installed, say so in the log and build a larger phase inline
 2. SSOT work (the `doc/openapi.yaml` copy, `doc/API.md`, reports, reviews) goes on `docs/NNN-slug`
    in the set's root.
 3. Never change a branch in the owner's checkouts.
+4. Single-repo project (SKILL.md, **Single-repo projects**): no component worktrees; the code goes
+   on `docs/NNN-slug` in the set's root.
 
 ## 3. Each task
 
 1. Write the failing test from its fixture (`testing.md`); run it and see it fail for the right
    reason.
 2. Write the code that makes it pass, by the build rules in `workflow.md` (TDD, the code patterns,
-   the stack practice, contract-first).
+   the stack practice, contract-first). A change to owner-facing behaviour updates the project's
+   owner guide in the same PR.
 3. Run the plan's prove-it commands; read each result from the command's own exit code.
 4. Commit with the plan's message; push the feature branch.
 5. Add 1 to `tasks.done`, update `last_progress_at`, write a log entry; commit and push
@@ -69,7 +72,8 @@ task keeps that honest.
 ## 6. Done building
 
 1. Open each `feature/NNN-slug` PR into `dev` (`gh pr create -R <owner/repo> --base dev --head feature/NNN-slug`); do
-   not merge yet. Set `ci: running`; watch with `gh pr checks <n> -R <owner/repo> --watch`.
+   not merge yet. Single-repo: open the code PR `docs/NNN-slug` → `dev` instead. Set
+   `ci: running`; watch with `gh pr checks <n> -R <owner/repo> --watch`.
 2. CI red → fix, push, watch again (each fix is a round; 3 rounds, then section 5). Green on every
    PR → `ci: green`.
 3. `stage: code-review`; bundle features `code-review`. Commit and push.

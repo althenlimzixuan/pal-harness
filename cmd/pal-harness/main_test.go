@@ -939,3 +939,49 @@ func TestCheckLegacySpecs(t *testing.T) {
 		}
 	})
 }
+
+func TestCheckAutoPromoteWarns(t *testing.T) {
+	dir := fixture(t)
+	proj := read(t, dir, "project.yaml")
+	write(t, dir, "project.yaml", strings.Replace(proj, "overrides: []", "overrides: []\n  flow_overrides: [auto-promote]", 1))
+	code, out, errs := do(t, "check", dir)
+	if code != 0 {
+		t.Fatalf("code %d out=%q err=%q", code, out, errs)
+	}
+	if !strings.Contains(out, "warning: auto-promote is on: sign-off and ship PRs merge without the owner") {
+		t.Errorf("missing warning in %q", out)
+	}
+}
+
+func TestCheckShippedWithoutOverride(t *testing.T) {
+	dir := fixture(t)
+	feat := strings.Replace(stateFixture(t, "features.yaml"), "status: todo", "status: shipped", 1)
+	write(t, dir, "doc/features.yaml", feat)
+	code, out, _ := do(t, "check", dir)
+	if code != 1 || !strings.Contains(out, "doc/features.yaml: ") || !strings.Contains(out, "shipped needs the no-owner-test flow override") {
+		t.Fatalf("code %d out=%q", code, out)
+	}
+	proj := read(t, dir, "project.yaml")
+	write(t, dir, "project.yaml", strings.Replace(proj, "overrides: []", "overrides: []\n  flow_overrides: [no-owner-test]", 1))
+	code, out, _ = do(t, "check", dir)
+	if code != 0 {
+		t.Fatalf("with override: code %d out=%q", code, out)
+	}
+}
+
+// When project.yaml fails validation its flow overrides are unknown, so the
+// shipped rule is skipped rather than reported against every shipped feature.
+func TestCheckShippedSkippedWhenManifestInvalid(t *testing.T) {
+	dir := fixture(t)
+	feat := strings.Replace(stateFixture(t, "features.yaml"), "status: todo", "status: shipped", 1)
+	write(t, dir, "doc/features.yaml", feat)
+	proj := read(t, dir, "project.yaml")
+	write(t, dir, "project.yaml", strings.Replace(proj, "overrides: []", "overrides: []\n  flow_overrides: [no-owner-test, bogus]", 1))
+	code, out, _ := do(t, "check", dir)
+	if code != 1 || !strings.Contains(out, "project.yaml: harness.flow_overrides[1]") {
+		t.Fatalf("want the manifest finding: code %d out=%q", code, out)
+	}
+	if strings.Contains(out, "shipped needs the no-owner-test flow override") {
+		t.Errorf("shipped rule ran on an invalid manifest: %q", out)
+	}
+}

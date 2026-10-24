@@ -25,8 +25,8 @@ On entering a stage, and on resuming into one, read its reference first; read on
 |---|---|---|---|
 | `spec` | Draft the spec alone; Codex reviews it | `brainstorming` | `.pal-harness/skills/phase/references/spec.md` |
 | `spec-review` | Owner stop: the owner answers and approves | `spec-review` | same |
-| `planning` | Write the plan; `pal-review-plan` checks it | `planning` | `.pal-harness/skills/phase/references/plan.md` |
-| `plan-review` | Owner stop: the owner approves the plan | `plan-review` | same |
+| `planning` | Write the plan; `pal-review-plan` checks it; no owner stop | `planning` | `.pal-harness/skills/phase/references/plan.md` |
+| `plan-review` | Not used: sessions skip it and go from `planning` to `building` | — | — |
 | `building` | Build the tasks | `building` | `.pal-harness/skills/phase/references/build.md` |
 | `code-review` | Codex and Claude's reviewers; the test reports | `code-review` | `.pal-harness/skills/phase/references/review.md` |
 | `signoff` | Owner stop: the `[HUMAN GATE]` sign-off PR | `code-review` | `.pal-harness/skills/phase/references/signoff.md` |
@@ -36,6 +36,19 @@ On entering a stage, and on resuming into one, read its reference first; read on
 
 Never fake a stage: a gate without its artifact (an approved spec, a merged PR, a recorded result)
 is not passed.
+
+## Flow overrides
+
+A project turns these on in `project.yaml` `harness.flow_overrides` (its `CLAUDE.md` Workflow
+Overrides say why). With none set, every stage runs as written; each reference marks what an
+override changes there.
+
+| Override | Effect |
+|---|---|
+| `auto-promote` | The sign-off PR (`dev` → `staging`) and the ship PR (`staging` → `main`) have no `[HUMAN GATE]` prefix and merge on their own once CI and the reviews pass. |
+| `no-owner-test` | No staging test: sign-off goes straight to ship. The spec's test section is a **What to expect now** list. Features end as `shipped`, never `passed`. |
+| `installer-ready` | Ship downloads the release's installer to this PC for the owner to run, instead of a deploy. |
+| `ci-test-summary` | Review and sign-off use the final commit's CI test summary instead of `_test_reports/`. The 80% gate still blocks. |
 
 ## The worktree set
 
@@ -48,6 +61,21 @@ whose folder is under `.pal-worktrees/` is in a set; a session the owner starts 
 `<KEY>-<NNN>`. Use absolute paths or `git -C <path>` for
 every command and never `cd` into the set, so the owner's checkouts never move. `/pm` uses `<KEY>-pm-<YYYYMMDD-HHmm>` for its own
 bookkeeping, never a phase's set.
+
+## Single-repo projects
+
+A project is single-repo when every component's `repo` equals `ssot.repo`.
+
+1. **One branch.** Spec, plan, `phase-state.yaml` and code all go on `docs/NNN-slug` in the SSOT
+   worktree: no component worktrees, no `feature/NNN-slug`. Where a reference names them, use
+   `docs/NNN-slug` and the set's root; `pal-review` runs with no `--repo`.
+2. **The code PR** `docs/NNN-slug` → `dev` opens when the build is done and merges once CI and the
+   reviews pass. It replaces the component PRs and the sign-off docs PR. Keep the branch: later
+   stages keep pushing `phase-state.yaml` to it.
+3. **The close-out** is a second PR from the same branch. Promotions are the SSOT repo's own; there
+   are no component promotions.
+4. **The final commit** is the last commit that changes code; report, review and state commits
+   after it do not make a report stale.
 
 ## Start
 
@@ -116,15 +144,15 @@ a new session, the phase continues from it and `git log` alone.
 
 ## Owner stops
 
-The four planned stops are the **spec**, the **plan**, the **sign-off** PR and the **staging test**.
-Besides those, ask the owner only for a major or critical finding, an exhausted fix-round limit (3;
-5 for per-task reviews in a larger build), a stuck build, or a question that would change the approved spec or plan — always with a "needs you"
+The three planned stops are the **spec**, the **sign-off** PR and the **staging test** (fewer under
+the **Flow overrides**); the plan has none. Besides those, ask the owner only for a major or critical
+finding, an exhausted fix-round limit (3; 5 for per-task reviews in a larger build), a stuck build,
+or a question that would change the approved spec or what the plan builds — always with a "needs you"
 notification. Everything else is decided by you and listed under "Calls I made".
 
 | Stop | `waiting_on_owner.kind` | `link` |
 |---|---|---|
 | Spec | `spec-review` | the spec page |
-| Plan | `plan-review` | the plan page |
 | Sign-off | `signoff` | the PR URL |
 | Staging test | `staging-test` | the spec page (its Features hold the test scripts) |
 | Major or critical findings, an exhausted fix-round limit | `findings` | the page of `reviews/owner-YYYY-MM-DD-HHmm.md` |

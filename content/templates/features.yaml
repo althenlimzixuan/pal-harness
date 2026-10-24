@@ -5,7 +5,8 @@
   use_case: Set a budget, see each day's spend against it.
   status: todo                 # todo | recommended | picked | brainstorming | spec-review | planning
                                # | plan-review | building | code-review | not-tested | passed | fixing
-                               # | deferred | retest
+                               # | deferred | retest | shipped (only with the no-owner-test
+                               # flow override: shipped with no owner test, never passed)
   phase: ""                    # three digits once a phase takes it, like "096"
   test_script:
     - {step: 1, do: "Open a trip and set a budget of 500", expect: "The budget shows 500 on the trip page"}

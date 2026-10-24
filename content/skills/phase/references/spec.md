@@ -30,12 +30,22 @@ Write `specs/NNN-slug/spec.md` alone, in the sections `spec new` copied from
    accounts, each with one visible result, needing no code knowledge. A bundle fix the owner can
    see gets a step in the test script of the feature it touches; a fix for a `deferred` feature is
    tested by that feature's failed step. Approving the spec approves how the owner will test.
+   Under `no-owner-test` (SKILL.md, **Flow overrides**) the test section is a
+   **What to expect now** list instead: what behaves differently and where to see it, one line
+   each, with nothing to run.
 5. **UX outline:** screens or steps in plain words; delete it when nothing on screen changes.
 6. **Contract:** only when the phase changes the API; the contract comes before any code. An
    endpoint table (method and path, what it does, errors) plus one sequence diagram per call in
    `specs/NNN-slug/diagrams/<name>.mmd`, linked from the table. REST under `/api/v1/`, RFC 7807 errors. A breaking change is a numbered question
    at the top, with its impact. Delete the section otherwise.
-7. **Out of scope** and the collapsed **Appendix**, as the template shows.
+7. **Infrastructure:** every spec embeds `doc/infra.mmd`, the project's one diagram of its runtime
+   parts (apps, services, databases, queues, outside services, CI and hosting) and how they
+   connect. List the parts this phase adds or changes under it, or write "no change". No
+   `doc/infra.mmd` yet → draft it from `.pal-harness/templates/infra.mmd` in this phase. A phase
+   that changes the infrastructure updates `doc/infra.mmd` on `docs/NNN-slug`. Hygiene:
+   names and kinds only ("API on Cloud Run", "MySQL"); never project ids, hostnames, client ids,
+   keys or URLs, since some SSOT repos are public.
+8. **Out of scope** and the collapsed **Appendix**, as the template shows.
 
 ## 3. Size
 
@@ -74,7 +84,8 @@ Codex never reviews the plan.
 1. `pal-harness render <set>/specs/NNN-slug/spec.md`, then publish `spec.html` (SKILL.md, **Owner stops**).
 2. `stage: spec-review`; bundle features `spec-review`; `waiting_on_owner` with `kind: spec-review`,
    the page link and the number of questions. Commit and push.
-3. PushNotification: "needs you: spec NNN — <title>, N questions, about 10 minutes". Wait.
+3. PushNotification: "needs you: spec NNN — <title>, N questions, about 10 minutes". Add "include
+   load test" to the reply for a load test on staging. Wait.
 
 ## 6. The owner's reply
 
@@ -89,9 +100,11 @@ Codex never reviews the plan.
 
 1. Append each answered question to `doc/decisions.md`:
    `N. YYYY-MM-DD (phase NNN): <question> → <answer>`. Fold the answers into the spec's sections.
-2. Set the spec's `Status:` to `Approved (YYYY-MM-DD)`. Re-render `spec.html`.
+2. Set the spec's `Status:` to `Approved (YYYY-MM-DD)`. Re-render `spec.html`. When the reply says
+   "include load test", set `load_test: true` in `phase-state.yaml`.
 3. Copy each feature's test script into its `test_script` in `doc/features.yaml`
-   (`{step, do, expect}`, numbered as in the spec).
+   (`{step, do, expect}`, numbered as in the spec). Under `no-owner-test`, copy the
+   What to expect now lines the same way (`do`: where to look, `expect`: what is different).
 4. `gates.spec_approved` the date; clear `waiting_on_owner`; `stage: planning`; bundle features
    `planning`. Commit and push; compact (SKILL.md, **Owner stops** step 6).
 5. Go to `.pal-harness/skills/phase/references/plan.md`.

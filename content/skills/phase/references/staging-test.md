@@ -2,6 +2,9 @@
 
 The owner runs each bundle feature's test script. A feature is done only when it passes here.
 
+Under `no-owner-test` (SKILL.md, **Flow overrides**) this stage is skipped: sign-off goes straight
+to `.pal-harness/skills/phase/references/ship.md`, and nothing here runs.
+
 ## 1. The environment
 
 1. **The project has staging:** staging is built from nothing from the `staging` branches, with

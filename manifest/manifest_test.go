@@ -438,3 +438,65 @@ func TestLegacySpecsBefore(t *testing.T) {
 		}
 	}
 }
+
+func TestFlowOverridesParse(t *testing.T) {
+	base := readTestdata(t, "project.yaml")
+	src := mustReplace(t, base, "overrides: []", "overrides: []\n  flow_overrides: [auto-promote, ci-test-summary]")
+	p, err := ParseProject([]byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !p.HasFlowOverride("auto-promote") || !p.HasFlowOverride("ci-test-summary") {
+		t.Errorf("overrides = %v", p.Harness.FlowOverrides)
+	}
+	if p.HasFlowOverride("no-owner-test") {
+		t.Error("no-owner-test should be off")
+	}
+	out, err := MarshalProject(p)
+	if err != nil || !strings.Contains(string(out), "flow_overrides:") {
+		t.Fatalf("marshal: %v\n%s", err, out)
+	}
+	// No flow_overrides: the key is not written.
+	q, err := ParseProject([]byte(base))
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err = MarshalProject(q)
+	if err != nil || strings.Contains(string(out), "flow_overrides") {
+		t.Fatalf("marshal without: %v\n%s", err, out)
+	}
+}
+
+func TestFlowOverridesRejected(t *testing.T) {
+	base := readTestdata(t, "project.yaml")
+	tests := []struct{ list, want string }{
+		{"[auto-merge]", "harness.flow_overrides[0]: must be one of auto-promote, no-owner-test, installer-ready, ci-test-summary"},
+		{"[auto-promote, auto-promote]", "harness.flow_overrides[1]: duplicate"},
+	}
+	for _, tc := range tests {
+		_, err := ParseProject([]byte(mustReplace(t, base, "overrides: []", "overrides: []\n  flow_overrides: "+tc.list)))
+		if !hasProblem(err, tc.want) {
+			t.Errorf("%s: want %q, got %v", tc.list, tc.want, err)
+		}
+	}
+}
+
+func TestSingleRepo(t *testing.T) {
+	p, err := ParseProject([]byte(readTestdata(t, "project.yaml")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.SingleRepo() {
+		t.Error("own repos: want false")
+	}
+	for i := range p.Components {
+		p.Components[i].Repo = p.SSOT.Repo
+	}
+	if !p.SingleRepo() {
+		t.Error("all SSOT repo: want true")
+	}
+	p.Components[1].Repo = "https://github.com/althenlimzixuan/fhph-web"
+	if p.SingleRepo() {
+		t.Error("mixed: want false")
+	}
+}

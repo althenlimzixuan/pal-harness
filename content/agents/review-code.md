@@ -24,6 +24,7 @@ Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listi
 5. **DRY:** one home for each rule, value and query. Search the repo for an existing helper before calling new code a duplicate; a second copy of the same logic is a defect.
 6. **Stack practice:** the component follows its practice file (`go_api`, `nextjs_web`, `react_native`, `django_admin`).
 7. A breach of the code patterns is a finding like any other; rate it by impact, not by how small the diff is.
+8. **Owner guide:** when the project has an owner guide (a quick guide or an owner checklist) and owner-facing behaviour changes (a screen, a command, a setting, a message the owner sees), the phase's changes update that guide. A missing update is a finding. Do not ask for README updates on every screen change.
 
 ## Report
 
