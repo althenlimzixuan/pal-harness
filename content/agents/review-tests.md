@@ -26,6 +26,7 @@ Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listi
 6. **Reports present and fresh:** each required report exists and is not empty. A report is stale when it is not from the final commit: compare the `Commit: … · tree:` line of `summary.md` with `git rev-parse <branch>^{tree}` (a staging report carries the staging deploy's tree hash). A missing, empty or stale report is a finding.
 7. **n/a reports:** a report that does not apply is accepted only as "n/a" with a reason; one with no tooling must be a recorded skip with a plan task, not silently absent.
 8. **Fixtures:** shared fixture files are reused, not copied per test.
+9. **`ci-test-summary` flow override** (the session says when it is on): check the CI test summary file (`specs/NNN-slug/reviews/ci-summary-*.md`, from the final commit's CI run: tests and coverage per component, contract drift) instead of the `_test_reports/` files in checks 3, 4 and 6; the 80% gate still applies, and a missing `_test_reports/` folder is not a finding.
 
 ## Report
 
