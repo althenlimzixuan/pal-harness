@@ -45,6 +45,14 @@ Write the owner's one test step for what the fix changes (do → expect), concre
 3. Stuck (fix rounds used up, CI red, no progress for 1 hour): as the phase's `references/build.md`
    section 5.
 
+## Single-repo projects
+
+When every component's `repo` equals `ssot.repo` (the phase skill's **Single-repo projects**), the
+fix's code goes on its `docs/NNN-slug` branch in the set's root, beside its state. There is no
+`fix/NNN-slug` branch or worktree: it would sit inside the SSOT worktree's own component folders.
+The PR of section 4 step 4 is `docs/NNN-slug` → `dev`; keep the branch after it merges, since the
+close-out PR at ship comes from it.
+
 ## 4. One review
 
 1. Make the reports as the phase's `references/review.md` section 1 says.
@@ -75,3 +83,5 @@ Follow the phase skill's references in order:
    ship.md section 5 says.
 
 The owner stops for a quick fix are the sign-off and the test step, plus any findings or stuck stop.
+The phase skill's **Flow overrides** apply here too: under `no-owner-test` the test step is a What
+to expect now line, with nothing to run, and the staging test is skipped.

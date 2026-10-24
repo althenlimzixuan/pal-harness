@@ -1,6 +1,7 @@
-# Stage: plan (`planning`, then `plan-review`)
+# Stage: plan (`planning`)
 
-The plan turns the approved spec into tasks. Building starts only after the owner approves the plan.
+The plan turns the approved spec into tasks. There is no owner stop: once Claude's plan review
+passes, building starts.
 
 ## 1. Write it
 
@@ -32,12 +33,12 @@ goes in the tasks, not the summary.
    phase (up to ~4 tasks, one repo), `subagent` for a larger one (5 or more tasks, several repos or an
    API change). Set `approach` and `tasks.total` in `phase-state.yaml`.
 2. **Reports** (`testing.md`): unit tests, coverage, regression, profiling and a numbered summary
-   every phase; a load test only when the owner adds "include load test" to the approval. A report
-   that does not apply to the stack is listed as "n/a" with the reason. A report that applies but has
-   no tooling yet becomes a task in this plan when no earlier plan added it; until that task ships,
-   the report is a recorded skip, not a blocker.
-3. **Size:** about one working day. Bigger → propose a split as a numbered question, with a
-   recommended answer.
+   every phase; a load test only when the owner adds "include load test" to the spec reply. A
+   report that does not apply to the stack is listed as "n/a" with the reason. A report that
+   applies but has no tooling yet becomes a task in this plan when no earlier plan added it; until
+   that task ships, the report is a recorded skip, not a blocker.
+3. **Size:** about one working day. Bigger → propose a split as one owner question (section 4),
+   with a recommended answer.
 
 ## 3. Claude's plan review
 
@@ -46,30 +47,21 @@ goes in the tasks, not the summary.
 2. It checks that every spec feature and test step has a task; the code patterns (TDD, clean layers,
    SOLID, DRY); the approved contract, including the provider-repo / SSOT-repo split; the size of
    about one working day; and that every task names its test file and fixture.
-3. Minor findings: fix them and re-run the reviewer, up to 3 rounds. Major and critical findings go
-   to the owner in the summary's risks and choices, each with its reason, impact and a recommended
-   answer.
+3. Minor findings: fix them and re-run the reviewer, up to 3 rounds. A major or critical finding
+   that does not change what gets built is fixed the same way and listed in the summary's risks
+   and choices.
 4. Codex never reviews the plan.
 
-## 4. Send it
+## 4. No plan stop
 
-1. `pal-harness render <set>/specs/NNN-slug/plan.md`, then publish `plan.html` (SKILL.md, **Owner stops**).
-2. `stage: plan-review`; bundle features `plan-review`; `waiting_on_owner` with `kind: plan-review`,
-   the page link and the number of questions. Commit and push.
-3. PushNotification: "needs you: plan NNN — N tasks, <approach>, about 10 minutes". Reply "approved"
-   to start; add "include load test" for a load test on staging. Wait.
+The owner does not approve the plan. Write it, review it, fix it, save it, then build.
 
-## 5. The owner's reply
-
-1. "approved" (with or without questions answered): approval. When the reply says
-   "include load test", set `load_test: true`.
-2. Changes: revise the plan; re-run `pal-review-plan` when tasks changed; render, publish and send
-   again.
-3. Answers to numbered questions go in `doc/decisions.md`, as for the spec.
-
-## 6. On approval
-
-1. Set the plan's `Status:` to `Approved (YYYY-MM-DD)`; re-render `plan.html`.
-2. `gates.plan_approved` the date; clear `waiting_on_owner`; `stage: building`; bundle features
-   `building`. Commit and push; compact (SKILL.md, **Owner stops** step 6).
-3. Go to `.pal-harness/skills/phase/references/build.md`.
+1. A major or critical finding that changes what gets built (a feature, the test script, the
+   contract or the size) becomes one owner question: an owner stop with `kind: questions`
+   (SKILL.md, **Owner stops**), with the reason, the impact and a recommended answer. Record the
+   answer in `doc/decisions.md`, revise the plan and re-run `pal-review-plan`.
+2. Otherwise set the plan's `Status:` to `Auto-approved (YYYY-MM-DD) — no plan stop`, with the date
+   the plan was saved. The sign-off PR links the plan.
+3. `gates.plan_approved` that date; `load_test: true` when the owner's spec reply said "include load
+   test"; `stage: building`; bundle features `building`. Commit and push.
+4. Go to `.pal-harness/skills/phase/references/build.md`.

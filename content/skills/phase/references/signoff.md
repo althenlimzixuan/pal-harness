@@ -1,7 +1,9 @@
 # Stage: sign-off (`signoff`)
 
 One sign-off PR per phase, in the SSOT repo, `dev → staging`, titled `[HUMAN GATE]`. Merging it is
-the owner's approval for the whole phase. Only the owner merges it.
+the owner's approval for the whole phase. Only the owner merges it. Under `auto-promote` (SKILL.md,
+**Flow overrides**) it has no `[HUMAN GATE]` prefix and merges on its own once CI and the reviews
+pass (section 4).
 
 ## 1. Before opening it
 
@@ -21,8 +23,9 @@ the owner's approval for the whole phase. Only the owner merges it.
 
 1. The branch carries the spec, the plan, the reviews, the reports, `doc/features.yaml` statuses,
    `doc/decisions.md`, `doc/later.md` and `phase-state.yaml` (`stage: signoff`).
-2. Open its PR into `dev` just before the sign-off PR. It merges on its own once CI is green, with a
-   merge commit so the same branch can PR again at ship: `gh pr checks <n> -R <owner/repo> --watch`, then
+2. Single-repo: skip this section; the code PR already brought the branch into `dev` (SKILL.md,
+   **Single-repo projects**). Otherwise open its PR into `dev` just before the sign-off PR. It
+   merges on its own once CI is green, with a merge commit so the same branch can PR again at ship: `gh pr checks <n> -R <owner/repo> --watch`, then
    `gh pr merge <n> -R <owner/repo> --merge`. Keep the branch: Pal Center reads `phase-state.yaml` from it, and the
    close-out PR at ship comes from it.
 
@@ -32,15 +35,20 @@ Fill `.pal-harness/templates/signoff-pr.md` (the template's first line is the ti
 10-minute read:
 
 1. **Summary**, numbered: what was built, which features, which of the owner's answers shaped it
-   (from `doc/decisions.md`), the review and test verdict in one line, and what the owner does next.
+   (from `doc/decisions.md`), the review and test verdict in one line, what the owner does next,
+   and the link to `specs/NNN-slug/plan.md`.
 2. **Calls I made:** from the spec and the build.
 3. **Review results:** one row per reviewer and per Codex kind: found, fixed, left over and where it
    went (an issue link or `doc/later.md`). Recorded Codex skips go here.
 4. **Test reports:** counts, coverage and speed changes, each with its link under `_test_reports/`
-   on `dev`.
+   on `dev`. Under `ci-test-summary`, the test summary from the final commit's CI run replaces the
+   links: tests passed and failed and coverage per component, the contract drift check, the run's
+   link.
 5. **When you merge:** what happens next (staging, regression, the load test if asked, "ready for
    your test").
-6. **Your test scripts:** one link per feature, to its block in `spec.md`.
+6. **Your test scripts:** the UAT list, one link per feature to its test script in `spec.md` (under
+   `no-owner-test`, its What to expect now list, with nothing to run). The session's final message
+   points to the same list.
 
 ## 4. Open it and wait
 
@@ -56,12 +64,18 @@ Fill `.pal-harness/templates/signoff-pr.md` (the template's first line is the ti
      notify again.
    - Merged: go on.
 
-## 5. After the owner merges
+Under `auto-promote`, the title is `Phase NNN — <Title>` (no prefix) and steps 2–4 do not apply:
+watch CI (`gh pr checks <n> -R <owner/repo> --watch`), merge with
+`gh pr merge <n> -R <owner/repo> --merge`, and go to section 5.
+
+## 5. After the owner merges (or, under `auto-promote`, after the merge)
 
 1. `gates.signoff_merged` the date; clear `waiting_on_owner`; commit and push.
 2. Promote each component repo the phase touched, `dev → staging`, yourself: open
    `gh pr create -R <owner/repo> --base staging --head dev --title "Promote dev to staging (phase NNN)"`,
    watch CI, and merge with a merge commit (`gh pr merge <n> -R <owner/repo> --merge`). These PRs
-   carry no `[HUMAN GATE]`: the owner's merge above approved them.
+   carry no `[HUMAN GATE]`: the owner's merge above approved them. Single-repo: there are none.
 3. `stage: staging-test`. Commit and push; compact (SKILL.md, **Owner stops** step 6).
-4. Go to `.pal-harness/skills/phase/references/staging-test.md`.
+   Under `no-owner-test`: `stage: shipping` instead (`gates.staging_test_done` stays `null`).
+4. Go to `.pal-harness/skills/phase/references/staging-test.md` (under `no-owner-test`,
+   `.pal-harness/skills/phase/references/ship.md`).

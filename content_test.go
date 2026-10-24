@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	harness "github.com/althenlimzixuan/pal-harness"
+	"github.com/althenlimzixuan/pal-harness/manifest"
 	"github.com/althenlimzixuan/pal-harness/state"
 )
 
@@ -45,6 +46,7 @@ func TestContentComplete(t *testing.T) {
 		"content/templates/adr.md",
 		"content/templates/decisions.md",
 		"content/templates/features.yaml",
+		"content/templates/infra.mmd",
 		"content/templates/later.md",
 		"content/templates/north-star.md",
 		"content/templates/phase-state.yaml",
@@ -203,8 +205,7 @@ func TestContentComplete(t *testing.T) {
 		".pal-worktrees/<KEY>-<NNN>/", "session:", "docs/NNN-slug", "needs you", "pal-work")
 	has("skills/phase/references/spec.md", "Calls I made", "recommended answer", "accept all", "skip Codex",
 		"--kind doc", "doc/decisions.md", "test script", "contract", "split the phase")
-	has("skills/phase/references/plan.md", "test file", "fixture", "pal-review-plan", "include load test",
-		"Building starts only after the owner approves the plan")
+	has("skills/phase/references/plan.md", "test file", "fixture", "pal-review-plan", "include load test")
 	has("skills/phase/references/build.md", "quick fix", "up to ~4 tasks", "5 or more tasks", "feature/NNN-slug",
 		"needs you", "stuck", "1 hour")
 	has("skills/phase/references/review.md", "pal-review-code", "pal-review-tests", "pal-review-errors",
@@ -327,4 +328,67 @@ func TestContentComplete(t *testing.T) {
 			t.Errorf("%s tools = %q, must include Read", p, fm["tools"])
 		}
 	}
+}
+
+// pal-harness 1.4.0: single-repo projects, the flow overrides and the
+// infrastructure section (phase flow move design §4-§6, Start work design §6).
+func TestFlowOverridesDocumented(t *testing.T) {
+	text := func(p string) string {
+		t.Helper()
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(b)
+	}
+	has := func(p string, subs ...string) {
+		t.Helper()
+		s := text(p)
+		for _, sub := range subs {
+			if !strings.Contains(s, sub) {
+				t.Errorf("%s lacks %q", p, sub)
+			}
+		}
+	}
+	lacks := func(p string, subs ...string) {
+		t.Helper()
+		s := text(p)
+		for _, sub := range subs {
+			if strings.Contains(s, sub) {
+				t.Errorf("%s still contains %q", p, sub)
+			}
+		}
+	}
+
+	for _, name := range manifest.FlowOverrideNames {
+		has("skills/phase/SKILL.md", "`"+name+"`")
+	}
+	has("skills/phase/SKILL.md", "harness.flow_overrides")
+	for _, p := range []string{"skills/phase/SKILL.md", "skills/quick-fix/SKILL.md", "skills/pm/SKILL.md"} {
+		has(p, "Single-repo projects")
+	}
+	has("templates/spec.md", "## Infrastructure", "doc/infra.mmd", "no change")
+	has("templates/infra.mmd", "flowchart", "never project ids, hostnames, client ids, keys or URLs")
+	has("skills/phase/references/spec.md", "Infrastructure", "doc/infra.mmd", "templates/infra.mmd",
+		"names and kinds only", "What to expect now")
+
+	// No plan stop (Start work design §6.1).
+	has("skills/phase/references/plan.md", "Auto-approved (YYYY-MM-DD) — no plan stop", "gates.plan_approved",
+		"`stage: building`")
+	lacks("skills/phase/references/plan.md", "needs you: plan", "Building starts only after the owner approves the plan")
+	lacks("skills/phase/SKILL.md", "Owner stop: the owner approves the plan")
+
+	has("skills/phase/references/signoff.md", "`auto-promote`", "`ci-test-summary`", "plan.md", "What to expect now")
+	has("skills/phase/references/review.md", "`ci-test-summary`")
+	has("skills/phase/references/staging-test.md", "`no-owner-test`")
+	has("skills/phase/references/ship.md", "`auto-promote`", "`no-owner-test`", "`shipped`", "`installer-ready`",
+		"gh release download --pattern '*-setup.exe' --dir \"$USERPROFILE/Downloads\"",
+		"Never stop or start Pal Center")
+	has("skills/quick-fix/SKILL.md", "docs/NNN-slug")
+	has("skills/pm/SKILL.md", "`shipped`", "component worktrees")
+	has("practices/ssot_standard.md", "single-repo", "harness.flow_overrides")
+	has("templates/features.yaml", "shipped", "no-owner-test")
+	has("agents/review-code.md", "owner guide")
+	has("agents/review-contract.md", "Infrastructure", "doc/infra.mmd")
+	has("templates/signoff-pr.md", "plan")
 }

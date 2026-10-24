@@ -1,8 +1,9 @@
 # SSOT Standard
 
 Every project is one **SSOT repo** (the project root; sessions start here) plus one or more
-**component repos**. This file says where a fact lives and which source wins. Section numbers refer
-to the SSOT standard design spec.
+**component repos**. A project may be **single-repo**: every component's `repo` in `project.yaml`
+is the SSOT repo (the phase skill's **Single-repo projects**). This file says where a fact lives
+and which source wins. Section numbers refer to the SSOT standard design spec.
 
 Tools: `pal-harness <command>` runs as
 `go run github.com/althenlimzixuan/pal-harness/cmd/pal-harness@v<VERSION> <command>`, where
@@ -66,6 +67,10 @@ Tools: `pal-harness <command>` runs as
 - **Pinned copy (§6.2, §6.3):** never edit `.pal-harness/` by hand. An override needs the owner's
   decision and a `harness.overrides` entry (item, source, reason, since) in `project.yaml`. A patch
   goes back upstream only by a PR to `pal-harness`.
+- **Flow overrides:** `harness.flow_overrides` in `project.yaml` lists the phase-flow changes a
+  project turns on (`auto-promote`, `no-owner-test`, `installer-ready`, `ci-test-summary`), with
+  the owner's reason in its `CLAUDE.md` Workflow Overrides. The phase skill's **Flow overrides**
+  table says what each does; `check` fails on an unknown name.
 
 ## 3. Manifest and generated blocks (§4.2, §5.1)
 

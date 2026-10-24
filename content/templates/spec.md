@@ -43,6 +43,9 @@ One block per feature. Approving this spec approves how you will test it.
 1. Do: (what you do) → Expect: (what you should see)
 2. Do: (what you do) → Expect: (what you should see)
 
+(With the `no-owner-test` override, replace the test script with **What to expect now:** a list of
+what behaves differently and where to see it, one line each, with nothing to run.)
+
 ## UX outline
 
 (Screens or steps in plain words, one short line each. Delete this section when nothing on screen
@@ -59,6 +62,16 @@ Delete this section when the phase does not change the API.
 [diagram](diagrams/(name).mmd)
 
 A breaking change goes in Questions for the owner, with its impact.
+
+## Infrastructure
+
+[Infrastructure](../../doc/infra.mmd)
+
+Added or changed in this phase: (each part, one line), or "no change".
+
+(`doc/infra.mmd` is the project's one diagram of its runtime parts. No file yet → draft it from
+`.pal-harness/templates/infra.mmd`. Names and kinds only, like "API on Cloud Run" or "MySQL"; never
+project ids, hostnames, client ids, keys or URLs.)
 
 ## Out of scope
 
