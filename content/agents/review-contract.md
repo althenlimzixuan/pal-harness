@@ -1,6 +1,6 @@
 ---
 name: pal-review-contract
-description: Reviews that the code matches the approved API contract and that openapi.yaml and API.md are in sync across both repos. The phase skill dispatches it only when the API changed.
+description: Reviews that the code matches the approved API contract and that openapi.yaml and API.md are in sync across both repos. The phase skill dispatches it only when the API or the infrastructure changed.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
@@ -24,7 +24,8 @@ Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listi
 4. **SSOT repo:** `doc/openapi.yaml` is an exact copy of the provider's spec, and `doc/API.md` describes the same endpoints, fields and errors. Diff the two specs; any drift is a finding.
 5. **Split rule:** both repos' PRs carry their part in the same piece of work; a contract change in only one repo is a major finding.
 6. **Consumers:** callers (web, mobile, admin, B2B) use the contract's names and types; breaking changes are versioned.
-7. Rate by effect on consumers: a mismatch a client would hit is major; wording drift in `API.md` is minor.
+7. **Infrastructure:** the spec's Infrastructure section agrees with the code and with `doc/infra.mmd`: every part the phase adds or changes is in the diagram, and the diagram names parts and kinds only (no project ids, hostnames, client ids, keys or URLs).
+8. Rate by effect on consumers: a mismatch a client would hit is major; wording drift in `API.md` is minor.
 
 ## Report
 

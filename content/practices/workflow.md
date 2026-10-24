@@ -8,8 +8,8 @@ override specifics under a **Workflow Overrides** heading (a client UAT gate, a 
 ## The flow
 
 North star, then Pal picks a bundle, then spec, plan, build, review, sign-off, the owner's staging
-test, ship, retro. The four planned owner stops are the **spec**, the **plan**, the **sign-off** PR
-and the **staging test**. Besides those, a session asks the owner only for a major or critical
+test, ship, retro. The three planned owner stops are the **spec**, the **sign-off** PR and the
+**staging test** (fewer under a project's flow overrides); the plan has none. Besides those, a session asks the owner only for a major or critical
 finding, an exhausted fix-round limit, or a stuck build, always with a "needs you" notification.
 Everything sent to the owner opens with numbered points, reads in about 10 minutes and works on a phone.
 
@@ -25,12 +25,14 @@ Everything sent to the owner opens with numbered points, reads in about 10 minut
    says `skip Codex` (recorded). Codex never reviews the plan.
 3. **Plan.** After the spec is approved. Every task names its repo, files, the failing test and JSON
    fixture to write first, the code, the commands that prove it, and the commit. Claude's plan reviewer
-   checks it; build starts only after the owner approves. "include load test" in the approval adds the
-   staging load test.
+   checks it. There is no plan stop: the build starts once the review passes, and only a major or
+   critical finding that changes what gets built goes to the owner, as one question. "include load
+   test" in the spec reply adds the staging load test.
 4. **Build.** Quick fix: in the session, one review. Small (up to ~4 tasks, one repo): in the session,
    one whole-branch review. Larger (5+ tasks, several repos or an API change): one fresh agent per
    task, a review after each, a whole-branch review at the end. The owner does not watch the build;
-   notify only for needs you, done and stuck.
+   notify only for needs you, done and stuck. A change to owner-facing behaviour updates the
+   project's owner guide in the same PR.
 5. **Review.** Codex reviews code every phase and the UI when screens changed. Claude's six reviewers
    (code, tests, errors, security, contract, UI) run when their trigger applies. Fix rounds: 3, or 5
    for per-task reviews in a larger build; then ask the owner ("needs you").
