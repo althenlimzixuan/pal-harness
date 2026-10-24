@@ -217,13 +217,7 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 		findings = append(findings, ldiff...)
 	}
 	if mode == "project" {
-		legacy := ""
-		var flow []string
-		if p != nil {
-			legacy = p.Harness.LegacySpecsBefore
-			flow = p.Harness.FlowOverrides
-		}
-		sf, serr := stateFindings(dir, legacy, flow)
+		sf, serr := stateFindings(dir, p)
 		if serr != nil {
 			fmt.Fprintln(stderr, serr)
 			return 2
@@ -247,8 +241,16 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 
 // stateFindings validates the optional doc/features.yaml and every
 // specs/*/phase-state.yaml, prefixing each finding with its slash path from
-// dir. Specs numbered below legacyBefore (when set) are skipped. A file that exists but cannot be read is an error (exit 2).
-func stateFindings(dir, legacyBefore string, flowOverrides []string) ([]string, error) {
+// dir. Specs numbered below p's legacy_specs_before (when set) are skipped. With
+// no valid manifest (p == nil) the flow overrides are unknown, so the shipped
+// rule is skipped. A file that exists but cannot be read is an error (exit 2).
+func stateFindings(dir string, p *manifest.Project) ([]string, error) {
+	legacyBefore := ""
+	features := func(b []byte) []string { _, f := state.ParseFeatures(b); return f }
+	if p != nil {
+		legacyBefore = p.Harness.LegacySpecsBefore
+		features = func(b []byte) []string { _, f := state.ValidateFeaturesFor(b, p.Harness.FlowOverrides); return f }
+	}
 	var out []string
 	check := func(rel string, parse func([]byte) []string) error {
 		b, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(rel)))
@@ -263,7 +265,7 @@ func stateFindings(dir, legacyBefore string, flowOverrides []string) ([]string, 
 		}
 		return nil
 	}
-	if err := check("doc/features.yaml", func(b []byte) []string { _, f := state.ValidateFeaturesFor(b, flowOverrides); return f }); err != nil {
+	if err := check("doc/features.yaml", features); err != nil {
 		return nil, err
 	}
 	matches, err := filepath.Glob(filepath.Join(dir, "specs", "*", "phase-state.yaml"))

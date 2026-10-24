@@ -968,3 +968,20 @@ func TestCheckShippedWithoutOverride(t *testing.T) {
 		t.Fatalf("with override: code %d out=%q", code, out)
 	}
 }
+
+// When project.yaml fails validation its flow overrides are unknown, so the
+// shipped rule is skipped rather than reported against every shipped feature.
+func TestCheckShippedSkippedWhenManifestInvalid(t *testing.T) {
+	dir := fixture(t)
+	feat := strings.Replace(stateFixture(t, "features.yaml"), "status: todo", "status: shipped", 1)
+	write(t, dir, "doc/features.yaml", feat)
+	proj := read(t, dir, "project.yaml")
+	write(t, dir, "project.yaml", strings.Replace(proj, "overrides: []", "overrides: []\n  flow_overrides: [no-owner-test, bogus]", 1))
+	code, out, _ := do(t, "check", dir)
+	if code != 1 || !strings.Contains(out, "project.yaml: harness.flow_overrides[1]") {
+		t.Fatalf("want the manifest finding: code %d out=%q", code, out)
+	}
+	if strings.Contains(out, "shipped needs the no-owner-test flow override") {
+		t.Errorf("shipped rule ran on an invalid manifest: %q", out)
+	}
+}
