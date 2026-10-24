@@ -19,7 +19,7 @@ import (
 
 var (
 	FeatureStatuses = []string{"todo", "recommended", "picked", "brainstorming", "spec-review", "planning",
-		"plan-review", "building", "code-review", "not-tested", "passed", "fixing", "deferred", "retest"}
+		"plan-review", "building", "code-review", "not-tested", "passed", "fixing", "deferred", "retest", "shipped"}
 	Stages = []string{"spec", "spec-review", "planning", "plan-review", "building", "code-review",
 		"signoff", "staging-test", "shipping", "done"}
 	WaitingKinds = []string{"spec-review", "plan-review", "questions", "findings", "signoff", "staging-test"}
@@ -219,6 +219,26 @@ func ParseFeatures(b []byte) ([]Feature, []string) {
 				add(id, "result %d: result must be pass or fail", n)
 			}
 		}
+	}
+	return fs, out
+}
+
+// ValidateFeaturesFor is ParseFeatures plus the rule that the shipped status
+// needs the no-owner-test flow override.
+func ValidateFeaturesFor(b []byte, flowOverrides []string) ([]Feature, []string) {
+	fs, out := ParseFeatures(b)
+	if oneOf("no-owner-test", flowOverrides) {
+		return fs, out
+	}
+	for i, f := range fs {
+		if f.Status != "shipped" {
+			continue
+		}
+		id := f.ID
+		if id == "" {
+			id = fmt.Sprintf("entry %d", i+1)
+		}
+		out = append(out, id+": status shipped needs the no-owner-test flow override")
 	}
 	return fs, out
 }

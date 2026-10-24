@@ -3,7 +3,7 @@
 - **Status:** Draft
 - **Spec:** `spec.md` (approved on YYYY-MM-DD)
 
-> Reads in about 10 minutes. Building starts only after you approve this plan.
+> Reads in about 10 minutes. There is no plan stop: building starts once Claude's plan review passes.
 
 ## Summary
 
@@ -18,12 +18,10 @@
 
 **inline** or **subagent** — (the reason in one line: size, number of repos, API change.)
 
-Reply "approved" to start. Add "include load test" to the reply to add a load test on staging.
-
 ## Reports
 
 - Every phase: unit tests, coverage, regression, profiling, and a numbered summary.
-- Load test: only when you say "include load test". Included: yes / no.
+- Load test: only when you said "include load test" in the spec reply. Included: yes / no.
 - Not applicable here: (report and reason, or "none".)
 
 ## Tasks

@@ -41,7 +41,8 @@ one-line reason.
 You set only `todo`, `recommended`, `picked`, and `deferred` → `retest` when the deferred issue
 closed. Every other status belongs to the phase or quick-fix session. Feature statuses (design §3):
 `todo`, `recommended`, `picked`, `brainstorming`, `spec-review`, `planning`, `plan-review`,
-`building`, `code-review`, `not-tested`, `passed`, `fixing`, `deferred`, `retest`.
+`building`, `code-review`, `not-tested`, `passed`, `fixing`, `deferred`, `retest`, and `shipped`
+(only under the `no-owner-test` flow override: shipped with no owner test).
 
 ## How you write
 
@@ -98,7 +99,7 @@ Run it before your first status line. Never report what you have not reconciled.
    | `brainstorming`, `planning`, `building`, `code-review`, `fixing` | In flight |
    | `spec-review`, `plan-review`, `not-tested`, `retest` | Waiting on you |
    | `deferred` | Deferred |
-   | `passed` | Shipped |
+   | `passed`, `shipped` | Shipped |
 
 7. Backlog cards on the Roadmap board follow their issue: closed → `Shipped`.
 8. Write file changes the way **How you write** says. Then give the note.
@@ -147,6 +148,13 @@ Numbered, about ten lines, phone-readable:
    - `phase` → follow `.pal-harness/skills/phase/SKILL.md` with the bundle;
    - `quick-fix` → follow `.pal-harness/skills/quick-fix/SKILL.md`;
    - `owner-task` → move the card to `Waiting on you` with the one action written on it.
+
+## Single-repo projects
+
+When every component's `repo` in `project.yaml` equals `ssot.repo`, the project is single-repo:
+a phase or quick fix keeps its code on `docs/NNN-slug` beside its state, with no
+component worktrees and no `feature/` or `fix/` branches (phase skill, **Single-repo
+projects**). Read its phase state there as usual; nothing else in this skill changes.
 
 ## One card at a time
 

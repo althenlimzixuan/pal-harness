@@ -60,7 +60,8 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
   the reports, except the staging reports (regression, and the load test when requested), which come
   from the staging deploy of the merged sign-off. A promotion whose code fingerprint (git tree hash) already passed skips the tests and
   only builds and deploys. Reports live in the SSOT repo, so committing them never changes the code
-  under test. Until CI has report jobs, the session runs the reports once, locally, on the final commit.
+  under test. In a single-repo project the final commit is the last commit that changes code;
+  report, review and state commits after it do not make a report stale. Until CI has report jobs, the session runs the reports once, locally, on the final commit.
 - **Location:** `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/` in the SSOT repo, committed.
 - **Every phase:** `unit_test.html`, `test_coverage.html`, `regression.html`,
   `profiling.html`, and a numbered `summary.md` (pass/fail counts, coverage %, slowest calls, change
@@ -70,7 +71,7 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
   test. Until the project has staging, regression runs with the other reports on the final commit,
   before the sign-off PR.
 - **On request only:** `load_test.html`, a load test against staging. The owner asks by adding
-  "include load test" to the plan approval.
+  "include load test" to the spec reply.
 - **Blocking problems:** coverage under 80%; a failing test; an API call's p95 more than 20% slower,
   or a web page's Lighthouse performance score 5 points or more lower, than the previous phase's report
   (the first phase sets the baseline). Claude gets 3 fix rounds, then the session asks the owner (a "needs you" notification).

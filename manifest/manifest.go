@@ -88,6 +88,28 @@ type Harness struct {
 	Version           string     `yaml:"version"`
 	LegacySpecsBefore string     `yaml:"legacy_specs_before,omitempty"`
 	Overrides         []Override `yaml:"overrides"`
+	FlowOverrides     []string   `yaml:"flow_overrides,omitempty"`
+}
+
+// FlowOverrideNames are the phase-flow overrides a project may turn on.
+var FlowOverrideNames = []string{"auto-promote", "no-owner-test", "installer-ready", "ci-test-summary"}
+
+// HasFlowOverride reports whether the project turned on the named flow override.
+func (pr *Project) HasFlowOverride(name string) bool {
+	return pr != nil && oneOf(name, pr.Harness.FlowOverrides)
+}
+
+// SingleRepo reports whether every component lives in the SSOT repo.
+func (pr *Project) SingleRepo() bool {
+	if len(pr.Components) == 0 {
+		return false
+	}
+	for _, c := range pr.Components {
+		if c.Repo != pr.SSOT.Repo {
+			return false
+		}
+	}
+	return true
 }
 
 type Override struct {
@@ -337,6 +359,17 @@ func (pr *Project) Validate() error {
 		if o.Upstream != "" && !strings.HasPrefix(o.Upstream, "https://") {
 			p.add(path+".upstream", "must be an https URL")
 		}
+	}
+	seenFlow := map[string]bool{}
+	for i, n := range pr.Harness.FlowOverrides {
+		path := fmt.Sprintf("harness.flow_overrides[%d]", i)
+		switch {
+		case !oneOf(n, FlowOverrideNames):
+			p.add(path, "must be one of %s", strings.Join(FlowOverrideNames, ", "))
+		case seenFlow[n]:
+			p.add(path, "duplicate")
+		}
+		seenFlow[n] = true
 	}
 	return p.err()
 }

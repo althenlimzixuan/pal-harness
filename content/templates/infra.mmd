@@ -1,0 +1,20 @@
+flowchart LR
+    %% doc/infra.mmd: every runtime part of the project and how they connect. One file per
+    %% project, embedded in every spec's Infrastructure section; a phase that changes a part
+    %% updates it. Replace the placeholder parts below; delete the ones the project lacks.
+    %% Hygiene: names and kinds only, like "API on Cloud Run" or "MySQL";
+    %% never project ids, hostnames, client ids, keys or URLs (some SSOT repos are public,
+    %% and the diagram is shared in reviews).
+    user([User])
+    app["App (web or mobile)"]
+    api["API (service, host kind)"]
+    db[("Database (kind)")]
+    outside["Outside service (kind)"]
+    ci["CI and hosting (kind)"]
+
+    user --> app
+    app -->|REST| api
+    api --> db
+    api --> outside
+    ci -.->|deploys| app
+    ci -.->|deploys| api
