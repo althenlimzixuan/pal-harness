@@ -218,10 +218,12 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 	}
 	if mode == "project" {
 		legacy := ""
+		var flow []string
 		if p != nil {
 			legacy = p.Harness.LegacySpecsBefore
+			flow = p.Harness.FlowOverrides
 		}
-		sf, serr := stateFindings(dir, legacy)
+		sf, serr := stateFindings(dir, legacy, flow)
 		if serr != nil {
 			fmt.Fprintln(stderr, serr)
 			return 2
@@ -234,6 +236,9 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 	for _, f := range findings {
 		fmt.Fprintln(stdout, f)
 	}
+	if p.HasFlowOverride("auto-promote") {
+		fmt.Fprintln(stdout, "warning: auto-promote is on: sign-off and ship PRs merge without the owner")
+	}
 	if len(findings) > 0 {
 		return 1
 	}
@@ -243,7 +248,7 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 // stateFindings validates the optional doc/features.yaml and every
 // specs/*/phase-state.yaml, prefixing each finding with its slash path from
 // dir. Specs numbered below legacyBefore (when set) are skipped. A file that exists but cannot be read is an error (exit 2).
-func stateFindings(dir, legacyBefore string) ([]string, error) {
+func stateFindings(dir, legacyBefore string, flowOverrides []string) ([]string, error) {
 	var out []string
 	check := func(rel string, parse func([]byte) []string) error {
 		b, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(rel)))
@@ -258,7 +263,7 @@ func stateFindings(dir, legacyBefore string) ([]string, error) {
 		}
 		return nil
 	}
-	if err := check("doc/features.yaml", func(b []byte) []string { _, f := state.ParseFeatures(b); return f }); err != nil {
+	if err := check("doc/features.yaml", func(b []byte) []string { _, f := state.ValidateFeaturesFor(b, flowOverrides); return f }); err != nil {
 		return nil, err
 	}
 	matches, err := filepath.Glob(filepath.Join(dir, "specs", "*", "phase-state.yaml"))

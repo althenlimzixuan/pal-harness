@@ -149,3 +149,20 @@ func TestValidatePhaseStateFindings(t *testing.T) {
 		})
 	}
 }
+
+func TestShippedNeedsNoOwnerTest(t *testing.T) {
+	in := []byte(strings.Replace(validFeature, "status: todo", "status: shipped", 1))
+	_, got := ValidateFeaturesFor(in, nil)
+	check(t, got, []string{"F-001: status shipped needs the no-owner-test flow override"})
+	_, got = ValidateFeaturesFor(in, []string{"auto-promote"})
+	if len(got) != 1 {
+		t.Errorf("other override: %q", got)
+	}
+	_, got = ValidateFeaturesFor(in, []string{"no-owner-test"})
+	check(t, got, nil)
+	_, got = ParseFeatures(in)
+	check(t, got, nil)
+	// Other findings still come through.
+	_, got = ValidateFeaturesFor([]byte(strings.Replace(validFeature, "label: need", "label: x", 1)), nil)
+	check(t, got, []string{"F-001: label must be need or might"})
+}
