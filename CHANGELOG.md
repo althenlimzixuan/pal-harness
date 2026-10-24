@@ -10,6 +10,10 @@ Single-repo projects, four flow overrides, and no plan stop.
 - No plan stop in any project: the plan is still written, reviewed and linked from the sign-off PR; "include load test" moves to the spec reply.
 - Every spec has an Infrastructure section built on `doc/infra.mmd` (new template), with names and kinds only.
 - Reviewers check owner guides (`review-code`), the Infrastructure section (`review-contract`) and, under `ci-test-summary`, the CI test summary (`review-tests`).
+- New Go API: `(*manifest.Project).HasFlowOverride`, `(*manifest.Project).SingleRepo` and `state.ValidateFeaturesFor`; `check` skips the `shipped` rule when `project.yaml` is invalid.
+- `review-contract` also runs when the infrastructure changes, not only the API.
+- In a single-repo project the final commit is the last commit that changes code; report, review and state commits after it do not make a report stale.
+- Under `installer-ready` the version is bumped in the phase's PR (the plan's last task) or in the quick fix's commit; ship tags it and downloads the installer.
 
 ## 1.3.2 — 2026-10-21
 

@@ -29,12 +29,18 @@ sign-off): promote to `main`, deploy, tear staging down, write the retro, close 
    1. Once `main`'s CI is green, tag `vX.Y.Z` (the version the phase set) on the merge commit and
       push the tag (tagging is pre-authorized). Wait for the release workflow to publish the
       release (`gh run watch <id> -R <owner/repo>`, then `gh release view vX.Y.Z -R <owner/repo>`).
-   2. Download its installer:
-      `gh release download --pattern '*-setup.exe' --dir "$USERPROFILE/Downloads" vX.Y.Z -R <owner/repo>`.
-   3. Never stop or start Pal Center, and never run the installer: the owner installs when it
+   2. Download its installer, through Bash:
+      `gh release download --pattern '*-setup.exe' --dir "$USERPROFILE/Downloads" --clobber vX.Y.Z -R <owner/repo>`
+      (in PowerShell the folder is `"$env:USERPROFILE\Downloads"`; never a bare `/Downloads`).
+      Check the file exists at that path before giving it to the owner.
+   3. A failed release workflow or download: "needs you" with what failed (`kind: questions`),
+      as section 2 step 3 does for a deploy.
+   4. Never stop or start Pal Center, and never run the installer: the owner installs when it
       suits them.
-   4. The release notes and the session's final message carry the What to expect now list, the
-      release link and the installer's full path (`%USERPROFILE%\Downloads\<file name>`).
+   5. The release notes and the session's final message carry the What to expect now list, the
+      release link and the installer's full path (`%USERPROFILE%\Downloads\<file name>`). Add the
+      list to the notes with `gh release edit vX.Y.Z -R <owner/repo> --notes-file <file>`, the file
+      holding the release's notes plus the list.
 
 ## 3. Tear staging down
 

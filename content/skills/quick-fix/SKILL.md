@@ -84,4 +84,5 @@ Follow the phase skill's references in order:
 
 The owner stops for a quick fix are the sign-off and the test step, plus any findings or stuck stop.
 The phase skill's **Flow overrides** apply here too: under `no-owner-test` the test step is a What
-to expect now line, with nothing to run, and the staging test is skipped.
+to expect now line, with nothing to run, and the staging test is skipped. Under `installer-ready`
+the fix's commit bumps the version (patch) in the project's version files; ship tags it.

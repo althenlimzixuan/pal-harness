@@ -45,7 +45,8 @@ Fill `.pal-harness/templates/signoff-pr.md` (the template's first line is the ti
    links: tests passed and failed and coverage per component, the contract drift check, the run's
    link.
 5. **When you merge:** what happens next (staging, regression, the load test if asked, "ready for
-   your test").
+   your test"). Under `auto-promote` the PR merges on its own once CI passes; under
+   `no-owner-test` there is no test: say what ships next and point to the What to expect now list.
 6. **Your test scripts:** the UAT list, one link per feature to its test script in `spec.md` (under
    `no-owner-test`, its What to expect now list, with nothing to run). The session's final message
    points to the same list.
@@ -54,6 +55,7 @@ Fill `.pal-harness/templates/signoff-pr.md` (the template's first line is the ti
 
 1. Write the body to a file, then in the SSOT repo:
    `gh pr create -R <owner/repo> --base staging --head dev --title "[HUMAN GATE] Phase NNN — <Title>" --body-file <file>`.
+   Under `auto-promote`, drop the `[HUMAN GATE] ` prefix.
 2. Never merge it yourself and never turn on auto-merge for it.
 3. Owner stop (SKILL.md, **Owner stops**): `waiting_on_owner` with `kind: signoff` and the PR URL as
    the link. Push `docs/NNN-slug`. PushNotification: "needs you: sign-off for phase NNN — <PR URL>,
@@ -64,8 +66,7 @@ Fill `.pal-harness/templates/signoff-pr.md` (the template's first line is the ti
      notify again.
    - Merged: go on.
 
-Under `auto-promote`, the title is `Phase NNN — <Title>` (no prefix) and steps 2–4 do not apply:
-watch CI (`gh pr checks <n> -R <owner/repo> --watch`), merge with
+Under `auto-promote`, steps 2–4 do not apply: watch CI (`gh pr checks <n> -R <owner/repo> --watch`), merge with
 `gh pr merge <n> -R <owner/repo> --merge`, and go to section 5.
 
 ## 5. After the owner merges (or, under `auto-promote`, after the merge)

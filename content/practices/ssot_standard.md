@@ -38,6 +38,7 @@ Tools: `pal-harness <command>` runs as
 | Decisions and conflict resolutions | `doc/ADR/NNNN-slug.md` |
 | UML (use case, activity, sequence, state, ERD, deployment) | `doc/diagrams/*.mmd` |
 | Environments, deploy, cost (facts only) | `doc/infra/` |
+| Infrastructure diagram (runtime parts) | `doc/infra.mmd` |
 | External API facts (auth, limits, pricing) | `doc/third-party/` |
 | Runbooks, release notes | `doc/runbooks/`, `doc/releases/` |
 | Features: status, test script, results | `doc/features.yaml` |

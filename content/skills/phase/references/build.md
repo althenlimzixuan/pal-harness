@@ -32,7 +32,8 @@ Without superpowers installed, say so in the log and build a larger phase inline
 1. Write the failing test from its fixture (`testing.md`); run it and see it fail for the right
    reason.
 2. Write the code that makes it pass, by the build rules in `workflow.md` (TDD, the code patterns,
-   the stack practice, contract-first).
+   the stack practice, contract-first). A change to owner-facing behaviour updates the project's
+   owner guide in the same PR.
 3. Run the plan's prove-it commands; read each result from the command's own exit code.
 4. Commit with the plan's message; push the feature branch.
 5. Add 1 to `tasks.done`, update `last_progress_at`, write a log entry; commit and push

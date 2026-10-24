@@ -413,4 +413,18 @@ func TestFlowOverridesDocumented(t *testing.T) {
 	has("agents/review-code.md", "owner guide")
 	has("agents/review-contract.md", "Infrastructure", "doc/infra.mmd")
 	has("templates/signoff-pr.md", "plan")
+
+	// Pre-release fix wave.
+	lacks("practices/workflow.md", "the **plan**, the")
+	has("practices/workflow.md", "The three planned owner stops", "owner guide in the same PR")
+	has("skills/phase/references/ship.md", "through Bash", `"$env:USERPROFILE\Downloads"`, "--clobber",
+		"Check the file exists", "A failed release workflow or download", "gh release edit vX.Y.Z")
+	has("skills/quick-fix/SKILL.md", "Under `installer-ready`", "bumps the version (patch)")
+	has("skills/phase/references/signoff.md", "Under `auto-promote`, drop the `[HUMAN GATE] ` prefix",
+		"merges on its own once CI passes")
+	has("templates/signoff-pr.md", "drop the `[HUMAN GATE] ` prefix", "With `auto-promote`", "With `no-owner-test`")
+	has("agents/review-code.md", "when the project has an owner guide")
+	lacks("agents/review-code.md", "owner checklist or README")
+	has("practices/ssot_standard.md", "| Infrastructure diagram (runtime parts) | `doc/infra.mmd` |")
+	has("skills/phase/references/build.md", "owner guide in the same PR")
 }
