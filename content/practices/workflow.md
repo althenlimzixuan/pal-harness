@@ -25,8 +25,9 @@ Everything sent to the owner opens with numbered points, reads in about 10 minut
    says `skip Codex` (recorded). Codex never reviews the plan.
 3. **Plan.** After the spec is approved. Every task names its repo, files, the failing test and JSON
    fixture to write first, the code, the commands that prove it, and the commit. Claude's plan reviewer
-   checks it; build starts only after the owner approves. "include load test" in the approval adds the
-   staging load test.
+   checks it. There is no plan stop: the build starts once the review passes, and only a major or
+   critical finding that changes what gets built goes to the owner, as one question. "include load
+   test" in the spec reply adds the staging load test.
 4. **Build.** Quick fix: in the session, one review. Small (up to ~4 tasks, one repo): in the session,
    one whole-branch review. Larger (5+ tasks, several repos or an API change): one fresh agent per
    task, a review after each, a whole-branch review at the end. The owner does not watch the build;

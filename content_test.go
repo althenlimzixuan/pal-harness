@@ -377,6 +377,28 @@ func TestFlowOverridesDocumented(t *testing.T) {
 		"`stage: building`")
 	lacks("skills/phase/references/plan.md", "needs you: plan", "Building starts only after the owner approves the plan")
 	lacks("skills/phase/SKILL.md", "Owner stop: the owner approves the plan")
+	lacks("templates/plan.md", "Building starts only after you approve this plan", `Reply "approved" to start`)
+	has("templates/plan.md", "There is no plan stop", `when you said "include load test" in the spec reply`)
+	lacks("practices/workflow.md", "build starts only after the owner approves", "in the approval")
+	has("practices/workflow.md", "There is no plan stop", "in the spec reply")
+	lacks("practices/testing.md", "to the plan approval")
+	has("practices/testing.md", `"include load test" to the spec reply`)
+
+	// "include load test" is recorded at spec approval, before the compaction.
+	has("skills/phase/references/spec.md", "set `load_test: true` in `phase-state.yaml`")
+	lacks("skills/phase/references/plan.md", "spec reply said")
+	has("skills/phase/references/plan.md", "`load_test` stays as the spec stage set it")
+
+	// installer-ready: the phase sets the version that ship tags.
+	has("skills/phase/references/plan.md", "Under `installer-ready`", "the last task bumps the version")
+
+	// Single-repo: report, review and state commits do not make a report stale.
+	const finalCommit = "the last commit that changes code"
+	for _, p := range []string{"skills/phase/SKILL.md", "agents/review-tests.md", "practices/testing.md"} {
+		has(p, finalCommit, "do not make a report stale")
+	}
+	has("agents/review-tests.md", "git rev-parse <final commit>^{tree}")
+	lacks("agents/review-tests.md", "git rev-parse <branch>^{tree}")
 
 	has("skills/phase/references/signoff.md", "`auto-promote`", "`ci-test-summary`", "plan.md", "What to expect now")
 	has("skills/phase/references/review.md", "`ci-test-summary`")

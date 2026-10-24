@@ -21,6 +21,8 @@ passes, building starts.
    regenerates its `openapi.yaml` and serves Swagger UI; an SSOT task on `docs/NNN-slug` updates the
    `doc/openapi.yaml` copy and `doc/API.md`. Contract tasks come before the tasks that call them.
 4. Cover every spec feature and every test-script step with at least one task.
+5. Under `installer-ready` (SKILL.md, **Flow overrides**), the last task bumps the version in the
+   project's version files, in the phase's PR; ship tags that version.
 
 ## 2. The summary
 
@@ -62,6 +64,6 @@ The owner does not approve the plan. Write it, review it, fix it, save it, then 
    answer in `doc/decisions.md`, revise the plan and re-run `pal-review-plan`.
 2. Otherwise set the plan's `Status:` to `Auto-approved (YYYY-MM-DD) — no plan stop`, with the date
    the plan was saved. The sign-off PR links the plan.
-3. `gates.plan_approved` that date; `load_test: true` when the owner's spec reply said "include load
-   test"; `stage: building`; bundle features `building`. Commit and push.
+3. `gates.plan_approved` that date (`load_test` stays as the spec stage set it); `stage: building`;
+   bundle features `building`. Commit and push.
 4. Go to `.pal-harness/skills/phase/references/build.md`.

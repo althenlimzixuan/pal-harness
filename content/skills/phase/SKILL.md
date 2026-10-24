@@ -64,7 +64,7 @@ bookkeeping, never a phase's set.
 
 ## Single-repo projects
 
-A project is single-repo when every component's `repo` in `project.yaml` equals `ssot.repo`.
+A project is single-repo when every component's `repo` equals `ssot.repo`.
 
 1. **One branch.** Spec, plan, `phase-state.yaml` and code all go on `docs/NNN-slug` in the SSOT
    worktree: no component worktrees, no `feature/NNN-slug`. Where a reference names them, use
@@ -74,6 +74,8 @@ A project is single-repo when every component's `repo` in `project.yaml` equals 
    stages keep pushing `phase-state.yaml` to it.
 3. **The close-out** is a second PR from the same branch. Promotions are the SSOT repo's own; there
    are no component promotions.
+4. **The final commit** is the last commit that changes code; report, review and state commits
+   after it do not make a report stale.
 
 ## Start
 

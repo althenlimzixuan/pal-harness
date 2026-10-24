@@ -79,7 +79,8 @@ report with the reason, and the owner still sees it.
 2. This whole-branch review gets 3 rounds; the per-task reviews inside a larger build get 5 rounds.
 3. Still unfixed after the limit → "needs you" with what was tried (`kind: findings`).
 4. After the last code change, make the reports again (under `ci-test-summary`, take the CI summary
-   again), so every report comes from the final commit.
+   again), so every report comes from the final commit (single-repo: the last commit that changes
+   code; SKILL.md, **Single-repo projects**).
    A missing, empty or stale report is a finding.
 
 ## 5. Leftover findings

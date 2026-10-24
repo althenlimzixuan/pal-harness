@@ -100,7 +100,8 @@ Codex never reviews the plan.
 
 1. Append each answered question to `doc/decisions.md`:
    `N. YYYY-MM-DD (phase NNN): <question> → <answer>`. Fold the answers into the spec's sections.
-2. Set the spec's `Status:` to `Approved (YYYY-MM-DD)`. Re-render `spec.html`.
+2. Set the spec's `Status:` to `Approved (YYYY-MM-DD)`. Re-render `spec.html`. When the reply says
+   "include load test", set `load_test: true` in `phase-state.yaml`.
 3. Copy each feature's test script into its `test_script` in `doc/features.yaml`
    (`{step, do, expect}`, numbered as in the spec). Under `no-owner-test`, copy the
    What to expect now lines the same way (`do`: where to look, `expect`: what is different).
