@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.0 — 2026-10-24
+
+Single-repo projects, four flow overrides, and no plan stop.
+
+- `project.yaml` gains `harness.flow_overrides` with `auto-promote`, `no-owner-test`, `installer-ready` and `ci-test-summary`; an unknown or repeated name fails `check`, and `auto-promote` prints a warning.
+- A project is single-repo when every component's repo is the SSOT repo; the phase, quick-fix and pm skills keep spec, plan, state and code on one `docs/NNN-slug` branch.
+- New feature status `shipped` (only with `no-owner-test`).
+- No plan stop in any project: the plan is still written, reviewed and linked from the sign-off PR; "include load test" moves to the spec reply.
+- Every spec has an Infrastructure section built on `doc/infra.mmd` (new template), with names and kinds only.
+- Reviewers check owner guides (`review-code`), the Infrastructure section (`review-contract`) and, under `ci-test-summary`, the CI test summary (`review-tests`).
+
 ## 1.3.2 — 2026-10-21
 
 A project that adopts the phase flow late can leave its old specs alone.
