@@ -31,8 +31,11 @@ then "needs you".
 1. Set the bundle features `not-tested`.
 2. `waiting_on_owner` with `kind: staging-test`, the published spec page as the link (its Features
    hold the test scripts) and `questions: 0`. Commit and push.
-3. PushNotification: "needs you: phase NNN is ready for your test — N steps". In the session, say
-   where to test: the URL, the test account for each role (names, never passwords), Expo Go.
+3. PushNotification, kept short: "needs you: phase NNN is ready for your test — N steps". The
+   in-session message lists each bundle feature's numbered steps inline (do → expect), then the
+   link, and says where to test: the URL, the test account for each role (names, never passwords),
+   Expo Go. With a `Pal Center version:` line of 0.4.0 or later, it adds: the steps are also there
+   in Pal Center's Work tab, each feature's **Test** button under Waiting on you opens its steps.
 4. Collect the results:
    - With a `Work CLI: "<path>"` line and `Pal Center version:` 0.4.0 or later, arm
      `"<path>" wait-results --phase NNN --timeout 9m` through Monitor and re-arm it on exit 3 (still

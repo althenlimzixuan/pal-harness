@@ -55,8 +55,7 @@ close-out PR at ship comes from it.
 
 ## 4. One review
 
-1. Make the reports as the phase's `references/review.md` section 1 says.
-2. Run one review over the whole branch: `pal-review run --kind code` (and `--kind uiux` when
+1. Run one review over the whole branch: `pal-review run --kind code` (and `--kind uiux` when
    something on screen changed) plus the `pal-review-code` agent; add `pal-review-security` when the
    fix touches login, user data, payments or credentials. Save each report under
    `specs/NNN-slug/reviews/`.
@@ -68,7 +67,9 @@ close-out PR at ship comes from it.
      worktree set to its project, add
      `<kind>: not available (worktree set)` to `codex.skipped` and go on. Never run `pal-review`
      from the owner's checkout for a quick fix.
-3. Severity, 3 fix rounds and leftover findings as in `references/review.md` sections 3–5.
+2. Severity, 3 fix rounds and leftover findings as in `references/review.md` sections 3–5.
+3. After the last review fix, make the reports once, as the phase's `references/review.md` section 1
+   says.
 4. Open the PR into `dev` with the Codex summary in its body; it merges on its own once CI is green, with `gh pr merge --merge` (never squash).
    `stage: code-review` while reviewing, then `stage: signoff`.
 
