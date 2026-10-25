@@ -5,10 +5,12 @@ One whole-branch review over every `feature/NNN-slug` branch (base `origin/dev`)
 
 ## 1. The test reports
 
-Make them before the reviewers run, since `pal-review-tests` checks them (`testing.md` has the
-files, the thresholds and the tools).
+Make them once, after the last review fix (section 4 step 4), on the final commit: not before the
+fixes, and not per reviewer. `pal-review-tests` then checks them (`testing.md` has the files, the
+thresholds and the tools).
 
-1. Until CI has report jobs, run the reports once, locally, on each branch's head. Write them to
+1. Until CI has report jobs, run the project's one report command (`make reports`, or
+   `npm run reports` in a Node-only repo) once, locally, on each branch's head. It writes them to
    `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/` on `docs/NNN-slug`, with a numbered
    `summary.md` from `.pal-harness/templates/test-summary.md`.
 2. Every phase: `unit_test.html`, `test_coverage.html`, `profiling.html`, `summary.md`. Regression:
@@ -45,8 +47,8 @@ Run them in parallel.
    add `<kind>: not available (worktree set)` to `codex.skipped` and go on. Never run it from the
    owner's checkout for a phase; it would review the owner's code, not the phase's.
 2. **Claude's reviewers**, each a subagent by its agent name, given the spec, the plan, the branch
-   list with base `origin/dev`, and the report folder (under `ci-test-summary`, the CI summary file,
-   with a line saying it replaces `_test_reports/`):
+   list with base `origin/dev`, and, once the reports exist (section 4 step 4), the report folder
+   (under `ci-test-summary`, the CI summary file, with a line saying it replaces `_test_reports/`):
 
    | Agent | When |
    |---|---|
@@ -78,9 +80,9 @@ report with the reason, and the owner still sees it.
 1. A round fixes every open finding, then re-runs only the reviewers that raised them.
 2. This whole-branch review gets 3 rounds; the per-task reviews inside a larger build get 5 rounds.
 3. Still unfixed after the limit → "needs you" with what was tried (`kind: findings`).
-4. After the last code change, make the reports again (under `ci-test-summary`, take the CI summary
-   again), so every report comes from the final commit (single-repo: the last commit that changes
-   code; SKILL.md, **Single-repo projects**).
+4. After the last code change, make the reports (section 1; under `ci-test-summary`, take the CI
+   summary), so every report comes from the final commit (single-repo: the last commit that changes
+   code; SKILL.md, **Single-repo projects**). Then run `pal-review-tests` on them.
    A missing, empty or stale report is a finding.
 
 ## 5. Leftover findings

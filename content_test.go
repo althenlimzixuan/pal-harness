@@ -428,3 +428,89 @@ func TestFlowOverridesDocumented(t *testing.T) {
 	has("practices/ssot_standard.md", "| Infrastructure diagram (runtime parts) | `doc/infra.mmd` |")
 	has("skills/phase/references/build.md", "owner guide in the same PR")
 }
+
+// pal-harness 1.4.1: LFPV phase 002 retro fixes (1.4.1 design, changes 1-7).
+func TestRetro002Rules(t *testing.T) {
+	text := func(p string) string {
+		t.Helper()
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(b)
+	}
+	has := func(p string, subs ...string) {
+		t.Helper()
+		s := text(p)
+		for _, sub := range subs {
+			if !strings.Contains(s, sub) {
+				t.Errorf("%s lacks %q", p, sub)
+			}
+		}
+	}
+	lacks := func(p string, subs ...string) {
+		t.Helper()
+		s := text(p)
+		for _, sub := range subs {
+			if strings.Contains(s, sub) {
+				t.Errorf("%s still contains %q", p, sub)
+			}
+		}
+	}
+
+	// 1. Dev-tooling npm advisories: audit-ci with an allowlist that expires.
+	has("practices/devops_cicd.md", "`npx audit-ci --high --config audit-ci.jsonc`", "`allowlist`", "GHSA",
+		"90 days", "An expired entry fails CI", "`npm audit fix` without `--force`", "dev tooling",
+		"Allowlisting shipped code is never allowed")
+	lacks("practices/devops_cicd.md", "npm audit --audit-level=high")
+	has("practices/testing.md", "audit-ci.jsonc", "devops_cicd.md")
+
+	// 2. Test reports: one command, once, after the last review fix.
+	for _, p := range []string{"practices/testing.md", "skills/phase/references/review.md"} {
+		has(p, "`make reports`", "`npm run reports`", "after the last review fix", "not per reviewer")
+	}
+	has("practices/testing.md", "`jest-html-reporter`", "demo data", "stale-report finding",
+		"must match `summary.md`")
+	lacks("skills/phase/references/review.md", "Make them before the reviewers run")
+	lacks("skills/quick-fix/SKILL.md", "1. Make the reports as the phase's `references/review.md` section 1 says.")
+
+	// 3 and 4. React Native on Windows: arm64-only local builds; Metro watches; adb is never dropped.
+	has("practices/react_native.md", "## Native builds on Windows", "`-PreactNativeArchitectures=arm64-v8a`",
+		"low process priority", "EAS only", "31 minutes",
+		"## Device testing", "`npx expo start`", "`CI=1`", "`--non-interactive`",
+		"Never run `adb disconnect` or `adb kill-server`", "wireless debugging", "reconnect once",
+		"device notes", "ask the owner")
+	rn := text("practices/react_native.md")
+	if b, d, tst := strings.Index(rn, "## Build & Deploy"), strings.Index(rn, "## Native builds on Windows"),
+		strings.Index(rn, "## Device testing"); !(b < d && d < tst && strings.Index(rn, "## Testing") < tst) {
+		t.Errorf("react_native.md: Native builds on Windows must follow Build & Deploy, Device testing must follow Testing")
+	}
+
+	// 5. Go mocks inside internal/, so the mirrored paths are importable.
+	const mock = "mockery --all --keeptree"
+	const mockArgs = " --dir internal --output internal/mocks"
+	for _, p := range []string{"practices/go_api.md", "practices/testing.md"} {
+		s := text(p)
+		has(p, mock+mockArgs, ".mockery.yaml")
+		for i := 0; ; {
+			j := strings.Index(s[i:], mock)
+			if j < 0 {
+				break
+			}
+			j += i + len(mock)
+			if !strings.HasPrefix(s[j:], mockArgs) {
+				t.Errorf("%s: %q without %q", p, mock, mockArgs)
+			}
+			i = j
+		}
+	}
+	has("practices/go_api.md", "make mock          # "+mock+mockArgs, "internal/mocks")
+
+	// 6. Surprising steps say why, in the step.
+	has("skills/phase/references/spec.md", "(by design:", "likely to surprise")
+	has("templates/spec.md", "(by design:")
+
+	// 7. "Ready for your test" lists the steps inline.
+	has("skills/phase/references/staging-test.md", "lists each bundle feature's numbered steps inline",
+		"needs you: phase NNN is ready for your test — N steps", "Work tab")
+}

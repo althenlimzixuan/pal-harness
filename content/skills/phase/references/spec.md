@@ -27,7 +27,9 @@ Write `specs/NNN-slug/spec.md` alone, in the sections `spec new` copied from
 3. **Calls I made:** every smaller choice, one line each with its reason.
 4. **Features:** one block per bundle feature with its why, use case and numbered test script
    (step: what you do → what you should see). Write steps the owner can run with the seeded test
-   accounts, each with one visible result, needing no code knowledge. A bundle fix the owner can
+   accounts, each with one visible result, needing no code knowledge. A step whose expected result
+   is correct but likely to surprise the owner says why, in the step itself:
+   "→ you see X (by design: reason)". A bundle fix the owner can
    see gets a step in the test script of the feature it touches; a fix for a `deferred` feature is
    tested by that feature's failed step. Approving the spec approves how the owner will test.
    Under `no-owner-test` (SKILL.md, **Flow overrides**) the test section is a

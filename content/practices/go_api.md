@@ -10,7 +10,7 @@
 | ORM | `gorm.io/gorm` + `gorm.io/driver/mysql` |
 | Cache | `github.com/go-redis/redis/v9` |
 | Config | `github.com/joho/godotenv` + `github.com/kelseyhightower/envconfig` |
-| Mocks | `github.com/vektra/mockery/v2` |
+| Mocks | `github.com/vektra/mockery/v2`, output in `internal/mocks` |
 | API docs | `github.com/swaggo/gin-swagger` |
 | Migrations | `github.com/golang-migrate/migrate/v4` |
 
@@ -55,13 +55,16 @@ make test-int      # integration tests (tag: integration)
 make test-e2e      # e2e tests (tag: e2e)
 make coverage      # HTML coverage report, gate: 80%
 make lint          # golangci-lint run ./...
-make mock          # mockery --all --keeptree
+make mock          # mockery --all --keeptree --dir internal --output internal/mocks
 make migrate-up    # golang-migrate up
 make migrate-down  # golang-migrate down 1
 make migrate-new name=<name>
 make docs          # swag init
 make wire          # wire ./cmd/api/...
 ```
+
+`.mockery.yaml` holds the same mock settings. Keeping the mocks inside `internal/` is what makes the
+mirrored paths importable; a top-level `mocks/` mirrors `internal/` paths, which Go forbids importing.
 
 ## Authentication
 

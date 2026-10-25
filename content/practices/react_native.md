@@ -190,6 +190,13 @@ eas update --branch production               # OTA JS-only update (no store revi
 - OTA updates for JS changes. Native changes (new native modules, permissions) always require a full build
 - Bundle IDs: `com.<company>.<product>` for iOS, same for Android package name
 
+## Native builds on Windows
+
+- A local Android build builds arm64 only (`-PreactNativeArchitectures=arm64-v8a` on the Gradle
+  command) and runs at low process priority (`start /low` in cmd).
+- All-ABI builds are for EAS only, never local: the first local all-ABI build took 31 minutes and
+  flooded the owner's PC.
+
 ## TypeScript
 
 - Strict mode on
@@ -217,6 +224,14 @@ appId: com.company.etp
 - tapOn: "Save"
 - assertVisible: "Tokyo 2025"
 ```
+
+## Device testing
+
+- Start Metro for device tests with file watching: `npx expo start`, never `CI=1` or
+  `--non-interactive`, so a file added in a fix round bundles without a restart.
+- Never run `adb disconnect` or `adb kill-server`, and never toggle the phone's wireless debugging.
+- If the link drops, reconnect once from the saved device details (the IP and port in the project's
+  device notes). If that fails, stop and ask the owner, giving the device name and what you tried.
 
 ## Key Differences from Web
 

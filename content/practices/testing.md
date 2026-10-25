@@ -35,7 +35,9 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
 
 ## Go-Specific
 
-- Mocks generated via `mockery --all --keeptree`. Never hand-write mocks.
+- Mocks generated via `mockery --all --keeptree --dir internal --output internal/mocks` (`make mock`,
+  same settings in `.mockery.yaml`); inside `internal/`, the mirrored paths are importable. Never
+  hand-write mocks.
 - Integration tests use `testcontainers-go` for MySQL + Redis — no shared test DB.
 - Table-driven test pattern is the default: `[]struct{ name, input, expected }`.
 - `//go:build integration` tag keeps unit test runs fast.
@@ -46,6 +48,7 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
 - MSW (Mock Service Worker) for API mocking — no `jest.mock('fetch')` or axios mock adapters.
 - Playwright for E2E: test critical user journeys, not every UI state.
 - Snapshot tests are discouraged — they break on styling changes and don't verify behaviour.
+- A new npm advisory in test tooling goes through `audit-ci.jsonc` as `devops_cicd.md` (Security in CI) says.
 
 ## What Not to Test
 
@@ -62,6 +65,9 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
   only builds and deploys. Reports live in the SSOT repo, so committing them never changes the code
   under test. In a single-repo project the final commit is the last commit that changes code;
   report, review and state commits after it do not make a report stale. Until CI has report jobs, the session runs the reports once, locally, on the final commit.
+- **One report command.** Each project has one (`make reports`, or `npm run reports` in a Node-only
+  repo) that writes every report the phase needs into the phase's `_test_reports/` folder. The session
+  runs it once, after the last review fix, on the final commit: not before the fixes, and not per reviewer.
 - **Location:** `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/` in the SSOT repo, committed.
 - **Every phase:** `unit_test.html`, `test_coverage.html`, `regression.html`,
   `profiling.html`, and a numbered `summary.md` (pass/fail counts, coverage %, slowest calls, change
@@ -80,5 +86,7 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
 - **A report the project cannot make yet.** One that does not apply to the stack (Lighthouse with no web
   surface) is recorded as "n/a" with the reason. One that applies but has no tooling becomes a task in
   the project's first plan; until it ships, the report is a recorded skip, not a blocker.
-- **Suggested tools:** gotestsum and Go's cover tool, jest-html-reporter and Istanbul, pytest-html,
-  Playwright's HTML report, pprof, Lighthouse, k6 (load).
+- **Suggested tools:** gotestsum and Go's cover tool, `jest-html-reporter` (not `jest-html-reporters`)
+  and Istanbul, pytest-html, Playwright's HTML report, pprof, Lighthouse, k6 (load).
+- A report that shows results other than this run's (demo data, a template placeholder) is a
+  stale-report finding. Its pass and fail counts must match `summary.md`.
