@@ -196,7 +196,8 @@ eas update --branch production               # OTA JS-only update (no store revi
   flag (it covers the Gradle daemon and its children, from any shell):
   - `cd android && ./gradlew assembleDebug -PreactNativeArchitectures=arm64-v8a --priority=low`;
   - or `npx expo run:android` with `ORG_GRADLE_PROJECT_reactNativeArchitectures=arm64-v8a` set and
-    `org.gradle.priority=low` in `android/gradle.properties`; never pass `--all-arch`.
+    `org.gradle.priority=low` in the user-level `%USERPROFILE%\.gradle\gradle.properties`
+    (`GRADLE_USER_HOME`, which `expo prebuild --clean` never regenerates); never pass `--all-arch`.
 - All-ABI builds are for EAS only, never local: the first local all-ABI build took 31 minutes and
   flooded the owner's PC.
 

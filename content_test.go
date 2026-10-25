@@ -488,7 +488,8 @@ func TestRetro002Rules(t *testing.T) {
 		"## Device testing", "`npx expo start`", "`CI=1`", "`--non-interactive`",
 		"Never run `adb disconnect` or `adb kill-server`", "wireless debugging", "reconnect once",
 		"the device details saved in the project's docs (if none are saved, ask the owner)", "ask the owner")
-	lacks("practices/react_native.md", "start /low", "device notes")
+	has("practices/react_native.md", "`%USERPROFILE%\\.gradle\\gradle.properties`", "`GRADLE_USER_HOME`")
+	lacks("practices/react_native.md", "start /low", "device notes", "`android/gradle.properties`")
 	rn := text("practices/react_native.md")
 	b, d := strings.Index(rn, "## Build & Deploy"), strings.Index(rn, "## Native builds on Windows")
 	ts, dv := strings.Index(rn, "## Testing"), strings.Index(rn, "## Device testing")
