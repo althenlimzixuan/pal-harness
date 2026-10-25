@@ -42,9 +42,9 @@ One block per feature. Approving this spec approves how you will test it.
 
 1. Do: (what you do) → Expect: (what you should see)
 2. Do: (what you do) → Expect: (what you should see)
-3. Do: (what you do) → Expect: (what you should see) (by design: (why, when it may surprise you))
+3. (only when a result may surprise you: Do: … → Expect: … by design: why; delete it otherwise)
 
-(A step whose result is right but may surprise you says why, like step 3: "→ Expect: a new code
+(A step whose result is right but may surprise you says why, in the step: "→ Expect: a new code
 arrives (by design: the app never says whether an account exists)".)
 
 (With the `no-owner-test` override, replace the test script with **What to expect now:** a list of

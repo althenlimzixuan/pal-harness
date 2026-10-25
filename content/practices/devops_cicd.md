@@ -76,8 +76,10 @@ No stage may be skipped; the one exception is the tests on a promotion whose tre
 - `npx audit-ci --high --config audit-ci.jsonc` runs in Node.js lint stage, with `audit-ci` pinned
   as a devDependency
 - `audit-ci.jsonc` holds an `allowlist`. Each entry names the advisory (GHSA id), its reason
-  (`notes`) and an `expiry` no more than 90 days out. An expired entry fails CI, so the reason is
-  looked at again.
+  (`notes`) and an `expiry` no more than 90 days out;
+  an expired entry stops suppressing, so CI fails while the advisory is still present and the reason
+  is looked at again. A record needs `"active": true`:
+  `"allowlist": [{ "GHSA-xxxx-xxxx-xxxx": { "active": true, "notes": "Expo CLI only; not shipped", "expiry": "YYYY-MM-DD" } }]`
 - A new high advisory fails CI → try, in order:
   1. `npm audit fix` without `--force`, which fixes most;
   2. if the package only runs in dev tooling (CLI, build, tests) and nothing shipped to users loads it,

@@ -22,6 +22,7 @@ thresholds and the tools).
 4. Blocking: coverage under 80%; a failing test; an API call's p95 more than 20% slower, or a web
    page's Lighthouse performance score 5 points or more lower, than the previous phase's report
    (the first phase sets the baseline). Fix it, up to 3 rounds, then ask the owner ("needs you").
+   After each fix, make the reports again on the new final commit.
 5. Under `ci-test-summary` (SKILL.md, **Flow overrides**) make no report files. Once CI is green
    on the final commit, take its test summary (tests passed and failed, and coverage, per
    component; the contract drift check) from the run (`gh run view <id> -R <owner/repo>`) and save
@@ -48,7 +49,8 @@ Run them in parallel.
    owner's checkout for a phase; it would review the owner's code, not the phase's.
 2. **Claude's reviewers**, each a subagent by its agent name, given the spec, the plan, the branch
    list with base `origin/dev`, and, once the reports exist (section 4 step 4), the report folder
-   (under `ci-test-summary`, the CI summary file, with a line saying it replaces `_test_reports/`):
+   (under `ci-test-summary`, the CI summary file, with a line saying it replaces `_test_reports/`).
+   Before that, tell `pal-review-tests` "reports not made yet: skip the report checks (3–7)":
 
    | Agent | When |
    |---|---|

@@ -192,8 +192,11 @@ eas update --branch production               # OTA JS-only update (no store revi
 
 ## Native builds on Windows
 
-- A local Android build builds arm64 only (`-PreactNativeArchitectures=arm64-v8a` on the Gradle
-  command) and runs at low process priority (`start /low` in cmd).
+- A local Android build builds arm64 only and runs at low process priority, through Gradle's own
+  flag (it covers the Gradle daemon and its children, from any shell):
+  - `cd android && ./gradlew assembleDebug -PreactNativeArchitectures=arm64-v8a --priority=low`;
+  - or `npx expo run:android` with `ORG_GRADLE_PROJECT_reactNativeArchitectures=arm64-v8a` set and
+    `org.gradle.priority=low` in `android/gradle.properties`; never pass `--all-arch`.
 - All-ABI builds are for EAS only, never local: the first local all-ABI build took 31 minutes and
   flooded the owner's PC.
 
@@ -230,8 +233,9 @@ appId: com.company.etp
 - Start Metro for device tests with file watching: `npx expo start`, never `CI=1` or
   `--non-interactive`, so a file added in a fix round bundles without a restart.
 - Never run `adb disconnect` or `adb kill-server`, and never toggle the phone's wireless debugging.
-- If the link drops, reconnect once from the saved device details (the IP and port in the project's
-  device notes). If that fails, stop and ask the owner, giving the device name and what you tried.
+- If the link drops, reconnect once (`adb connect <ip>:<port>`) from
+  the device details saved in the project's docs (if none are saved, ask the owner). If that fails,
+  stop and ask the owner, giving the device name and what you tried.
 
 ## Key Differences from Web
 

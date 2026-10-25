@@ -18,6 +18,8 @@ Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listi
 
 ## Check
 
+The report checks (3–7) apply only when the session says the reports are made (after the last review fix). When it says "reports not made yet", skip them: a missing report is then not a finding.
+
 1. **Planned tests exist:** every test file the plan names exists in the diff, uses its JSON fixture, and asserts something real (no empty or always-true tests).
 2. **Coverage of the spec:** every feature and every step of the spec's test script is covered by a test; list the uncovered ones.
 3. **Coverage threshold:** coverage is 80% or more per `test_coverage.html` and `summary.md`; under 80% is a major finding.

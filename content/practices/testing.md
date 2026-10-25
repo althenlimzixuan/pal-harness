@@ -66,8 +66,10 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
   under test. In a single-repo project the final commit is the last commit that changes code;
   report, review and state commits after it do not make a report stale. Until CI has report jobs, the session runs the reports once, locally, on the final commit.
 - **One report command.** Each project has one (`make reports`, or `npm run reports` in a Node-only
-  repo) that writes every report the phase needs into the phase's `_test_reports/` folder. The session
-  runs it once, after the last review fix, on the final commit: not before the fixes, and not per reviewer.
+  repo) that writes every report the phase needs on the final commit into the phase's `_test_reports/`
+  folder (regression and the load test come from staging once it exists). Until CI has report jobs
+  (CI's report jobs run the same command), the session runs it once, after the last review fix, on
+  the final commit: not before the fixes, and not per reviewer.
 - **Location:** `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/` in the SSOT repo, committed.
 - **Every phase:** `unit_test.html`, `test_coverage.html`, `regression.html`,
   `profiling.html`, and a numbered `summary.md` (pass/fail counts, coverage %, slowest calls, change

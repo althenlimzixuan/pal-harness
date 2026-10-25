@@ -5,8 +5,8 @@
 LFPV phase 002 retro fixes.
 
 - `devops_cicd.md`: the Node audit is `npx audit-ci --high --config audit-ci.jsonc`; dev-tooling advisories get an allowlist entry with a reason and an expiry (at most 90 days), shipped code never.
-- `testing.md`, `review.md`: one report command (`make reports` or `npm run reports`) runs once, after the last review fix; a report with demo data is stale; quick-fix makes its reports after its fix rounds.
-- `react_native.md`: new **Native builds on Windows** — local Android builds are arm64-only at low priority; all-ABI builds are EAS-only.
+- `testing.md`, `review.md`: one report command (`make reports` or `npm run reports`) runs once, after the last review fix; a report with demo data is stale; quick-fix makes its reports after its fix rounds; `pal-review-tests` skips the report checks until the reports are made.
+- `react_native.md`: new **Native builds on Windows** — local Android builds are arm64-only at Gradle `--priority=low`; all-ABI builds are EAS-only.
 - `react_native.md`: new **Device testing** — Metro with file watching; never `adb disconnect`, `adb kill-server` or a wireless-debugging toggle; one reconnect, then ask the owner.
 - `go_api.md`, `testing.md`: mocks with `mockery --all --keeptree --dir internal --output internal/mocks` (`make mock`, same settings in `.mockery.yaml`).
 - `spec.md` reference and template: a surprising but correct step says why, "(by design: reason)".

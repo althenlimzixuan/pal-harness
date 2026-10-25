@@ -34,7 +34,8 @@ then "needs you".
 3. PushNotification, kept short: "needs you: phase NNN is ready for your test — N steps". The
    in-session message lists each bundle feature's numbered steps inline (do → expect), then the
    link, and says where to test: the URL, the test account for each role (names, never passwords),
-   Expo Go. With Pal Center's Work tab (a `Work CLI:` line), it says the steps are also there.
+   Expo Go. With a `Pal Center version:` line of 0.4.0 or later, it adds: the steps are also there
+   in Pal Center's Work tab, each feature's **Test** button under Waiting on you opens its steps.
 4. Collect the results:
    - With a `Work CLI: "<path>"` line and `Pal Center version:` 0.4.0 or later, arm
      `"<path>" wait-results --phase NNN --timeout 9m` through Monitor and re-arm it on exit 3 (still
