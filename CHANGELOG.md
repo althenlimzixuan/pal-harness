@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.2 — 2026-11-01
+
+- `render`: the page's `body` no longer sets `max-width` (was `42rem`); pages use the full width, keeping their side padding (owner rule, 2026-11-01).
+
 ## 1.4.1 — 2026-10-25
 
 LFPV phase 002 retro fixes.
