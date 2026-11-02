@@ -70,6 +70,13 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
   folder (regression and the load test come from staging once it exists). Until CI has report jobs
   (CI's report jobs run the same command), the session runs it once, after the last review fix, on
   the final commit: not before the fixes, and not per reviewer.
+- **The report command starts with a preflight** that fails in seconds, with the fix in one line:
+  `go version` against `go.mod` (run with `GOTOOLCHAIN=local`, so no toolchain is downloaded
+  mid-run), bash on the PATH (on Windows, pass Windows paths into bash through `cygpath -u`), and the
+  dependencies installed.
+- **One report at a time:** the command runs the components' reports one after another. Two Jest
+  processes never run at once (on Windows they collide on the transform cache with EPERM); if EPERM
+  still appears, that run uses `--no-cache`.
 - **Location:** `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/` in the SSOT repo, committed.
 - **Every phase:** `unit_test.html`, `test_coverage.html`, `regression.html`,
   `profiling.html`, and a numbered `summary.md` (pass/fail counts, coverage %, slowest calls, change
@@ -81,8 +88,12 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
 - **On request only:** `load_test.html`, a load test against staging. The owner asks by adding
   "include load test" to the spec reply.
 - **Blocking problems:** coverage under 80%; a failing test; an API call's p95 more than 20% slower,
-  or a web page's Lighthouse performance score 5 points or more lower, than the previous phase's report
-  (the first phase sets the baseline). Claude gets 3 fix rounds, then the session asks the owner (a "needs you" notification).
+  or a web page's Lighthouse performance score 5 points or more lower, than the previous code (the
+  first phase sets the baseline). Claude gets 3 fix rounds, then the session asks the owner (a "needs you" notification).
+- **The paired speed check:** the previous code (the phase's base on `origin/dev`) and the new code
+  run in paired, alternating runs on the same machine in one sitting (old, new, old, new; at least 5
+  pairs), and the medians are compared. `summary.md` records the base commit, the number of pairs
+  and both medians. The earlier report's numbers are context only, never the comparison.
 - A missing, empty or stale report is a review finding. Staging reports must match the tree hash of
   the staging deploy; every other report must come from the PR's final commit.
 - **A report the project cannot make yet.** One that does not apply to the stack (Lighthouse with no web

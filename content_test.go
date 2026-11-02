@@ -528,3 +528,111 @@ func TestRetro002Rules(t *testing.T) {
 		"needs you: phase NNN is ready for your test — N steps",
 		"in Pal Center's Work tab, each feature's **Test** button under Waiting on you opens its steps")
 }
+
+// pal-harness 1.5.0: the open harness captures (1.5.0 design, changes 1-15).
+func TestHarness150Rules(t *testing.T) {
+	text := func(p string) string {
+		t.Helper()
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(b)
+	}
+	has := func(p string, subs ...string) {
+		t.Helper()
+		s := text(p)
+		for _, sub := range subs {
+			if !strings.Contains(s, sub) {
+				t.Errorf("%s lacks %q", p, sub)
+			}
+		}
+	}
+	lacks := func(p string, subs ...string) {
+		t.Helper()
+		s := text(p)
+		for _, sub := range subs {
+			if strings.Contains(s, sub) {
+				t.Errorf("%s still contains %q", p, sub)
+			}
+		}
+	}
+
+	// 1. CI minutes and spending-limit blocks.
+	has("practices/devops_cicd.md", "## CI runs and minutes", "plus `push` only on `dev`, `staging` and `main`",
+		"run on `pull_request`\n  only", "spending limit", "local-ci-YYYY-MM-DD-HHmm.md",
+		"ci blocked: Actions spending limit; local CI green", "it is not an owner stop")
+	has("skills/phase/references/build.md", "read why first", "is not a fix round")
+
+	// 2. Bot dependency PRs get CI and land before a phase branches.
+	has("practices/devops_cicd.md", "`GITHUB_TOKEN`", "`workflow_dispatch:`", "`gh workflow run ci.yml --ref <branch>`")
+	has("skills/phase/references/build.md", "**Bot PRs first.**", "--author app/github-actions",
+		"`gh workflow run ci.yml -R <owner/repo> --ref <head branch>`", "that is not a fix round")
+
+	// 3. Scripts write only inside the worktree set.
+	has("skills/phase/SKILL.md", "A script that writes files gets its target as an absolute path inside the set",
+		"never run bare", "`pal-harness log` refuses a folder outside `.pal-worktrees/`")
+	has("skills/phase/references/build.md", "never run them bare", "<set>/.superpowers/sdd/NNN-slug/",
+		"`task-brief <set>/specs/NNN-slug/plan.md N <set>/.superpowers/sdd/NNN-slug/task-N-brief.md`", "`review-package`")
+
+	// 4. pal-harness log stamps the log and last_progress_at.
+	has("skills/phase/SKILL.md", "`pal-harness log <set>/specs/NNN-slug '<headline>' [body file]`",
+		"Never type either by hand", "by `pal-harness log`")
+	has("skills/quick-fix/SKILL.md", "`pal-harness log`")
+	has("practices/ssot_standard.md", "`log <phase folder> <headline> [body file]`", "`contrast <foreground> <background>`")
+
+	// 5. Contrast is measured.
+	has("agents/review-ui.md", "Measure, never estimate", "`pal-harness contrast <foreground> <background>`",
+		"the measured ratio and the threshold")
+	has("skills/phase/references/review.md", "`pal-harness contrast <foreground> <background>`", "An estimate is not evidence")
+
+	// 6-8. The plan review: contract and appendix, trust handoffs, runnable steps.
+	for _, p := range []string{"agents/review-plan.md", "skills/phase/references/plan.md"} {
+		has(p, "## Contract", "Appendix", "who may receive it", "verifies the recipient")
+	}
+	has("agents/review-plan.md", "**Trust handoffs:**", "a major finding", "**Runnable test steps:**",
+		"airplane mode or Wi-Fi off drops wireless adb")
+	has("skills/phase/references/spec.md", "Check each step against where the owner will test",
+		"fake file store", "airplane mode or Wi-Fi off drops wireless adb", "moved to the automated tests")
+
+	// 9. The red run comes first and is checked.
+	has("skills/phase/references/build.md", "TDD is required for the task", "the red run",
+		"send the task back\n   to the agent; that counts as one of its fix rounds")
+	has("skills/phase/references/review.md", "starts with a test that reproduces the bug, run red")
+	has("skills/quick-fix/SKILL.md", "run it red")
+
+	// 10. Lint in every task, through the repo's own scripts.
+	has("practices/workflow.md", "never a bare `npx prettier` or `npx eslint`", "Lint also runs in each task")
+	has("practices/react_native.md", "never a bare\n  `npx prettier`")
+	has("skills/phase/references/build.md", "the repo's lint among them", "until lint is clean")
+	has("templates/plan.md", "the repo's lint script among them")
+
+	// 11. Reviewers write their own reports.
+	for _, a := range []string{"code", "contract", "errors", "plan", "security", "tests", "ui"} {
+		p := "agents/review-" + a + ".md"
+		has(p, ", Write\n", "it is the only file you ever write or change", "the report's path")
+		lacks(p, "You have no write tool")
+	}
+	has("skills/phase/references/review.md", "Each reviewer writes its own report", "shows only that new\n   file")
+	lacks("skills/phase/references/review.md", "The reviewers are read-only: save each returned report verbatim")
+
+	// 12. The paired speed check.
+	has("practices/testing.md", "**The paired speed check:**", "at least 5\n  pairs", "context only")
+	has("skills/phase/references/review.md", "paired speed check")
+	has("agents/review-tests.md", "the paired speed check", "fewer than 5 pairs")
+	has("templates/test-summary.md", "base commit", "pairs, old and new alternating")
+	lacks("practices/testing.md", "than the previous phase's report")
+
+	// 13. Reports on Windows.
+	has("practices/testing.md", "**The report command starts with a preflight**", "`GOTOOLCHAIN=local`",
+		"`cygpath -u`", "Two Jest\n  processes never run at once", "`--no-cache`")
+
+	// 14. The pre-flight before the owner's test.
+	has("skills/phase/references/staging-test.md", "## 3. Pre-flight", "`npx expo start --clear`",
+		"`adb reverse`", "pairing code\n   and port up front", "under 2 GB free", "## 7. When every step is answered")
+	has("skills/phase/SKILL.md", "(`references/staging-test.md` section 4)")
+
+	// 15. A behaviour-changing fix updates the test steps.
+	has("skills/phase/references/review.md", "re-reads the affected features' test scripts")
+	has("skills/phase/references/staging-test.md", "re-reads the affected test scripts")
+}

@@ -23,7 +23,8 @@ owner (an owner stop, `kind: questions`) and recommend running it as a phase.
    `spec.md`: a quick fix has none.
 2. Write `phase-state.yaml` from the template: `vehicle: quick-fix`, `approach: inline`,
    `stage: building`, the bundle, `session:`, `tasks: {done: 0, total: 1}`, `last_progress_at` now.
-   Start `phase-log.md`. Commit and push `docs/NNN-slug`.
+   Start `phase-log.md`. Every log entry is written with `pal-harness log`, which also stamps
+   `last_progress_at` (the phase skill's **Saved state** step 4). Commit and push `docs/NNN-slug`.
 3. The feature the fix touches (if any) becomes `building` in `doc/features.yaml`; move its card.
 
 ## 2. The test step
@@ -40,8 +41,9 @@ Write the owner's one test step for what the fix changes (do → expect), concre
 
 1. One `fix/NNN-slug` branch in the one repo, a worktree in the set from `origin/dev`
    (as the phase's `references/build.md` section 2 shows, with `fix/` for `feature/`).
-2. Test first from a JSON fixture (`testing.md`), then the code, by the build rules in
-   `workflow.md`. Commit, push, update `tasks` and `last_progress_at`, push `docs/NNN-slug`.
+2. Test first from a JSON fixture (`testing.md`): run it red and keep the red run for the log.
+   Then the code, by the build rules in `workflow.md`, and the repo's lint through its own script.
+   Commit, push, update `tasks`, write the log entry (`pal-harness log`), push `docs/NNN-slug`.
 3. Stuck (fix rounds used up, CI red, no progress for 1 hour): as the phase's `references/build.md`
    section 5.
 
@@ -57,8 +59,9 @@ close-out PR at ship comes from it.
 
 1. Run one review over the whole branch: `pal-review run --kind code` (and `--kind uiux` when
    something on screen changed) plus the `pal-review-code` agent; add `pal-review-security` when the
-   fix touches login, user data, payments or credentials. Save each report under
-   `specs/NNN-slug/reviews/`.
+   fix touches login, user data, payments or credentials. Save each Codex report under
+   `specs/NNN-slug/reviews/`; each reviewer agent writes its own, as the phase's `references/review.md`
+   section 2 says.
    - `pal-review` exit codes (Bash timeout 600000 ms): 0 the report is printed; 3 still running →
      `pal-review wait <id>` (same timeout) until it ends; 4 failed → record it, retry once, then
      add `<kind>: failed (<reason>)` to `codex.skipped` and go on with a note; 5 skipped → add

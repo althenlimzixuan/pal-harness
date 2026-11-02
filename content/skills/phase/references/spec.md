@@ -29,7 +29,11 @@ Write `specs/NNN-slug/spec.md` alone, in the sections `spec new` copied from
    (step: what you do → what you should see). Write steps the owner can run with the seeded test
    accounts, each with one visible result, needing no code knowledge. A step whose expected result
    is correct but likely to surprise the owner says why, in the step itself:
-   "→ you see X (by design: reason)". A bundle fix the owner can
+   "→ you see X (by design: reason)". Check each step against where the owner will test: staging
+   or the local stack (its fake or stubbed services, such as a fake file store, and which accounts
+   exist there) and the real phone (airplane mode or Wi-Fi off drops wireless adb, so an offline
+   step says how to stay connected: by USB, or on a build that needs no Metro). A step that cannot
+   run there is rewritten, or moved to the automated tests with a line in Calls I made. A bundle fix the owner can
    see gets a step in the test script of the feature it touches; a fix for a `deferred` feature is
    tested by that feature's failed step. Approving the spec approves how the owner will test.
    Under `no-owner-test` (SKILL.md, **Flow overrides**) the test section is a

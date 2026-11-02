@@ -15,6 +15,26 @@ Every repository must pass all stages on a PR's final commit before it merges:
 
 No stage may be skipped; the one exception is the tests on a promotion whose tree hash already passed (`testing.md`, Test reports). Flaky tests must be fixed, not retried.
 
+## CI runs and minutes
+
+- **Triggers:** `pull_request`, plus `push` only on `dev`, `staging` and `main`. Never a bare `push`:
+  a work branch with a PR would run twice.
+- **Costly runners:** jobs on Windows or macOS runners (billed at 2x and 10x) run on `pull_request`
+  only (`if: github.event_name == 'pull_request'`); the `push` runs keep the Linux jobs. Every change
+  reaches `dev`, `staging` and `main` through a PR, so the PR run is the gate.
+- **Read a red run before fixing it** (`gh run view <id> -R <owner/repo>`). A job that never started
+  because of the spending limit or a billing problem is not a code failure and not a fix round:
+  1. run the repo's CI commands locally on the PR's head (the checks of `workflow.md`, **Check before
+     every push**) and save the output as `specs/NNN-slug/reviews/local-ci-YYYY-MM-DD-HHmm.md`;
+  2. send one "needs you: GitHub Actions spending limit reached on <repo> — CI ran locally instead"
+     notification and keep working (it is not an owner stop);
+  3. keep `ci: red` with the note `ci blocked: Actions spending limit; local CI green`. A PR into
+     `dev` may merge on that local evidence; the sign-off PR says CI did not run.
+- **Bot PRs get CI:** a workflow that opens a PR with `GITHUB_TOKEN` gets no CI, since GitHub starts
+  no workflow for it. So `ci.yml` has `workflow_dispatch:`, and the bot workflow (with
+  `actions: write`) runs `gh workflow run ci.yml --ref <branch>` after opening the PR;
+  `workflow_dispatch` is the one event `GITHUB_TOKEN` may start.
+
 ## Branch & Merge Strategy
 
 - `main` is always deployable to production; production deploys run only from `main`
