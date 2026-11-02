@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.5.0 — 2026-11-02
+
+The 21 open harness captures (Pal Center phase 001, LFPV phases 003 and 004, ETP phase 097). The design is `doc/specs/2026-11-02-harness-1.5.0-design.md`.
+
+- New `pal-harness log <phase folder> <headline> [body file]`: appends a clock-stamped `phase-log.md` entry and sets `last_progress_at`; refuses a folder outside `.pal-worktrees/`. The phase and quick-fix skills write every log entry with it.
+- New `pal-harness contrast <foreground> <background>`: the WCAG 2 ratio and AA verdicts for `#rgb`, `#rrggbb`, `rgb()` and `oklch()` (clipped to sRGB with a note; alpha refused). `review-ui` and contrast fixes measure with it.
+- `devops_cicd.md`: new **CI runs and minutes** — `push` only on `dev`, `staging`, `main`; Windows and macOS jobs on `pull_request` only; a spending-limit block is run locally as evidence (`reviews/local-ci-*.md`), one notification, no fix round; bot PRs opened with `GITHUB_TOKEN` start CI by `workflow_dispatch`.
+- `build.md`: bot PRs into `dev` get CI (close and reopen) and merge before a phase branches; sdd's scripts run in a subshell started in the set (`review-package` in the component worktree); implementer and fixer reports need a red run, or the task goes back; lint runs in each task.
+- `SKILL.md`: a writing script's target is an absolute path inside the set, checked before it runs; a script that resolves its target from the current folder runs in a subshell started in the set.
+- `review.md`, `signoff.md`, quick-fix, `signoff-pr.md`: a PR whose CI was blocked by the spending limit merges on its green local run, and the sign-off PR says CI did not run.
+- `review-plan` and `plan.md`: every contract endpoint and appendix behaviour has a task; a key, secret, token or invitation handoff says who may receive it and how the sender verifies them (major finding otherwise); each test step can run where the owner tests; each task's prove-it includes lint.
+- `spec.md`: each test step is checked against the local stack's or staging's limits and the real phone's.
+- All seven reviewer agents gain the Write tool for their one report file; the session checks `git status` after each.
+- `testing.md`, `review.md`, `review-tests`, `test-summary.md`: the speed check is paired, alternating old and new runs on one machine (at least 5 pairs, medians compared); the report command starts with a Windows-aware preflight and runs Jest reports one at a time.
+- `workflow.md`, `react_native.md`: lint and format through the repo's own scripts, never a bare `npx prettier` or `npx eslint`.
+- `staging-test.md`: new section 3 **Pre-flight** (health and accounts, a cold Metro start and a full reload, `adb devices` and `adb reverse`, a pairing code up front, free memory), run again after a gap; later sections renumber to 4–7.
+- `review.md`, `staging-test.md`: a fix that changes owner-visible behaviour updates the affected test steps in the spec and `doc/features.yaml`.
+
 ## 1.4.2 — 2026-11-01
 
 - `render`: the page's `body` no longer sets `max-width` (was `42rem`); pages use the full width, keeping their side padding (owner rule, 2026-11-01).

@@ -15,9 +15,11 @@ import (
 
 	harness "github.com/althenlimzixuan/pal-harness"
 	"github.com/althenlimzixuan/pal-harness/blocks"
+	"github.com/althenlimzixuan/pal-harness/contrast"
 	"github.com/althenlimzixuan/pal-harness/internal/seq"
 	"github.com/althenlimzixuan/pal-harness/manifest"
 	"github.com/althenlimzixuan/pal-harness/number"
+	"github.com/althenlimzixuan/pal-harness/phaselog"
 	"github.com/althenlimzixuan/pal-harness/pin"
 	"github.com/althenlimzixuan/pal-harness/render"
 	"github.com/althenlimzixuan/pal-harness/state"
@@ -36,6 +38,8 @@ const usage = `usage:
   pal-harness spec new <slug> [dir]
   pal-harness adr new <slug> [--conflict] [dir]
   pal-harness render <file.md>
+  pal-harness log <phase folder> <headline> [body file]
+  pal-harness contrast <foreground> <background>
   pal-harness version
 `
 
@@ -76,6 +80,16 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return usageErr(stderr, "render takes one Markdown file")
 		}
 		return runRender(rest[0], stderr)
+	case "log":
+		if len(rest) < 2 || len(rest) > 3 {
+			return usageErr(stderr, "log takes a phase folder, a headline and an optional body file")
+		}
+		return runLog(rest, stdout, stderr)
+	case "contrast":
+		if len(rest) != 2 {
+			return usageErr(stderr, "contrast takes a foreground and a background colour")
+		}
+		return runContrast(rest[0], rest[1], stdout, stderr)
 	case "spec", "adr":
 		if len(rest) == 0 || rest[0] != "new" {
 			return usageErr(stderr, "expected: "+args[0]+" new <slug>")
@@ -83,6 +97,46 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runNew(args[0], rest[1:], stdout, stderr)
 	}
 	return usageErr(stderr, "unknown command: "+args[0])
+}
+
+// runLog appends a clock-stamped phase-log.md entry and stamps last_progress_at.
+func runLog(args []string, stdout, stderr io.Writer) int {
+	body := ""
+	if len(args) == 3 {
+		b, err := os.ReadFile(args[2])
+		if err != nil {
+			return fail(stderr, "cannot read the body file: %v", err)
+		}
+		body = string(b)
+	}
+	stamp, err := phaselog.Append(args[0], args[1], body, now())
+	if err != nil {
+		return fail(stderr, "%v", err)
+	}
+	fmt.Fprintln(stdout, stamp)
+	return 0
+}
+
+// runContrast prints the WCAG contrast ratio of two colours and the AA verdicts.
+func runContrast(fgArg, bgArg string, stdout, stderr io.Writer) int {
+	fg, err := contrast.Parse(fgArg)
+	if err != nil {
+		return fail(stderr, "foreground: %v", err)
+	}
+	bg, err := contrast.Parse(bgArg)
+	if err != nil {
+		return fail(stderr, "background: %v", err)
+	}
+	fmt.Fprintln(stdout, contrast.Format(contrast.Ratio(fg, bg)))
+	for _, c := range []struct {
+		name string
+		col  contrast.Color
+	}{{"foreground", fg}, {"background", bg}} {
+		if c.col.Clipped {
+			fmt.Fprintf(stdout, "note: the %s clipped to sRGB; measure the rendered colour to be sure\n", c.name)
+		}
+	}
+	return 0
 }
 
 func dirArg(a []string) string {

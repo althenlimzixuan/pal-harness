@@ -20,9 +20,10 @@ thresholds and the tools).
 3. A report that does not apply is "n/a" with the reason; one with no tooling yet is a recorded
    skip, as the plan says.
 4. Blocking: coverage under 80%; a failing test; an API call's p95 more than 20% slower, or a web
-   page's Lighthouse performance score 5 points or more lower, than the previous phase's report
-   (the first phase sets the baseline). Fix it, up to 3 rounds, then ask the owner ("needs you").
-   After each fix, make the reports again on the new final commit.
+   page's Lighthouse performance score 5 points or more lower, than the previous code, measured by
+   the paired speed check in `testing.md` (old and new code alternating on this machine, at least 5
+   pairs; the first phase sets the baseline). Fix it, up to 3 rounds, then ask the owner ("needs
+   you"). After each fix, make the reports again on the new final commit.
 5. Under `ci-test-summary` (SKILL.md, **Flow overrides**) make no report files. Once CI is green
    on the final commit, take its test summary (tests passed and failed, and coverage, per
    component; the contract drift check) from the run (`gh run view <id> -R <owner/repo>`) and save
@@ -61,8 +62,11 @@ Run them in parallel.
    | `pal-review-contract` | When the API or the infrastructure changed |
    | `pal-review-ui` | When screens changed |
 
-3. The reviewers are read-only: save each returned report verbatim as
-   `specs/NNN-slug/reviews/<agent>-YYYY-MM-DD-HHmm.md`.
+3. Each reviewer writes its own report: give it the absolute path
+   `<set>/specs/NNN-slug/reviews/<agent>-YYYY-MM-DD-HHmm.md`. It writes that one file and returns a
+   short verdict. When the reviewers finish, check that `git status` in every worktree shows no change except
+   the report paths you handed out (and the Codex reports you saved); revert anything else and log it. A reviewer that returned its report without writing it:
+   save the returned text verbatim at that path.
 
 ## 3. Severity
 
@@ -80,6 +84,13 @@ report with the reason, and the owner still sees it.
 ## 4. Fix rounds
 
 1. A round fixes every open finding, then re-runs only the reviewers that raised them.
+   - A fix for a bug finding starts with a test that reproduces the bug, run red; a fixer's report
+     without that red run goes back to the fixer, and that counts as a fix round (build.md, section 3).
+   - A contrast fix is measured again with `pal-harness contrast '<foreground>' '<background>'` (or the
+     rendered colours), and the new ratio goes in the fix's log entry. An estimate is not evidence.
+   - A fix that changes behaviour the owner sees re-reads the affected features' test scripts in the
+     spec and in `doc/features.yaml`. A step whose expected result no longer holds is updated in
+     both, and the sign-off PR lists the change in Calls I made.
 2. This whole-branch review gets 3 rounds; the per-task reviews inside a larger build get 5 rounds.
 3. Still unfixed after the limit → "needs you" with what was tried (`kind: findings`).
 4. After the last code change, make the reports (section 1; under `ci-test-summary`, take the CI
@@ -102,7 +113,9 @@ Each finding not fixed goes to one place, recorded for the sign-off PR's review 
    critical finding with the owner's decision, the minor ones with what Claude did (`workflow.md`).
 2. Each PR into `dev` merges on its own once CI is green and the reviews pass:
    `gh pr checks <n> -R <owner/repo> --watch`, then `gh pr merge <n> -R <owner/repo> --merge` (a merge commit, never squash). Do not pass
-   `--delete-branch` from inside a worktree; branches go when the set is removed.
+   `--delete-branch` from inside a worktree; branches go when the set is removed. A PR whose CI was
+   blocked by the spending limit merges on its green local run instead (`devops_cicd.md`, **CI runs
+   and minutes**); its body links `reviews/local-ci-*.md`.
 3. Single-repo: the code PR `docs/NNN-slug` → `dev` merges here the same way, with the reviews and
    the reports on it. Keep the branch.
 4. `stage: signoff`. Commit and push `docs/NNN-slug`.
