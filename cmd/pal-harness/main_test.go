@@ -985,3 +985,61 @@ func TestCheckShippedSkippedWhenManifestInvalid(t *testing.T) {
 		t.Errorf("shipped rule ran on an invalid manifest: %q", out)
 	}
 }
+
+func TestLogCommand(t *testing.T) {
+	old := now
+	t.Cleanup(func() { now = old })
+	now = func() time.Time { return time.Date(2026, 11, 2, 14, 5, 0, 0, time.FixedZone("MYT", 8*3600)) }
+
+	set := filepath.Join(t.TempDir(), ".pal-worktrees", "ETP-096")
+	write(t, set, "specs/096-trip-budget/phase-state.yaml", "phase: \"096\"\nlast_progress_at: 2026-01-01T09:00:00+08:00\n")
+	write(t, set, "body.md", "CI green.\n")
+	dir := filepath.Join(set, "specs", "096-trip-budget")
+
+	code, out, errs := do(t, "log", dir, "Task 1 done", filepath.Join(set, "body.md"))
+	if code != 0 || strings.TrimSpace(out) != "2026-11-02 14:05" {
+		t.Fatalf("log: code %d, out %q, errs %q", code, out, errs)
+	}
+	if got := read(t, set, "specs/096-trip-budget/phase-log.md"); got != "## 2026-11-02 14:05 — Task 1 done\n\nCI green.\n" {
+		t.Errorf("phase-log.md = %q", got)
+	}
+	if got := read(t, set, "specs/096-trip-budget/phase-state.yaml"); !strings.Contains(got, "last_progress_at: 2026-11-02T14:05:00+08:00") {
+		t.Errorf("phase-state.yaml = %q", got)
+	}
+
+	outside := t.TempDir()
+	write(t, outside, "phase-state.yaml", "last_progress_at: x\n")
+	if code, _, errs := do(t, "log", outside, "x"); code != 2 || !strings.Contains(errs, "outside a worktree set") {
+		t.Errorf("log outside a set: code %d, errs %q", code, errs)
+	}
+	if code, _, errs := do(t, "log", dir, "x", filepath.Join(set, "missing.md")); code != 2 || !strings.Contains(errs, "body file") {
+		t.Errorf("log with a missing body file: code %d, errs %q", code, errs)
+	}
+	for _, args := range [][]string{{"log"}, {"log", dir}, {"log", dir, "a", "b", "c"}} {
+		if code, _, errs := do(t, args...); code != 2 || !strings.Contains(errs, "usage") {
+			t.Errorf("%v: code %d, errs %q", args, code, errs)
+		}
+	}
+}
+
+func TestContrastCommand(t *testing.T) {
+	code, out, errs := do(t, "contrast", "#777777", "#fff")
+	if code != 0 || !strings.HasPrefix(out, "4.47:1 — text (4.5:1): fail · large text and UI parts (3:1): pass") {
+		t.Errorf("contrast: code %d, out %q, errs %q", code, out, errs)
+	}
+	if code, out, _ := do(t, "contrast", "oklch(0.7 0.4 140)", "#000"); code != 0 || !strings.Contains(out, "foreground clipped to sRGB") {
+		t.Errorf("clipped foreground: code %d, out %q", code, out)
+	}
+	if code, out, _ := do(t, "contrast", "#000", "oklch(0.7 0.4 140)"); code != 0 || !strings.Contains(out, "background clipped to sRGB") {
+		t.Errorf("clipped background: code %d, out %q", code, out)
+	}
+	if code, _, errs := do(t, "contrast", "#00000080", "#fff"); code != 2 || !strings.Contains(errs, "composite") {
+		t.Errorf("alpha: code %d, errs %q", code, errs)
+	}
+	if code, _, errs := do(t, "contrast", "#000", "nope"); code != 2 || !strings.Contains(errs, "nope") {
+		t.Errorf("bad background: code %d, errs %q", code, errs)
+	}
+	if code, _, errs := do(t, "contrast", "#000"); code != 2 || !strings.Contains(errs, "usage") {
+		t.Errorf("one colour: code %d, errs %q", code, errs)
+	}
+}
