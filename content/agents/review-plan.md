@@ -23,7 +23,7 @@ You have no shell: read and search the files, and write only your report.
 4. **Size:** the plan fits one working day; bigger is a finding that proposes a split.
 5. **Test file and fixture:** every task names its test file and its JSON fixture (`tests/{test_type}/{use_case}.json`), the commands that prove it and its commit message. A task without a test file is a finding.
 6. **Trust handoffs:** a task that hands over a key, a secret, a token or an invitation says who may receive it and how the sender verifies the recipient. If it does not, that is a major finding.
-7. **Runnable test steps:** each test-script step can run where the owner tests: staging or the local stack (its fake or stubbed services, the accounts that exist there) and the real phone (airplane mode or Wi-Fi off drops wireless adb). A step that cannot run there is a finding: rewrite it, or move it to the automated tests.
+7. **Runnable test steps:** each test-script step can run where the owner tests: staging or the local stack (its fake or stubbed services, the accounts that exist there) and the real phone (airplane mode or Wi-Fi off drops wireless adb). A step that cannot run there is a finding. The spec is approved, so the fix is an owner question (a change to the test script), unless the step only moves to the automated tests and the plan says so.
 8. **Lint:** each task's prove-it commands include the repo's lint through its own script.
 9. **Summary:** the opening summary lists tasks, repos, risks, what the owner can test, the build approach with its reason, and the reports (an "n/a" report carries its reason; one with no tooling has a task).
 

@@ -19,12 +19,43 @@ const SetDir = ".pal-worktrees"
 
 var stampLine = regexp.MustCompile(`(?m)^last_progress_at:.*$`)
 
-// InWorktreeSet reports whether path lies inside a .pal-worktrees folder.
+// InWorktreeSet reports whether path lies inside a set under a .pal-worktrees
+// folder (not the folder itself). The name is matched ignoring case, as
+// Windows paths are.
 func InWorktreeSet(path string) bool {
 	if abs, err := filepath.Abs(path); err == nil {
 		path = abs
 	}
-	return slices.Contains(strings.FieldsFunc(path, func(r rune) bool { return r == '/' || r == '\\' }), SetDir)
+	parts := strings.FieldsFunc(path, func(r rune) bool { return r == '/' || r == '\\' })
+	i := slices.IndexFunc(parts, func(p string) bool { return strings.EqualFold(p, SetDir) })
+	return i >= 0 && i < len(parts)-1
+}
+
+// replace writes data to path through a temp file in the same folder and a
+// rename, so path holds either its old or its new content.
+func replace(path string, data []byte) error {
+	tmp, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".*")
+	if err != nil {
+		return err
+	}
+	name := tmp.Name()
+	_, werr := tmp.Write(data)
+	cerr := tmp.Close()
+	if werr == nil {
+		werr = cerr
+	}
+	if werr == nil {
+		if info, err := os.Stat(path); err == nil && info.Mode().Perm()&0o200 == 0 {
+			werr = fmt.Errorf("%s is read-only", path)
+		}
+	}
+	if werr == nil {
+		werr = os.Rename(name, path)
+	}
+	if werr != nil {
+		_ = os.Remove(name)
+	}
+	return werr
 }
 
 // Append adds "## YYYY-MM-DD HH:MM — <headline>" (and the body, after a blank
@@ -68,10 +99,14 @@ func Append(dir, headline, body string, t time.Time) (string, error) {
 	}
 	newState := stampLine.ReplaceAll(state, []byte("last_progress_at: "+t.Format("2006-01-02T15:04:05-07:00")))
 
-	if err := os.WriteFile(logPath, []byte(prev+entry), 0o644); err != nil {
+	// State first, then the log; if the log fails, put the old state back.
+	if err := replace(statePath, newState); err != nil {
 		return "", err
 	}
-	if err := os.WriteFile(statePath, newState, 0o644); err != nil {
+	if err := replace(logPath, []byte(prev+entry)); err != nil {
+		if rerr := replace(statePath, state); rerr != nil {
+			return "", fmt.Errorf("%w (and restoring %s failed: %v)", err, statePath, rerr)
+		}
 		return "", err
 	}
 	return stamp, nil

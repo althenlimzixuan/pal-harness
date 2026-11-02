@@ -559,6 +559,11 @@ func TestHarness150Rules(t *testing.T) {
 	}
 
 	// 1. CI minutes and spending-limit blocks.
+	for _, p := range []string{"skills/phase/references/review.md", "skills/phase/references/signoff.md", "skills/quick-fix/SKILL.md"} {
+		has(p, "spending")
+	}
+	has("templates/signoff-pr.md", "CI did not run on", "paired medians against the base commit")
+	lacks("templates/signoff-pr.md", "change since the last report")
 	has("practices/devops_cicd.md", "## CI runs and minutes", "plus `push` only on `dev`, `staging` and `main`",
 		"run on `pull_request`\n  only", "spending limit", "local-ci-YYYY-MM-DD-HHmm.md",
 		"ci blocked: Actions spending limit; local CI green", "it is not an owner stop")
@@ -567,24 +572,28 @@ func TestHarness150Rules(t *testing.T) {
 	// 2. Bot dependency PRs get CI and land before a phase branches.
 	has("practices/devops_cicd.md", "`GITHUB_TOKEN`", "`workflow_dispatch:`", "`gh workflow run ci.yml --ref <branch>`")
 	has("skills/phase/references/build.md", "**Bot PRs first.**", "--author app/github-actions",
-		"`gh workflow run ci.yml -R <owner/repo> --ref <head branch>`", "that is not a fix round")
+		"`gh pr reopen <n> -R <owner/repo>`", "reopen by the session fires `pull_request`", "that is not a fix round")
 
 	// 3. Scripts write only inside the worktree set.
 	has("skills/phase/SKILL.md", "A script that writes files gets its target as an absolute path inside the set",
-		"never run bare", "`pal-harness log` refuses a folder outside `.pal-worktrees/`")
-	has("skills/phase/references/build.md", "never run them bare", "<set>/.superpowers/sdd/NNN-slug/",
-		"`task-brief <set>/specs/NNN-slug/plan.md N <set>/.superpowers/sdd/NNN-slug/task-N-brief.md`", "`review-package`")
+		"run it in a subshell started in the set", "`pal-harness log` refuses a folder outside `.pal-worktrees/`")
+	has("skills/phase/references/build.md", "never run them from the session's own folder",
+		"`(cd <set> && bash <sdd>/scripts/sdd-workspace <set>/specs/NNN-slug/plan.md)`",
+		"`(cd <set> && bash <sdd>/scripts/task-brief <set>/specs/NNN-slug/plan.md N)`",
+		"`(cd <set>/<component> && bash <sdd>/scripts/review-package")
 
 	// 4. pal-harness log stamps the log and last_progress_at.
 	has("skills/phase/SKILL.md", "`pal-harness log <set>/specs/NNN-slug '<headline>' [body file]`",
-		"Never type either by hand", "by `pal-harness log`")
+		"Never type either by hand", "by `pal-harness log`", "then `pal-harness log`, then commit")
+	lacks("skills/phase/SKILL.md", "`last_progress_at` now")
+	lacks("skills/quick-fix/SKILL.md", "`last_progress_at` now")
 	has("skills/quick-fix/SKILL.md", "`pal-harness log`")
 	has("practices/ssot_standard.md", "`log <phase folder> <headline> [body file]`", "`contrast <foreground> <background>`")
 
 	// 5. Contrast is measured.
-	has("agents/review-ui.md", "Measure, never estimate", "`pal-harness contrast <foreground> <background>`",
-		"the measured ratio and the threshold")
-	has("skills/phase/references/review.md", "`pal-harness contrast <foreground> <background>`", "An estimate is not evidence")
+	has("agents/review-ui.md", "Measure, never estimate", "`pal-harness contrast 'oklch(0.62 0.19 260)' '#ffffff'`",
+		"an unquoted `#` starts a comment", "the measured ratio and the threshold")
+	has("skills/phase/references/review.md", "`pal-harness contrast '<foreground>' '<background>'`", "An estimate is not evidence")
 
 	// 6-8. The plan review: contract and appendix, trust handoffs, runnable steps.
 	for _, p := range []string{"agents/review-plan.md", "skills/phase/references/plan.md"} {
@@ -613,7 +622,7 @@ func TestHarness150Rules(t *testing.T) {
 		has(p, ", Write\n", "it is the only file you ever write or change", "the report's path")
 		lacks(p, "You have no write tool")
 	}
-	has("skills/phase/references/review.md", "Each reviewer writes its own report", "shows only that new\n   file")
+	has("skills/phase/references/review.md", "Each reviewer writes its own report", "the report paths you handed out")
 	lacks("skills/phase/references/review.md", "The reviewers are read-only: save each returned report verbatim")
 
 	// 12. The paired speed check.
@@ -621,7 +630,7 @@ func TestHarness150Rules(t *testing.T) {
 	has("skills/phase/references/review.md", "paired speed check")
 	has("agents/review-tests.md", "the paired speed check", "fewer than 5 pairs")
 	has("templates/test-summary.md", "base commit", "pairs, old and new alternating")
-	lacks("practices/testing.md", "than the previous phase's report")
+	lacks("practices/testing.md", "than the previous phase's report", "since the last report")
 
 	// 13. Reports on Windows.
 	has("practices/testing.md", "**The report command starts with a preflight**", "`GOTOOLCHAIN=local`",

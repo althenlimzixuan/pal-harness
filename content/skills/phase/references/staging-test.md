@@ -36,8 +36,8 @@ or compacted:
 2. After a checkout switch (section 1), Metro is cold-started with file watching
    (`npx expo start --clear`) and the app is fully reloaded, so no stale bundle or translations
    remain.
-3. The phone shows in `adb devices` and `adb reverse` is up (`react_native.md`, **Device
-   testing**). If it needs wireless pairing, the ready-for-test message asks for the pairing code
+3. The phone shows in `adb devices` and `adb reverse` is up for each port the app uses (Metro's 8081, and on the local stack the API's
+   port), when the project's device notes use it. If it needs wireless pairing, the ready-for-test message asks for the pairing code
    and port up front, not mid-test.
 4. Free memory: under 2 GB free, the message warns the owner, and the session stops what it started
    and no longer needs (an emulator, an old dev server or Metro).

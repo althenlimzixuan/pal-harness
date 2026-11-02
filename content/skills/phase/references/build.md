@@ -19,7 +19,9 @@ Without superpowers installed, say so in the log and build a larger phase inline
 
 1. **Bot PRs first.** Before cutting a branch in a repo, list its open bot PRs into `dev`
    (`gh pr list -R <owner/repo> --base dev --author app/github-actions`):
-   1. no checks → `gh workflow run ci.yml -R <owner/repo> --ref <head branch>` and watch it;
+   1. no checks → `gh pr close <n> -R <owner/repo>`, then `gh pr reopen <n> -R <owner/repo>`: a
+      reopen by the session fires `pull_request`, so the full CI runs, in every repo, with or
+      without `workflow_dispatch:`. Watch it with `gh pr checks <n> -R <owner/repo> --watch`;
    2. green → `gh pr merge <n> -R <owner/repo> --merge`, then branch from the new `origin/dev`;
    3. red → leave it and note it in the log. If the phase's CI then fails on the same check, merge
       the bot's branch into the phase branch instead of fixing it by hand; that is not a fix round.
@@ -52,12 +54,16 @@ Without superpowers installed, say so in the log and build a larger phase inline
    `workflow.md` and the stack practice. The brief says TDD is required for the task: run the
    fixture's test before any code, and put the red run (the command and its failing output) in the
    report, then the green run and a clean lint run.
-2. sdd's scripts resolve their output folder from the current folder, which is the owner's checkout:
-   never run them bare. Pass the output file as the last argument, under
-   `<set>/.superpowers/sdd/NNN-slug/` (that folder holds a `.gitignore` of `*`):
-   `task-brief <set>/specs/NNN-slug/plan.md N <set>/.superpowers/sdd/NNN-slug/task-N-brief.md`, and
-   the same for `review-package`. Check the path starts with `<set>` before running (SKILL.md,
-   **The worktree set**).
+2. sdd's scripts (`sdd-workspace`, `task-brief`, `review-package`) work in the git repo of the
+   current folder, which may be the owner's checkout: never run them from the session's own folder.
+   Run each in a subshell started in the set (SKILL.md, **The worktree set**; `<sdd>` is the
+   folder of the `subagent-driven-development` skill):
+   - `(cd <set> && bash <sdd>/scripts/sdd-workspace <set>/specs/NNN-slug/plan.md)` prints the
+     workspace, `<set>/.superpowers/sdd/<plan>/` (it writes its own `.gitignore`); the ledger, the
+     briefs and the agents' report files go there;
+   - `(cd <set> && bash <sdd>/scripts/task-brief <set>/specs/NNN-slug/plan.md N)`;
+   - `review-package` runs in the repo the task changed, with its output in that workspace:
+     `(cd <set>/<component> && bash <sdd>/scripts/review-package <set>/specs/NNN-slug/plan.md <base> <head> <workspace>/review-<base7>..<head7>.diff)`.
 3. Check every implementer's and fixer's report for the red run. If it is missing, send the task back
    to the agent; that counts as one of its fix rounds. The per-task review does not pass without a
    clean lint run.
@@ -77,7 +83,8 @@ PR's "Calls I made".
 ## 5. Stuck
 
 The build is stuck when a task failed its fix rounds, CI stays red after 3 rounds of fixes, or no
-task made progress (no commit) for 1 hour.
+task made progress (no commit) for 1 hour. A spending-limit block with a green local run is not
+stuck (section 6 step 2).
 
 1. Stop that task. Write in the log what was tried and what failed.
 2. Write the one-page note (`reviews/owner-YYYY-MM-DD-HHmm.md`: the problem, what was tried, the
@@ -95,8 +102,9 @@ task keeps that honest.
    not merge yet. Single-repo: open the code PR `docs/NNN-slug` → `dev` instead. Set
    `ci: running`; watch with `gh pr checks <n> -R <owner/repo> --watch`.
 2. CI red → read why first (`gh run view <id> -R <owner/repo>`). A job that never started because
-   of the spending limit or billing is not a fix round: run CI locally as `devops_cicd.md` (**CI runs
-   and minutes**) says. Otherwise fix, push, watch again (each fix is a round; 3 rounds, then
-   section 5). Green on every PR → `ci: green`.
+   of the spending limit or billing is not a fix round and does not make the build stuck: run CI
+   locally as `devops_cicd.md` (**CI runs and minutes**) says; a green local run counts as this
+   PR's CI for the merge gates (`review.md` section 6, quick-fix, sign-off). Otherwise fix, push,
+   watch again (each fix is a round; 3 rounds, then section 5). Green on every PR → `ci: green`.
 3. `stage: code-review`; bundle features `code-review`. Commit and push.
 4. Go to `.pal-harness/skills/phase/references/review.md`.

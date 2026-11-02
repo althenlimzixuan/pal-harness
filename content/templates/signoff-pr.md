@@ -10,7 +10,8 @@ PR merges on its own once CI and the reviews pass.)
 1. (What was built, in one sentence.)
 2. (Features covered, by id and name.)
 3. (Which of your answers shaped it.)
-4. (Review and test verdict in one line: clean, or what is left.)
+4. (Review and test verdict in one line: clean, or what is left. If GitHub's spending limit blocked
+   CI on any PR, say so here: "CI did not run on <repo>#<n>; local CI green: [report](link)".)
 5. (What you do next: merge, then run the test scripts on staging. With `auto-promote`: nothing,
    it merges on its own. With `no-owner-test`: read the What to expect now list; there is no test.)
 6. Plan: [plan.md](link)
@@ -29,7 +30,7 @@ PR merges on its own once CI and the reviews pass.)
 
 1. Unit tests: (passed / total). [report](link)
 2. Coverage: (percent), minimum 80. [report](link)
-3. Speed: (slowest call, change since the last report). [report](link)
+3. Speed: (slowest call; paired medians against the base commit, +/- percent). [report](link)
 4. Regression: (result). [report](link)
 
 (With the `ci-test-summary` override, replace the list with the final commit's CI run: tests passed

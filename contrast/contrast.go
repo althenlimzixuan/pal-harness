@@ -41,7 +41,7 @@ func Parse(s string) (Color, error) {
 		}
 		var c [3]float64
 		for i, a := range args {
-			v, err := strconv.ParseFloat(a, 64)
+			v, err := finite(a)
 			if err != nil || v < 0 || v > 255 {
 				return Color{}, fmt.Errorf("%q: rgb() channels are numbers 0..255", s)
 			}
@@ -101,7 +101,7 @@ func parseOKLCH(args []string, orig string) (Color, error) {
 	if err != nil || ch < 0 {
 		return Color{}, bad
 	}
-	h, err := strconv.ParseFloat(strings.TrimSuffix(args[2], "deg"), 64)
+	h, err := finite(strings.TrimSuffix(args[2], "deg"))
 	if err != nil {
 		return Color{}, bad
 	}
@@ -130,13 +130,22 @@ func parseOKLCH(args []string, orig string) (Color, error) {
 	return c, nil
 }
 
+// finite parses a float and refuses NaN and infinities.
+func finite(s string) (float64, error) {
+	v, err := strconv.ParseFloat(s, 64)
+	if err == nil && (math.IsNaN(v) || math.IsInf(v, 0)) {
+		err = errors.New("not a finite number")
+	}
+	return v, err
+}
+
 // number reads a plain number or a percentage scaled by pct.
 func number(s string, pct float64) (float64, error) {
 	if p, ok := strings.CutSuffix(s, "%"); ok {
-		v, err := strconv.ParseFloat(p, 64)
+		v, err := finite(p)
 		return v * pct, err
 	}
-	return strconv.ParseFloat(s, 64)
+	return finite(s)
 }
 
 func cube(x float64) float64 { return x * x * x }

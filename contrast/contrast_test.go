@@ -70,6 +70,7 @@ func TestParseRejects(t *testing.T) {
 		"rgb(1, 2)", "rgb(256, 0, 0)", "rgb(1, 2, 3 / 0.5)", "rgba(1, 2, 3, 0.5)",
 		"oklch(0.5 0.1)", "oklch(0.5 0.1 20 / 50%)", "oklch(x 0.1 20)", "oklch(150% 0.1 20)",
 		"hsl(0 100% 50%)", "red",
+		"rgb(nan 0 0)", "rgb(inf 0 0)", "oklch(nan 0.1 20)", "oklch(0.5 inf 20)", "oklch(0.5 0.1 nan)", "oklch(0.5 0.1 inf)",
 	} {
 		if _, err := Parse(s); err == nil {
 			t.Errorf("Parse(%q) accepted a colour it should refuse", s)

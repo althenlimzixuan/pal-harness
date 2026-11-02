@@ -131,10 +131,51 @@ func TestInWorktreeSet(t *testing.T) {
 		filepath.Join("D:", "ws", ".pal-worktrees", "PC-1", "specs", "001-x"): true,
 		filepath.Join("D:", "ws", "PC-Pal Center", "specs", "001-x"):          false,
 		filepath.Join("D:", "ws", "not.pal-worktrees", "specs"):               false,
+		filepath.Join("D:", "ws", ".PAL-WORKTREES", "PC-1", "specs"):          true,
+		filepath.Join("D:", "ws", ".pal-worktrees"):                           false,
 	}
 	for p, want := range cases {
 		if got := InWorktreeSet(p); got != want {
 			t.Errorf("InWorktreeSet(%q) = %v, want %v", p, got, want)
 		}
+	}
+}
+
+func TestAppendLeavesNothingWhenTheLogCannotBeWritten(t *testing.T) {
+	dir := phaseDir(t)
+	// A folder where phase-log.md should be makes the log write fail.
+	if err := os.Mkdir(filepath.Join(dir, "phase-log.md"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Append(dir, "x", "", at); err == nil {
+		t.Fatal("Append succeeded with an unwritable log")
+	}
+	if st := read(t, filepath.Join(dir, "phase-state.yaml")); st != stateYAML {
+		t.Errorf("phase-state.yaml changed although the log write failed:\n%s", st)
+	}
+	entries, _ := os.ReadDir(dir)
+	for _, e := range entries {
+		if strings.HasPrefix(e.Name(), ".") {
+			t.Errorf("temp file left behind: %s", e.Name())
+		}
+	}
+}
+
+func TestAppendLeavesTheLogWhenTheStateCannotBeWritten(t *testing.T) {
+	dir := phaseDir(t)
+	log := filepath.Join(dir, "phase-log.md")
+	if err := os.WriteFile(log, []byte("## 2026-11-02 09:00 — Started\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	state := filepath.Join(dir, "phase-state.yaml")
+	if err := os.Chmod(state, 0o444); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(state, 0o644) })
+	if _, err := Append(dir, "x", "", at); err == nil {
+		t.Skip("this file system lets a read-only file be replaced")
+	}
+	if got := read(t, log); got != "## 2026-11-02 09:00 — Started\n" {
+		t.Errorf("phase-log.md changed although the state write failed: %q", got)
 	}
 }

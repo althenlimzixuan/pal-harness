@@ -64,8 +64,8 @@ Run them in parallel.
 
 3. Each reviewer writes its own report: give it the absolute path
    `<set>/specs/NNN-slug/reviews/<agent>-YYYY-MM-DD-HHmm.md`. It writes that one file and returns a
-   short verdict. When it finishes, check that `git status` in every worktree shows only that new
-   file; revert any other change and log it. A reviewer that returned its report without writing it:
+   short verdict. When the reviewers finish, check that `git status` in every worktree shows no change except
+   the report paths you handed out (and the Codex reports you saved); revert anything else and log it. A reviewer that returned its report without writing it:
    save the returned text verbatim at that path.
 
 ## 3. Severity
@@ -85,8 +85,8 @@ report with the reason, and the owner still sees it.
 
 1. A round fixes every open finding, then re-runs only the reviewers that raised them.
    - A fix for a bug finding starts with a test that reproduces the bug, run red; a fixer's report
-     without that red run goes back to the fixer (build.md, section 3).
-   - A contrast fix is measured again with `pal-harness contrast <foreground> <background>` (or the
+     without that red run goes back to the fixer, and that counts as a fix round (build.md, section 3).
+   - A contrast fix is measured again with `pal-harness contrast '<foreground>' '<background>'` (or the
      rendered colours), and the new ratio goes in the fix's log entry. An estimate is not evidence.
    - A fix that changes behaviour the owner sees re-reads the affected features' test scripts in the
      spec and in `doc/features.yaml`. A step whose expected result no longer holds is updated in
@@ -113,7 +113,9 @@ Each finding not fixed goes to one place, recorded for the sign-off PR's review 
    critical finding with the owner's decision, the minor ones with what Claude did (`workflow.md`).
 2. Each PR into `dev` merges on its own once CI is green and the reviews pass:
    `gh pr checks <n> -R <owner/repo> --watch`, then `gh pr merge <n> -R <owner/repo> --merge` (a merge commit, never squash). Do not pass
-   `--delete-branch` from inside a worktree; branches go when the set is removed.
+   `--delete-branch` from inside a worktree; branches go when the set is removed. A PR whose CI was
+   blocked by the spending limit merges on its green local run instead (`devops_cicd.md`, **CI runs
+   and minutes**); its body links `reviews/local-ci-*.md`.
 3. Single-repo: the code PR `docs/NNN-slug` → `dev` merges here the same way, with the reviews and
    the reports on it. Keep the branch.
 4. `stage: signoff`. Commit and push `docs/NNN-slug`.

@@ -22,9 +22,8 @@ owner (an owner stop, `kind: questions`) and recommend running it as a phase.
    (`pal-harness spec new <slug>` makes `specs/NNN-slug/` on `docs/NNN-slug`). Delete the generated
    `spec.md`: a quick fix has none.
 2. Write `phase-state.yaml` from the template: `vehicle: quick-fix`, `approach: inline`,
-   `stage: building`, the bundle, `session:`, `tasks: {done: 0, total: 1}`, `last_progress_at` now.
-   Start `phase-log.md`. Every log entry is written with `pal-harness log`, which also stamps
-   `last_progress_at` (the phase skill's **Saved state** step 4). Commit and push `docs/NNN-slug`.
+   `stage: building`, the bundle, `session:`, `tasks: {done: 0, total: 1}`. Then start `phase-log.md` with `pal-harness log`, which stamps
+   `last_progress_at`; every log entry is written that way (the phase skill's **Saved state** step 4). Commit and push `docs/NNN-slug`.
 3. The feature the fix touches (if any) becomes `building` in `doc/features.yaml`; move its card.
 
 ## 2. The test step
@@ -45,7 +44,8 @@ Write the owner's one test step for what the fix changes (do → expect), concre
    Then the code, by the build rules in `workflow.md`, and the repo's lint through its own script.
    Commit, push, update `tasks`, write the log entry (`pal-harness log`), push `docs/NNN-slug`.
 3. Stuck (fix rounds used up, CI red, no progress for 1 hour): as the phase's `references/build.md`
-   section 5.
+   section 5. A spending-limit block with a green local run is not stuck (`devops_cicd.md`, **CI runs
+   and minutes**).
 
 ## Single-repo projects
 
@@ -73,7 +73,7 @@ close-out PR at ship comes from it.
 2. Severity, 3 fix rounds and leftover findings as in `references/review.md` sections 3–5.
 3. After the last review fix, make the reports once, as the phase's `references/review.md` section 1
    says.
-4. Open the PR into `dev` with the Codex summary in its body; it merges on its own once CI is green, with `gh pr merge --merge` (never squash).
+4. Open the PR into `dev` with the Codex summary in its body; it merges on its own once CI is green (or, under a spending-limit block, its local run is), with `gh pr merge --merge` (never squash).
    `stage: code-review` while reviewing, then `stage: signoff`.
 
 ## 5. Sign-off, the owner's test, ship

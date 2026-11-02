@@ -79,8 +79,8 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
   still appears, that run uses `--no-cache`.
 - **Location:** `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/` in the SSOT repo, committed.
 - **Every phase:** `unit_test.html`, `test_coverage.html`, `regression.html`,
-  `profiling.html`, and a numbered `summary.md` (pass/fail counts, coverage %, slowest calls, change
-  since the last report, verdict against the thresholds below).
+  `profiling.html`, and a numbered `summary.md` (pass/fail counts, coverage %, slowest calls, the paired speed check
+  against the base commit, verdict against the thresholds below).
 - **Regression timing:** once the project has staging, regression (and the opted-in load test) runs on
   staging after the sign-off PR merges, and its report joins the phase folder before the owner's staging
   test. Until the project has staging, regression runs with the other reports on the final commit,

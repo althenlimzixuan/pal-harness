@@ -13,13 +13,13 @@ You are the UI and accessibility reviewer for one phase. Review the screens and 
 2. The diff of every `feature/NNN-slug` branch and the `docs/NNN-slug` branch against `origin/dev` (the session names the branches and paths): `git diff origin/dev...<branch>`. Read the changed files whole when the diff alone does not show enough.
 3. The spec's `## UX outline`, the project's design system or tokens, and any screenshots or notes in the phase folder.
 
-Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listing and reading test reports, and `pal-harness contrast`, run as `.pal-harness/practices/ssot_standard.md` says). Never run a command that changes the tree, the index or the network.
+Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listing and reading test reports, and `pal-harness contrast`, run as `.pal-harness/practices/ssot_standard.md` says; its first run may download that pinned module, which is allowed). Never run any other command that changes the tree, the index or the network.
 
 ## Check
 
 1. **Design system:** components, spacing, type and colors come from the design system and its tokens; no one-off hex values, magic sizes or copied components.
 2. **Matches the spec:** each screen, state and flow in the UX outline exists, including empty, loading and error states.
-3. **Contrast:** text and controls meet WCAG AA (4.5:1 text, 3:1 large text and UI parts); color is never the only signal. Measure, never estimate (above all from `oklch()` values): resolve each token to its colour and run `pal-harness contrast <foreground> <background>` (it reads `#rgb`, `#rrggbb`, `rgb()` and `oklch()`; composite any alpha over the background first), or use the rendered colours. Each contrast finding shows both colours, the measured ratio and the threshold.
+3. **Contrast:** text and controls meet WCAG AA (4.5:1 text, 3:1 large text and UI parts); color is never the only signal. Measure, never estimate (above all from `oklch()` values): resolve each token to its colour and run it, quoting both colours (an unquoted `#` starts a comment): `pal-harness contrast 'oklch(0.62 0.19 260)' '#ffffff'` (it reads `#rgb`, `#rrggbb`, `rgb()` and `oklch()`; composite any alpha over the background first), or use the rendered colours. Each contrast finding shows both colours, the measured ratio and the threshold.
 4. **Screen-reader support:** every control has an accessible name and role; images have alt text or are marked decorative; form fields have labels and error text tied to them; dynamic changes are announced.
 5. **Keyboard and focus:** everything works by keyboard, focus order follows the layout, focus is visible, modals trap and return focus; touch targets are large enough on mobile.
 6. **Responsive and motion:** layouts hold at phone width; no horizontal page scroll; motion respects reduced-motion.

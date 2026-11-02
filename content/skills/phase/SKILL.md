@@ -63,8 +63,10 @@ every command and never `cd` into the set, so the owner's checkouts never move. 
 bookkeeping, never a phase's set.
 
 A script that writes files gets its target as an absolute path inside the set. A script that
-resolves its target from the current folder (the owner's checkout) is never run bare. Before
-running a writing script, check that its target starts with the set's path; if it does not, stop.
+resolves its target from the current folder (which may be the owner's checkout) is never run from
+the session's own folder: run it in a subshell started in the set, `(cd <path in the set> && <script> …)`.
+The subshell ends with the command, so this is not the `cd` forbidden above. Before running a
+writing script, check that its target starts with the set's path; if it does not, stop.
 `pal-harness log` refuses a folder outside `.pal-worktrees/`.
 
 ## Single-repo projects
@@ -100,7 +102,7 @@ A project is single-repo when every component's `repo` equals `ssot.repo`.
    Component worktrees join the set when building starts (`references/build.md`).
 3. Write `specs/NNN-slug/phase-state.yaml` from `.pal-harness/templates/phase-state.yaml`: phase,
    slug, title, `vehicle: phase`, the bundle, `stage: spec`, `session:` (this session's name, if
-   known; otherwise `""`), `last_progress_at` now, every count zero, every gate `null`.
+   known; otherwise `""`), every count zero, every gate `null`.
 4. Start `specs/NNN-slug/phase-log.md` with its first entry, by `pal-harness log` (**Saved state**
    step 4). Set the bundle features' `phase:` to
    `"NNN"` and their status to `brainstorming`. Commit, then `git push -u origin docs/NNN-slug`.
@@ -142,8 +144,10 @@ a new session, the phase continues from it and `git log` alone.
 4. Each write gets a `phase-log.md` entry (`## YYYY-MM-DD HH:MM — <headline>`, a few lines); `notes`
    holds one-line breadcrumbs only. Write every entry with
    `pal-harness log <set>/specs/NNN-slug '<headline>' [body file]`: it takes the stamp and
-   `last_progress_at` from the system clock. Never type either by hand. Give the headline in single
-   quotes with no backtick; write the detail to a body file with the Write tool.
+   `last_progress_at` from the system clock. Never type either by hand. Order: write
+   `phase-state.yaml`, then `pal-harness log`, then commit, so no later write replaces the stamp. Give
+   the headline in single quotes with no apostrophe or backtick ('Task 3 done', not 'owner's call');
+   write the detail to a body file with the Write tool.
 5. **Feature statuses** for the bundle's features go in `doc/features.yaml` on the same
    `docs/NNN-slug` branch (`/pm` reads them there), in the same commit as the stage change. Move
    each feature's Roadmap card to the column its status maps to (the table and `gh` commands are in

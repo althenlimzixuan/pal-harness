@@ -33,7 +33,9 @@ No stage may be skipped; the one exception is the tests on a promotion whose tre
 - **Bot PRs get CI:** a workflow that opens a PR with `GITHUB_TOKEN` gets no CI, since GitHub starts
   no workflow for it. So `ci.yml` has `workflow_dispatch:`, and the bot workflow (with
   `actions: write`) runs `gh workflow run ci.yml --ref <branch>` after opening the PR;
-  `workflow_dispatch` is the one event `GITHUB_TOKEN` may start.
+  `workflow_dispatch` is the one event `GITHUB_TOKEN` may start. A dispatched run skips the
+  `pull_request`-only Windows and macOS jobs; a session that finds such a PR closes and reopens it
+  (`build.md`, section 2), which runs them all.
 
 ## Branch & Merge Strategy
 
