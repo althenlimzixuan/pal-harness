@@ -26,7 +26,8 @@ pass (section 4).
 2. Single-repo: skip this section; the code PR already brought the branch into `dev` (SKILL.md,
    **Single-repo projects**). Otherwise open its PR into `dev` just before the sign-off PR. It
    merges on its own once CI is green, with a merge commit so the same branch can PR again at ship: `gh pr checks <n> -R <owner/repo> --watch`, then
-   `gh pr merge <n> -R <owner/repo> --merge`. Keep the branch: Pal Center reads `phase-state.yaml` from it, and the
+   `gh pr merge <n> -R <owner/repo> --merge` (CI blocked by the spending limit: on the green local run,
+   `devops_cicd.md`, **CI runs and minutes**). Keep the branch: Pal Center reads `phase-state.yaml` from it, and the
    close-out PR at ship comes from it.
 
 ## 3. Write the sign-off PR

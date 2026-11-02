@@ -20,6 +20,8 @@ where `<version>` is the project's `harness.version`. `dir` defaults to `.`.
 | `spec new <slug> [dir]` | On a clean tree, creates branch `docs/NNN-slug` from `dev` with `specs/NNN-slug/spec.md`. `NNN` is one past the highest number in `specs/`, on `dev` and `origin/dev`, and in any `docs/NNN-*` branch, local or remote. SSOT root only. |
 | `adr new <slug> [--conflict] [dir]` | Creates `doc/ADR/NNNN-slug.md` from the ADR (or conflict ADR) template. `NNNN` is one past the highest number in `doc/ADR/`, on `dev` and on `origin/dev`. SSOT root only. |
 | `render <file.md>` | Renders a Markdown file as a phone-readable page. |
+| `log <phase folder> <headline> [body file]` | Appends `## YYYY-MM-DD HH:MM — <headline>` (and the body file's text) to `phase-log.md` and sets `last_progress_at` in `phase-state.yaml`, both from the system clock. The folder must hold `phase-state.yaml` and sit inside a worktree set (`.pal-worktrees/`); otherwise it writes nothing. |
+| `contrast <foreground> <background>` | Prints the WCAG 2 contrast ratio of two colours (`#rgb`, `#rrggbb`, `rgb()`, `oklch()`) and whether it passes AA for text (4.5:1) and for large text and UI parts (3:1). An `oklch()` colour outside sRGB is clipped, with a note; alpha is refused. |
 | `version` | Prints the harness version. |
 
 Exit codes: `0` clean or done, `1` findings (or a block `generate` cannot write), `2` usage,

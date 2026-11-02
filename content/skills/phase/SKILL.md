@@ -62,6 +62,13 @@ whose folder is under `.pal-worktrees/` is in a set; a session the owner starts 
 every command and never `cd` into the set, so the owner's checkouts never move. `/pm` uses `<KEY>-pm-<YYYYMMDD-HHmm>` for its own
 bookkeeping, never a phase's set.
 
+A script that writes files gets its target as an absolute path inside the set. A script that
+resolves its target from the current folder (which may be the owner's checkout) is never run from
+the session's own folder: run it in a subshell started in the set, `(cd <path in the set> && <script> …)`.
+The subshell ends with the command, so this is not the `cd` forbidden above. Before running a
+writing script, check that its target starts with the set's path; if it does not, stop.
+`pal-harness log` refuses a folder outside `.pal-worktrees/`.
+
 ## Single-repo projects
 
 A project is single-repo when every component's `repo` equals `ssot.repo`.
@@ -95,8 +102,9 @@ A project is single-repo when every component's `repo` equals `ssot.repo`.
    Component worktrees join the set when building starts (`references/build.md`).
 3. Write `specs/NNN-slug/phase-state.yaml` from `.pal-harness/templates/phase-state.yaml`: phase,
    slug, title, `vehicle: phase`, the bundle, `stage: spec`, `session:` (this session's name, if
-   known; otherwise `""`), `last_progress_at` now, every count zero, every gate `null`.
-4. Start `specs/NNN-slug/phase-log.md` with its first entry. Set the bundle features' `phase:` to
+   known; otherwise `""`), every count zero, every gate `null`.
+4. Start `specs/NNN-slug/phase-log.md` with its first entry, by `pal-harness log` (**Saved state**
+   step 4). Set the bundle features' `phase:` to
    `"NNN"` and their status to `brainstorming`. Commit, then `git push -u origin docs/NNN-slug`.
 5. Add the line `Spec: specs/NNN-slug/` to the lead card's body, under the bundle line, and move the
    feature cards to `In flight`.
@@ -127,13 +135,19 @@ a new session, the phase continues from it and `git log` alone.
 1. **The session is its only writer.** Pal Center and `/pm` read it from the pushed `docs/NNN-slug`
    branch (from `dev` once the phase is `done`). Write only the template's keys; `pal-harness check`
    rejects unknown ones. Quote `phase: "NNN"` and gate dates (`"YYYY-MM-DD"`).
-2. Update `last_progress_at` (RFC 3339 with offset) at every task and every stage change; `tasks`
+2. Update `last_progress_at` (RFC 3339 with offset; `pal-harness log` writes it) at every task and
+   every stage change; `tasks`
    as tasks finish; `ci` as CI changes; `stage` on entering a stage; a gate's date when it passes.
 3. **Commit and push `docs/NNN-slug` after every `phase-state.yaml` write.** Pal Center reads the
    pushed branch, and its stuck detection reads `last_progress_at`: an unpushed write makes a busy
    phase look stuck after 1 hour.
 4. Each write gets a `phase-log.md` entry (`## YYYY-MM-DD HH:MM — <headline>`, a few lines); `notes`
-   holds one-line breadcrumbs only.
+   holds one-line breadcrumbs only. Write every entry with
+   `pal-harness log <set>/specs/NNN-slug '<headline>' [body file]`: it takes the stamp and
+   `last_progress_at` from the system clock. Never type either by hand. Order: write
+   `phase-state.yaml`, then `pal-harness log`, then commit, so no later write replaces the stamp. Give
+   the headline in single quotes with no apostrophe or backtick ('Task 3 done', not 'owner's call');
+   write the detail to a body file with the Write tool.
 5. **Feature statuses** for the bundle's features go in `doc/features.yaml` on the same
    `docs/NNN-slug` branch (`/pm` reads them there), in the same commit as the stage change. Move
    each feature's Roadmap card to the column its status maps to (the table and `gh` commands are in
@@ -204,7 +218,7 @@ kind, reviews from a worktree set and the Features tab need 0.4.0 or later. The 
 `pal-work`, `pal-capture` and `pal-review`. A CLI that exits 5 means Pal Center is not running. With
 no version line, an older version or exit 5, use the interim rows.
 With Pal Center 0.4.0 or later the staging test collects results with `wait-results --phase NNN`
-armed through Monitor, and `results --phase NNN` after a resume (`references/staging-test.md` section 3).
+armed through Monitor, and `results --phase NNN` after a resume (`references/staging-test.md` section 4).
 
 | Missing piece | Do this |
 |---|---|
