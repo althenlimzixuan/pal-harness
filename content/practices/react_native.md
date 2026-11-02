@@ -215,6 +215,8 @@ eas update --branch production               # OTA JS-only update (no store revi
 - **E2E**: Maestro — YAML flow files in `tests/e2e/`. Test critical journeys on simulator + real device
 - Never test navigation internals — test that the correct screen content appears
 - `jest.config.js` uses `jest-expo` preset
+- Lint and format through the repo's scripts (`npm run lint`, `npm run format`), never a bare
+  `npx prettier` (`workflow.md`, **Check before every push**)
 
 ```yaml
 # tests/e2e/create_trip.yaml — Maestro flow

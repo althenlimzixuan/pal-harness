@@ -33,5 +33,5 @@ One block per task.
 - **Repo and files:** (repo; files to create or change)
 - **Test first:** (test file) with fixture `tests/(test_type)/(use_case).json`
 - **Code:** (what makes the test pass, in a line or two)
-- **Prove it:** (the exact commands, and the result to expect)
+- **Prove it:** (the exact commands, the repo's lint script among them, and the result to expect)
 - **Commit:** (the commit message)

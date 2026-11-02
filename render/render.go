@@ -25,7 +25,7 @@ const mermaidScript = `<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/
 const css = `:root{color-scheme:light dark;--bg:#fff;--fg:#1f2328;--muted:#59636e;--border:#d1d9e0;--code:#f6f8fa;--link:#0969da}
 @media (prefers-color-scheme: dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#9198a1;--border:#3d444d;--code:#151b23;--link:#4493f8}}
 *{box-sizing:border-box}
-body{margin:0 auto;max-width:42rem;padding:1rem;background:var(--bg);color:var(--fg);font:1rem/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;overflow-wrap:break-word}
+body{margin:0;padding:1rem;background:var(--bg);color:var(--fg);font:1rem/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;overflow-wrap:break-word}
 a{color:var(--link)}
 h1,h2,h3{line-height:1.25}
 code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em}

@@ -20,8 +20,12 @@ passes, building starts.
 3. When the API changes, follow the split rule in `product_docs.md`: the provider repo's task
    regenerates its `openapi.yaml` and serves Swagger UI; an SSOT task on `docs/NNN-slug` updates the
    `doc/openapi.yaml` copy and `doc/API.md`. Contract tasks come before the tasks that call them.
-4. Cover every spec feature and every test-script step with at least one task.
-5. Under `installer-ready` (SKILL.md, **Flow overrides**), the last task bumps the version in the
+4. Cover every spec feature, every test-script step, every endpoint in the spec's `## Contract` and
+   every behaviour in its Appendix with at least one task.
+5. Each task's prove-it commands include the repo's lint, through its own script (`workflow.md`).
+6. A task that hands over a key, a secret, a token or an invitation says who may receive it and how
+   the sender verifies the recipient.
+7. Under `installer-ready` (SKILL.md, **Flow overrides**), the last task bumps the version in the
    project's version files, in the phase's PR; ship tags that version.
 
 ## 2. The summary
@@ -44,11 +48,13 @@ goes in the tasks, not the summary.
 
 ## 3. Claude's plan review
 
-1. Dispatch the `pal-review-plan` agent with the paths of `spec.md` and `plan.md`. Save its report
-   verbatim as `specs/NNN-slug/reviews/pal-review-plan-YYYY-MM-DD-HHmm.md`.
-2. It checks that every spec feature and test step has a task; the code patterns (TDD, clean layers,
-   SOLID, DRY); the approved contract, including the provider-repo / SSOT-repo split; the size of
-   about one working day; and that every task names its test file and fixture.
+1. Dispatch the `pal-review-plan` agent with the paths of `spec.md` and `plan.md` and its report
+   path, `<set>/specs/NNN-slug/reviews/pal-review-plan-YYYY-MM-DD-HHmm.md`; it writes the report
+   there (`references/review.md` section 2 step 3 has the check after it finishes).
+2. It checks that every spec feature, test step, contract endpoint and appendix behaviour has a task;
+   the code patterns (TDD, clean layers, SOLID, DRY); the approved contract, including the
+   provider-repo / SSOT-repo split; trust handoffs; that each test step can run where the owner tests;
+   the size of about one working day; and that every task names its test file and fixture.
 3. Minor findings: fix them and re-run the reviewer, up to 3 rounds. A major or critical finding
    that does not change what gets built is fixed the same way and listed in the summary's risks
    and choices.

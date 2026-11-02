@@ -1,7 +1,7 @@
 ---
 name: pal-review-tests
 description: Reviews the phase's tests and test reports (planned test files, fixtures, coverage, fresh reports). The phase skill dispatches it in the review stage of every phase.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Write
 model: sonnet
 ---
 
@@ -24,7 +24,7 @@ The report checks (3–7) apply only when the session says the reports are made 
 2. **Coverage of the spec:** every feature and every step of the spec's test script is covered by a test; list the uncovered ones.
 3. **Coverage threshold:** coverage is 80% or more per `test_coverage.html` and `summary.md`; under 80% is a major finding.
 4. **Tests ran and pass:** `summary.md` shows the pass and fail counts; a failing test is critical.
-5. **Performance thresholds:** an API call's p95 more than 20% slower, or a web page's Lighthouse performance score 5 points or more lower, than the previous phase's report is a major finding (the previous phase's report is the newest folder for that component under `_test_reports/<component>/`; the first phase sets the baseline).
+5. **Performance thresholds:** an API call's p95 more than 20% slower, or a web page's Lighthouse performance score 5 points or more lower, than the previous code is a major finding. The comparison is the paired speed check (`testing.md`): `summary.md` names the base commit, the number of pairs (at least 5, old and new alternating on one machine) and both medians. A comparison against an earlier report's numbers only, or with fewer than 5 pairs, is a finding. The first phase sets the baseline.
 6. **Reports present and fresh:** each required report exists and is not empty. A report is stale when it is not from the final commit: compare the `Commit: … · tree:` line of `summary.md` with `git rev-parse <final commit>^{tree}`, where the final commit is the code branch's head (a staging report carries the staging deploy's tree hash). In a single-repo project (code on `docs/NNN-slug`) the final commit is the last commit that changes code: `git log -1 --format=%H docs/NNN-slug -- . ':(exclude)_test_reports' ':(exclude)specs' ':(exclude)doc' ':(exclude)_feedbacks'`; report, review and state commits after it do not make a report stale. A missing, empty or stale report is a finding.
 7. **n/a reports:** a report that does not apply is accepted only as "n/a" with a reason; one with no tooling must be a recorded skip with a plan task, not silently absent.
 8. **Fixtures:** shared fixture files are reused, not copied per test.
@@ -32,7 +32,7 @@ The report checks (3–7) apply only when the session says the reports are made 
 
 ## Report
 
-The report is written to `specs/NNN-slug/reviews/pal-review-tests-YYYY-MM-DD-HHmm.md`. You have no write tool: return the full report as your answer and the session saves it there verbatim. Never edit code, specs or plans.
+The report is written to `specs/NNN-slug/reviews/pal-review-tests-YYYY-MM-DD-HHmm.md`. Write the full report with the Write tool to the absolute path the session gives you: it is the only file you ever write or change. Never edit code, specs or plans. If you could not write it, return the full report as your answer instead.
 
 1. First line: `# review-tests: <phase NNN-slug>` and the verdict: the highest severity found.
 2. One finding per problem, numbered, in this form:
@@ -43,4 +43,4 @@ The report is written to `specs/NNN-slug/reviews/pal-review-tests-YYYY-MM-DD-HHm
    - **major**: changes a journey, a shared pattern, the design system, or more than one screen or module.
    - **critical**: broken or unsafe: data loss, security, a journey that cannot be completed, an accessibility blocker.
 4. Evidence is a `file:line` you read (or the report file name for a report). A finding without evidence is not a finding.
-5. Start your answer with a short verdict for the session: the highest severity and the finding counts per severity; the report follows.
+5. Answer with a short verdict for the session: the highest severity, the finding counts per severity and the report's path.

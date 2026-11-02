@@ -1,7 +1,7 @@
 ---
 name: pal-review-contract
 description: Reviews that the code matches the approved API contract and that openapi.yaml and API.md are in sync across both repos. The phase skill dispatches it only when the API or the infrastructure changed.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Write
 model: sonnet
 ---
 
@@ -29,7 +29,7 @@ Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listi
 
 ## Report
 
-The report is written to `specs/NNN-slug/reviews/pal-review-contract-YYYY-MM-DD-HHmm.md`. You have no write tool: return the full report as your answer and the session saves it there verbatim. Never edit code, specs or plans.
+The report is written to `specs/NNN-slug/reviews/pal-review-contract-YYYY-MM-DD-HHmm.md`. Write the full report with the Write tool to the absolute path the session gives you: it is the only file you ever write or change. Never edit code, specs or plans. If you could not write it, return the full report as your answer instead.
 
 1. First line: `# review-contract: <phase NNN-slug>` and the verdict: the highest severity found.
 2. One finding per problem, numbered, in this form:
@@ -40,4 +40,4 @@ The report is written to `specs/NNN-slug/reviews/pal-review-contract-YYYY-MM-DD-
    - **major**: changes a journey, a shared pattern, the design system, or more than one screen or module.
    - **critical**: broken or unsafe: data loss, security, a journey that cannot be completed, an accessibility blocker.
 4. Evidence is a `file:line` you read (or the report file name for a report). A finding without evidence is not a finding.
-5. Start your answer with a short verdict for the session: the highest severity and the finding counts per severity; the report follows.
+5. Answer with a short verdict for the session: the highest severity, the finding counts per severity and the report's path.

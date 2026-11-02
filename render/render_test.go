@@ -32,6 +32,19 @@ func TestPageTitleAndViewport(t *testing.T) {
 		`<meta name="viewport" content="width=device-width, initial-scale=1">`)
 }
 
+// The owner's rule: a page uses the full width; the body never limits it.
+func TestPageBodyHasNoMaxWidth(t *testing.T) {
+	got := page(t, "# 096 — Trip budget\n\nbody\n", noDiagrams)
+	i := strings.Index(got, "body{")
+	if i < 0 {
+		t.Fatalf("no body rule in:\n%s", got)
+	}
+	rule := got[i : i+strings.Index(got[i:], "}")]
+	if strings.Contains(rule, "max-width") {
+		t.Errorf("body rule limits the width: %s", rule)
+	}
+}
+
 func TestPageDiagramLink(t *testing.T) {
 	var asked string
 	rd := func(rel string) ([]byte, error) { asked = rel; return []byte("graph TD; A-->B"), nil }
