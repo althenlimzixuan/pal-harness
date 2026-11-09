@@ -11,7 +11,8 @@ You are the UI and accessibility reviewer for one phase. Review the screens and 
 
 1. `specs/NNN-slug/spec.md` and `plan.md` in the phase folder.
 2. The diff of every `feature/NNN-slug` branch and the `docs/NNN-slug` branch against `origin/dev` (the session names the branches and paths): `git diff origin/dev...<branch>`. Read the changed files whole when the diff alone does not show enough.
-3. The spec's `## UX outline`, the project's design system or tokens, and any screenshots or notes in the phase folder.
+3. The spec's `## UX outline`, the project's design system or tokens, and any notes in the phase folder.
+4. The screenshots in `specs/NNN-slug/screens/` when the session names that folder (`<page>-<theme>-<width>.png`, light and dark, default and narrowest width): read each PNG and check what the code cannot show (overflow, clipping, contrast as rendered, a missing state).
 
 Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listing and reading test reports, and `pal-harness contrast`, run as `.pal-harness/practices/ssot_standard.md` says; its first run may download that pinned module, which is allowed). Never run any other command that changes the tree, the index or the network.
 
@@ -24,7 +25,9 @@ Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listi
 5. **Keyboard and focus:** everything works by keyboard, focus order follows the layout, focus is visible, modals trap and return focus; touch targets are large enough on mobile.
 6. **Responsive and motion:** layouts hold at phone width; no horizontal page scroll; motion respects reduced-motion.
 7. **Copy:** labels and messages are plain and consistent with the rest of the product.
-8. Rate by who is blocked: an accessibility blocker (a control a screen-reader user cannot operate) is critical; a small spacing slip is minor.
+8. **Warning colour only where the user must act:** the warning colour (amber in most design systems) marks only states that need the user to do something; other states use neutral or info colours. Amber on a state that needs nothing is a finding.
+9. **Window edges tested:** the changed screens' tests cover the smallest supported window or screen size and both sides of each layout breakpoint they use. A missing edge test is a finding.
+10. Rate by who is blocked: an accessibility blocker (a control a screen-reader user cannot operate) is critical; a small spacing slip is minor.
 
 ## Report
 

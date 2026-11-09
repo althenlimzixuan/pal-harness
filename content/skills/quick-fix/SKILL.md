@@ -40,7 +40,8 @@ Write the owner's one test step for what the fix changes (do → expect), concre
 
 1. One `fix/NNN-slug` branch in the one repo, a worktree in the set from `origin/dev`
    (as the phase's `references/build.md` section 2 shows, with `fix/` for `feature/`).
-2. Test first from a JSON fixture (`testing.md`): run it red and keep the red run for the log.
+2. Test first from a JSON fixture (`testing.md`): run it red. The log entry shows RED then GREEN:
+   the failing output before the code, then the passing output after it.
    Then the code, by the build rules in `workflow.md`, and the repo's lint through its own script.
    Commit, push, update `tasks`, write the log entry (`pal-harness log`), push `docs/NNN-slug`.
 3. Stuck (fix rounds used up, CI red, no progress for 1 hour): as the phase's `references/build.md`
@@ -65,7 +66,9 @@ close-out PR at ship comes from it.
    - `pal-review` exit codes (Bash timeout 600000 ms): 0 the report is printed; 3 still running →
      `pal-review wait <id>` (same timeout) until it ends; 4 failed → record it, retry once, then
      add `<kind>: failed (<reason>)` to `codex.skipped` and go on with a note; 5 skipped → add
-     `<kind>: skipped (<reason>)` to `codex.skipped`.
+     `<kind>: skipped (<reason>)` to `codex.skipped`. When the reason says auto review is off, add
+     "turn it on in Pal Center at Projects → <project> → Reviews"; the sign-off PR and the next owner
+     message carry the same line.
    - With Pal Center older than 0.4.0 (the `Pal Center version:` line), which cannot resolve a
      worktree set to its project, add
      `<kind>: not available (worktree set)` to `codex.skipped` and go on. Never run `pal-review`
@@ -74,7 +77,7 @@ close-out PR at ship comes from it.
    fix round is done only when the repo's full lint, typecheck and test commands pass
    (`references/review.md`, section 4).
 3. After the last review fix, make the reports once, as the phase's `references/review.md` section 1
-   says.
+   says, after `pal-harness mem` (`devops_cicd.md`, **Free memory before heavy runs**).
 4. A fix that touches Windows security (the phase's `references/plan.md`, section 1) gets the
    session-0 run before its PR, as the phase's `references/build.md` section 6 step 2 says.
 5. Open the PR into `dev` with the Codex summary in its body; it merges on its own once CI is green (or, under a spending-limit block, its local run is), with `gh pr merge --merge` (never squash).

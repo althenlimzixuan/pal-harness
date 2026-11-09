@@ -125,3 +125,9 @@ the owner's interactive session and as the self-hosted runner's standard user in
   and Istanbul, pytest-html, Playwright's HTML report, pprof, Lighthouse, k6 (load).
 - A report that shows results other than this run's (demo data, a template placeholder) is a
   stale-report finding. Its pass and fail counts must match `summary.md`.
+- **Screenshots:** a project with a web or desktop UI keeps a copy of
+  `.pal-harness/templates/screens.spec.ts` in its e2e folder, with its pages listed. It runs on the
+  project's own Playwright set-up and saves every page in light and dark, at the default width and the
+  narrowest supported one. The first UI phase without a copy adds a task for it. The review stage runs
+  it when screens changed (the phase's `references/review.md`, section 1). React Native apps have no
+  screenshot file yet.

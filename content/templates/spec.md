@@ -55,6 +55,15 @@ what behaves differently and where to see it, one line each, with nothing to run
 (Screens or steps in plain words, one short line each. Delete this section when nothing on screen
 changes.)
 
+## Data sources
+
+Delete this section when the phase builds every figure it shows. Otherwise one row per figure, list
+or badge the screens show from data the API already serves.
+
+| Figure | Endpoint and field | Checked in |
+|---|---|---|
+| (a count, a list, a badge) | `GET /api/v1/(path)` → `(field)` | `doc/openapi.yaml` line N, or (handler file:line) |
+
 ## Contract
 
 Delete this section when the phase does not change the API.

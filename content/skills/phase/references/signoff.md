@@ -40,15 +40,21 @@ Fill `.pal-harness/templates/signoff-pr.md` (the template's first line is the ti
    and the link to `specs/NNN-slug/plan.md`.
 2. **Calls I made:** from the spec and the build.
 3. **Review results:** one row per reviewer and per Codex kind: found, fixed, left over and where it
-   went (an issue link or `doc/later.md`). Recorded Codex skips go here.
+   went (an issue link or `doc/later.md`). Recorded Codex skips go here; one skipped because auto
+   review is off adds "turn it on in Pal Center at Projects → <project> → Reviews".
 4. **Test reports:** counts, coverage and speed changes, each with its link under `_test_reports/`
    on `dev`. Under `ci-test-summary`, the test summary from the final commit's CI run replaces the
    links: tests passed and failed and coverage per component, the contract drift check, the run's
    link.
-5. **When you merge:** what happens next (staging, regression, the load test if asked, "ready for
+5. **Screens:** when the review stage took screenshots (`references/review.md`, section 1), each
+   page's light and dark PNG at the default width, as images from `docs/NNN-slug`
+   (`https://github.com/<owner>/<repo>/blob/docs/NNN-slug/specs/NNN-slug/screens/<file>?raw=true`),
+   and a link to the folder for the rest. A recorded skip is one line. Delete the section when no
+   screen changed.
+6. **When you merge:** what happens next (staging, regression, the load test if asked, "ready for
    your test"). Under `auto-promote` the PR merges on its own once CI passes; under
    `no-owner-test` there is no test: say what ships next and point to the What to expect now list.
-6. **Your test scripts:** the UAT list, one link per feature to its test script in `spec.md` (under
+7. **Your test scripts:** the UAT list, one link per feature to its test script in `spec.md` (under
    `no-owner-test`, its What to expect now list, with nothing to run). The session's final message
    points to the same list.
 

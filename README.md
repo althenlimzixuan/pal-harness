@@ -22,6 +22,8 @@ where `<version>` is the project's `harness.version`. `dir` defaults to `.`.
 | `render <file.md>` | Renders a Markdown file as a phone-readable page. |
 | `log <phase folder> <headline> [body file]` | Appends `## YYYY-MM-DD HH:MM — <headline>` (and the body file's text) to `phase-log.md` and sets `last_progress_at` in `phase-state.yaml`, both from the system clock. The folder must hold `phase-state.yaml` and sit inside a worktree set (`.pal-worktrees/`); otherwise it writes nothing. |
 | `contrast <foreground> <background>` | Prints the WCAG 2 contrast ratio of two colours (`#rgb`, `#rrggbb`, `rgb()`, `oklch()`) and whether it passes AA for text (4.5:1) and for large text and UI parts (3:1). An `oklch()` colour outside sRGB is clipped, with a note; alpha is refused. |
+| `mem [--min 2GiB] [--wait 0] [--every 30s]` | Prints the available physical memory against the minimum. With `--wait`, re-checks every `--every` until it is enough or the wait ends. Windows and Linux. Exit `0` enough, `1` still short, `2` usage or a platform it cannot read. |
+| `adb [dir]` | Reads `doc/devices.yaml` (ports, and devices with a name, a role, a USB serial and a last wireless address), reconnects each device at its saved address or the one `adb mdns services` finds, and sets `adb reverse` for each port. Prints one line per device, a new address to save, and the pairing request for a device still missing. Never disconnects a device or restarts the adb server. Exit `0` every device ready, `1` one not ready, `2` usage, no `doc/devices.yaml` or no `adb`. |
 | `version` | Prints the harness version. |
 
 Exit codes: `0` clean or done, `1` findings (or a block `generate` cannot write), `2` usage,
