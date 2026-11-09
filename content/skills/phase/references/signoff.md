@@ -25,7 +25,7 @@ pass (section 4).
    `doc/decisions.md`, `doc/later.md` and `phase-state.yaml` (`stage: signoff`).
 2. Single-repo: skip this section; the code PR already brought the branch into `dev` (SKILL.md,
    **Single-repo projects**). Otherwise open its PR into `dev` just before the sign-off PR. It
-   merges on its own once CI is green, with a merge commit so the same branch can PR again at ship: `gh pr checks <n> -R <owner/repo> --watch`, then
+   merges on its own once CI is green, with a merge commit so the same branch can PR again at ship: watch CI in the foreground (`devops_cicd.md`, **Watching CI**), then
    `gh pr merge <n> -R <owner/repo> --merge` (CI blocked by the spending limit: on the green local run,
    `devops_cicd.md`, **CI runs and minutes**). Keep the branch: Pal Center reads `phase-state.yaml` from it, and the
    close-out PR at ship comes from it.
@@ -67,7 +67,7 @@ Fill `.pal-harness/templates/signoff-pr.md` (the template's first line is the ti
      notify again.
    - Merged: go on.
 
-Under `auto-promote`, steps 2–4 do not apply: watch CI (`gh pr checks <n> -R <owner/repo> --watch`), merge with
+Under `auto-promote`, steps 2–4 do not apply: watch CI in the foreground (`devops_cicd.md`, **Watching CI**), merge with
 `gh pr merge <n> -R <owner/repo> --merge`, and go to section 5.
 
 ## 5. After the owner merges (or, under `auto-promote`, after the merge)

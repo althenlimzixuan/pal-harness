@@ -62,8 +62,8 @@ closed. Every other status belongs to the phase or quick-fix session. Feature st
   (`<workspace>` is the folder holding `workspace.yaml`; `<KEY>` is `project.yaml` `key`; the name carries the run's date and time so no two runs collide).
   Make all of this session's file edits there, run
   `go run github.com/althenlimzixuan/pal-harness/cmd/pal-harness@v<harness.version> check <pm worktree path>`, commit,
-  push, open one PR into `dev`, merge it once CI is green (`gh pr checks <n> -R <owner/repo> --watch`,
-  then `gh pr merge <n> -R <owner/repo> --merge`; no `--delete-branch`, the branch is checked out in
+  push, open one PR into `dev`, merge it once CI is green (watched in the foreground, `devops_cicd.md`,
+  **Watching CI**; then `gh pr merge <n> -R <owner/repo> --merge`; no `--delete-branch`, the branch is checked out in
   the worktree), remove the worktree, then delete the local branch (`git branch -D docs/pm-<YYYYMMDD-HHmm>`).
   It is bookkeeping, not a gate; a failing check is fixed, never merged over.
 
