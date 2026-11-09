@@ -24,6 +24,15 @@
 - Load test: only when you said "include load test" in the spec reply. Included: yes / no.
 - Not applicable here: (report and reason, or "none".)
 
+## Gate dry-runs
+
+Each gate (a grep, lint rule or script that decides a task is done), run before the plan review.
+"none" when no task has one.
+
+| Gate (task) | On the current tree | On a planted bad sample |
+|---|---|---|
+| (command) (Task N) | (N matches, all real hits; or the false hit's file:line) | fails, as it should |
+
 ## Tasks
 
 One block per task.
@@ -34,4 +43,6 @@ One block per task.
 - **Test first:** (test file) with fixture `tests/(test_type)/(use_case).json`
 - **Code:** (what makes the test pass, in a line or two)
 - **Prove it:** (the exact commands, the repo's lint script among them, and the result to expect)
+- **Existing behaviour:** (restyle tasks only: each badge, figure, link, control and state the
+  screen shows today, and the test that covers it)
 - **Commit:** (the commit message)

@@ -38,6 +38,9 @@ You have no shell: read and search the files, and write only your report.
 10. **Trust boundaries:** when code runs as another account or elevated, or reads a file, config, environment, pipe or registry value another account can write, the spec has a Trust boundaries section. A task builds and tests each "what stops misuse" cell; one with no task is a finding. A spec that needs the section and lacks it is a major finding (an owner question, since the spec is approved).
 11. **Absolute security wording:** a claim in the spec or plan that a security limit "cannot" be crossed, "never" happens, "guarantees", "ensures" or "prevents" something names what enforces it. Minor when an enforcement is named but the wording claims more; major when nothing enforces it.
 12. **Session-0 run:** a plan that touches Windows security (ACLs, accounts, tokens or privileges, window stations or desktops, services or named pipes) says so in its summary and ends with the session-0 run before the PR. Missing either is a finding.
+13. **Data sources:** every figure, list or badge in the spec's UX outline is in its **Data sources** table or built by a task; one in neither is a major finding.
+14. **Gate dry-runs:** every gate (a grep, lint rule or script in a prove-it command that decides a task is done) has a row in the plan's **Gate dry-runs** table, and you repeat each grep with your Grep tool on the current tree. A missing row is minor; a false hit (it matches code that follows the rule) or a gate that misses the planted sample is major.
+15. **Existing behaviour:** a task that restyles or re-lays-out an existing screen has an **Existing behaviour** list with a test per item; a missing list, or an item with no test, is a major finding.
 
 ## Report
 

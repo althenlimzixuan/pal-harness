@@ -30,6 +30,15 @@ No stage may be skipped; the one exception is the tests on a promotion whose tre
   `gh run watch <id> -R <owner/repo> --interval 30`. Never watch CI with `run_in_background`, Monitor or a background loop:
   Claude Code kills background watchers when memory runs low, as it does while a self-hosted runner
   builds on the same PC. Read the result from the command's exit code.
+- **Free memory before heavy runs:** before the test reports, a full test run (the full check before
+  the PR, a fix round's check), a release or native build (Tauri, local Gradle or EAS, Docker) or an
+  app install on a phone (`pal-harness` is run as `.pal-harness/practices/ssot_standard.md` says):
+  1. run `pal-harness mem` (exit 0: at least 2 GiB available);
+  2. under the minimum (exit 1): stop what the session started and no longer needs (an emulator, an
+     old dev server, Metro from another checkout), then run `pal-harness mem --wait 9m` in the
+     foreground (Bash timeout 600000 ms); it re-checks every 30 seconds;
+  3. still under: run anyway and write `low memory: <free> free before <run>` in the log. It is not
+     an owner stop. Exit 2 (a platform it cannot read) is noted in the log, and the run goes on.
 - **Read a red run before fixing it** (`gh run view <id> -R <owner/repo>`). A job that never started
   because of the spending limit or a billing problem is not a code failure and not a fix round:
   1. run the repo's CI commands locally on the PR's head (the checks of `workflow.md`, **Check before

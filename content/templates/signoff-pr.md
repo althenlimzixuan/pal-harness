@@ -36,6 +36,17 @@ PR merges on its own once CI and the reviews pass.)
 (With the `ci-test-summary` override, replace the list with the final commit's CI run: tests passed
 and failed and coverage per component, the contract drift check, and the run's link.)
 
+## Screens
+
+(When the review stage took screenshots: each page's light and dark PNG at the default width, as
+images from `docs/NNN-slug`, and the folder's link for the rest. Delete this section when no screen
+changed.)
+
+![(page), light](https://github.com/(owner)/(repo)/blob/docs/NNN-slug/specs/NNN-slug/screens/(page)-light-wide.png?raw=true)
+![(page), dark](https://github.com/(owner)/(repo)/blob/docs/NNN-slug/specs/NNN-slug/screens/(page)-dark-wide.png?raw=true)
+
+All screens: [specs/NNN-slug/screens/](link)
+
 ## When you merge
 
 1. Staging is built fresh, with test accounts and sample data (never production data).

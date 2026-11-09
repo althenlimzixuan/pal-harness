@@ -234,11 +234,35 @@ appId: com.company.etp
 ## Device testing
 
 - Start Metro for device tests with file watching: `npx expo start`, never `CI=1` or
-  `--non-interactive`, so a file added in a fix round bundles without a restart.
+  `--non-interactive`, so a file added in a fix round bundles without a restart. This holds in
+  every fix round and every restart, not only the first start.
 - Never run `adb disconnect` or `adb kill-server`, and never toggle the phone's wireless debugging.
-- If the link drops, reconnect once (`adb connect <ip>:<port>`) from
-  the device details saved in the project's docs (if none are saved, ask the owner). If that fails,
-  stop and ask the owner, giving the device name and what you tried.
+- The test devices are listed in `doc/devices.yaml`: names and addresses only, no pairing codes.
+
+  ```yaml
+  ports: [8081, 8080]               # adb reverse on each device: Metro, and the local API
+  devices:
+    - name: Samsung A26             # what the owner calls it
+      role: primary                 # primary, or second-user: the phone of a second test account
+      serial: R5CX123               # adb's USB serial (also inside the wireless mDNS name)
+      wireless: 192.168.1.23:41234  # last known address for adb connect
+    - name: Pixel 6
+      role: second-user
+      wireless: 192.168.1.40:39000
+  ```
+
+- Bring them up with `pal-harness adb` (run as `.pal-harness/practices/ssot_standard.md` says) before a device test, after an
+  owner gap and when the link drops. For each device it keeps one already attached, else connects at
+  the saved address, else at the address `adb mdns services` finds now; then it sets `adb reverse` for
+  each port. It prints one line per device. Save a new address it prints in `doc/devices.yaml` with
+  the phase's docs.
+  - Exit 1 names each device that is not ready and the request to send the owner ("on <name>, open
+    Settings → Developer options → Wireless debugging → Pair device with pairing code, and send me
+    the code and the port"). Pair with `adb pair <ip>:<port> <code>`, then run it again.
+  - Exit 2 (no `doc/devices.yaml` yet, or no `adb`): reconnect once (`adb connect <ip>:<port>`) from
+  the device details saved in the project's docs (if none are saved, ask the owner), and write
+  `doc/devices.yaml` from them. If that fails, stop and ask the owner, giving the device name and what you tried.
+- A test script that needs two accounts names the device each account uses.
 
 ## Key Differences from Web
 

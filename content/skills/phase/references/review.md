@@ -9,7 +9,8 @@ Make them once, after the last review fix (section 4 step 4), on the final commi
 fixes, and not per reviewer. `pal-review-tests` then checks them (`testing.md` has the files, the
 thresholds and the tools).
 
-1. Until CI has report jobs, run the project's one report command (`make reports`, or
+1. Until CI has report jobs, run `pal-harness mem` (`devops_cicd.md`, **Free memory before heavy
+   runs**), then the project's one report command (`make reports`, or
    `npm run reports` in a Node-only repo) once, locally, on each branch's head. It writes them to
    `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/` on `docs/NNN-slug`, with a numbered
    `summary.md` from `.pal-harness/templates/test-summary.md`.
@@ -29,6 +30,12 @@ thresholds and the tools).
    component; the contract drift check) from the run (`gh run view <id> -R <owner/repo>`) and save
    it as `specs/NNN-slug/reviews/ci-summary-YYYY-MM-DD-HHmm.md`. The tests reviewer checks that
    summary instead of the report files. Coverage under 80% and a failing test still block.
+6. **Screenshots.** When the phase changed something on screen and the project has its copy of
+   `screens.spec.ts` (`testing.md`, **Screenshots**), run it on the branch head before the reviewers
+   (section 2), and again on the final commit when a fix changed a screen:
+   `SCREENS_DIR=<set>/specs/NNN-slug/screens npx playwright test <e2e folder>/screens.spec.ts`.
+   Commit the PNGs on `docs/NNN-slug`. A failed run is fixed like a failing test. No copy, and no task
+   adding one: a recorded skip in the log and in the sign-off PR.
 
 ## 2. The reviewers
 
@@ -36,13 +43,16 @@ Run them in parallel.
 
 1. **Codex** (`pal-review` by the path in the session-start context, Bash timeout 600000 ms, from the
    set's root, `--repo <component path>` per repo): `pal-review run --kind code` every phase;
-   `pal-review run --kind uiux` only when the phase changed something on screen. Exit codes:
+   `pal-review run --kind uiux` only when the phase changed something on screen, with
+   `--spec specs/NNN-slug` so the spec folder it is given holds the `screens/` folder. Exit codes:
    - 0: the report is printed. Save it as `specs/NNN-slug/reviews/codex-<kind>-YYYY-MM-DD-HHmm.md`;
      add 1 to `codex.code` or `codex.uiux`.
    - 3: still running. `pal-review wait <id>` (same Bash timeout) until it ends.
    - 4: failed. Record it in the log, retry once; failed again → add `<kind>: failed (<reason>)` to
      `codex.skipped` and go on with a note for the sign-off PR.
-   - 5: skipped. Add `<kind>: skipped (<reason>)` to `codex.skipped`.
+   - 5: skipped. Add `<kind>: skipped (<reason>)` to `codex.skipped`. When the reason says auto
+     review is off, add "turn it on in Pal Center at Projects → <project> → Reviews" to that entry;
+     the sign-off PR's review table and the next owner message carry the same line.
 
    Pal Center 0.4.0 or later (the `Pal Center version:` line) resolves a worktree set to its project:
    run from the set's root. With Pal Center older than 0.4.0, `pal-review` cannot run from the set:
@@ -60,7 +70,10 @@ Run them in parallel.
    | `pal-review-errors` | Every phase |
    | `pal-review-security` | When the phase touches login, user data, payments or credentials, or the spec has a Trust boundaries section |
    | `pal-review-contract` | When the API or the infrastructure changed |
-   | `pal-review-ui` | When screens changed |
+   | `pal-review-ui` | When screens changed; give it the `specs/NNN-slug/screens/` folder |
+
+   In a larger build, `pal-review-code` also gets the path of the ledger sdd keeps, to check that each parked
+   finding was carried (`build.md`, section 6, **Deferred minors**).
 
 3. Each reviewer writes its own report: give it the absolute path
    `<set>/specs/NNN-slug/reviews/<agent>-YYYY-MM-DD-HHmm.md`. It writes that one file and returns a
