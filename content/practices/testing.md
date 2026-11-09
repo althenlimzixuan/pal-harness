@@ -41,6 +41,28 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
 - Integration tests use `testcontainers-go` for MySQL + Redis — no shared test DB.
 - Table-driven test pattern is the default: `[]struct{ name, input, expected }`.
 - `//go:build integration` tag keeps unit test runs fast.
+- **Local runs use less memory.** Every local Go test run, by a session or a subagent, sets
+  `GOFLAGS=-p=1` and `GOMEMLIMIT=2GiB` in the command's environment
+  (`GOFLAGS=-p=1 GOMEMLIMIT=2GiB make test`), so `make test` follows them with no Makefile change:
+  one package at a time, under a 2 GiB soft limit, so low memory does not kill the run. CI never sets them.
+
+## Windows security tests
+
+Tests of ACLs, accounts, tokens, privileges, window stations, services or named pipes must pass in
+the owner's interactive session and as the self-hosted runner's standard user in session 0.
+
+- **Compare SIDs and rights, ACE by ACE:** the ACE type, the trustee's SID (compared as a SID, with
+  `EqualSid` or its `S-1-…` string), the access mask and the inheritance flags. Never compare a security descriptor's `String()`
+  (x/sys prints the owner and the group too), a whole SDDL string or an account name: the owner,
+  the group and the names change with the account, the machine and the language.
+- **Every precondition is explicit.** What a test relies on (a folder exists or not, inheritance on
+  or off, the caller's groups, a privilege) is set up by the test and asserted before the step under test,
+  never left to how the machine happens to be.
+- **What session 0 lacks is checked, not assumed.** A test that needs an interactive window station
+  or desktop checks for it and skips with the reason
+  (`t.Skip("needs an interactive window station; session 0 has none")`). The skip is listed in `summary.md`.
+- **Session-0 run:** a phase that touches these tests runs them once as the runner's account before
+  its PR (the phase's `references/build.md`, section 6).
 
 ## Next.js / React-Specific
 

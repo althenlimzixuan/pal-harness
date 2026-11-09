@@ -1,6 +1,6 @@
 ---
 name: pal-review-security
-description: Reviews the phase for security (secrets, auth, permissions and input handling). The phase skill dispatches it only when the phase touches login, user data, payments or credentials.
+description: Reviews the phase for security (secrets, auth, permissions, input handling and trust boundaries). The phase skill dispatches it only when the phase touches login, user data, payments or credentials, or the spec has a Trust boundaries section.
 tools: Read, Grep, Glob, Bash, Write
 model: sonnet
 ---
@@ -24,7 +24,9 @@ Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listi
 5. **Transport and browser:** HTTPS only; CORS has no wildcard in production; cookies set `Secure` and `SameSite`; no sensitive data in URLs.
 6. **User data and payments:** personal data is collected only as the spec needs, stored and deleted as it says; payment data never touches our logs or database beyond what the provider returns.
 7. **Dependencies:** a new dependency is justified, maintained and pinned.
-8. Rate by exploitability: a reachable hole or a leaked secret is critical; a missing hardening header is minor.
+8. **Trust boundaries:** when the spec has a Trust boundaries section, check the code against each row: what stops misuse is built and tested, and nothing the less-trusted side can write (config, hooks, junctions, output files, environment) is read, run, written or deleted by the trusted side without the check the row names.
+9. **Absolute security wording:** a claim in an owner guide, UI text or a code comment that a limit "cannot" be crossed, "guarantees" or "prevents" something names what enforces it. Minor when an enforcement exists but the wording claims more; major when nothing enforces it.
+10. Rate by exploitability: a reachable hole or a leaked secret is critical; a missing hardening header is minor.
 
 ## Report
 

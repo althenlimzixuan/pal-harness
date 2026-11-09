@@ -51,7 +51,19 @@ Write `specs/NNN-slug/spec.md` alone, in the sections `spec new` copied from
    that changes the infrastructure updates `doc/infra.mmd` on `docs/NNN-slug`. Hygiene:
    names and kinds only ("API on Cloud Run", "MySQL"); never project ids, hostnames, client ids,
    keys or URLs, since some SSOT repos are public.
-8. **Out of scope** and the collapsed **Appendix**, as the template shows.
+8. **Trust boundaries:** needed when code runs as another account or elevated, or reads a file,
+   config, environment, pipe or registry value that another account or a less-trusted process can
+   write; delete the section otherwise. One table row per input that crosses the boundary: the
+   input, who can write it, who reads or runs it and as which account, the session or desktop, what
+   stops misuse, and what it does not stop. Under it, one line per process that runs as another
+   account or elevated: who starts it, which binary (and who can write that path), and where its
+   environment comes from. Fill it before the Codex review, so a trust problem shows up in the spec,
+   not at the final review.
+9. **Security claims:** each claim that a security limit holds ("cannot", "never", "guarantees",
+   "ensures", "prevents", "only X can") names what enforces it (an OS ACL, a check in code with its
+   test, a token's scope) and what it does not cover. A limit kept only by convention or a deny list
+   is written as what it reduces ("blocks the listed commands"), never as absolute.
+10. **Out of scope** and the collapsed **Appendix**, as the template shows.
 
 ## 3. Size
 

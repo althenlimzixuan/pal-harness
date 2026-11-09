@@ -52,7 +52,7 @@ Write the owner's one test step for what the fix changes (do → expect), concre
 When every component's `repo` equals `ssot.repo` (the phase skill's **Single-repo projects**), the
 fix's code goes on its `docs/NNN-slug` branch in the set's root, beside its state. There is no
 `fix/NNN-slug` branch or worktree: it would sit inside the SSOT worktree's own component folders.
-The PR of section 4 step 4 is `docs/NNN-slug` → `dev`; keep the branch after it merges, since the
+The PR of section 4 step 5 is `docs/NNN-slug` → `dev`; keep the branch after it merges, since the
 close-out PR at ship comes from it.
 
 ## 4. One review
@@ -70,10 +70,14 @@ close-out PR at ship comes from it.
      worktree set to its project, add
      `<kind>: not available (worktree set)` to `codex.skipped` and go on. Never run `pal-review`
      from the owner's checkout for a quick fix.
-2. Severity, 3 fix rounds and leftover findings as in `references/review.md` sections 3–5.
+2. Severity, 3 fix rounds and leftover findings as in `references/review.md` sections 3–5. Each
+   fix round is done only when the repo's full lint, typecheck and test commands pass
+   (`references/review.md`, section 4).
 3. After the last review fix, make the reports once, as the phase's `references/review.md` section 1
    says.
-4. Open the PR into `dev` with the Codex summary in its body; it merges on its own once CI is green (or, under a spending-limit block, its local run is), with `gh pr merge --merge` (never squash).
+4. A fix that touches Windows security (the phase's `references/plan.md`, section 1) gets the
+   session-0 run before its PR, as the phase's `references/build.md` section 6 step 2 says.
+5. Open the PR into `dev` with the Codex summary in its body; it merges on its own once CI is green (or, under a spending-limit block, its local run is), with `gh pr merge --merge` (never squash).
    `stage: code-review` while reviewing, then `stage: signoff`.
 
 ## 5. Sign-off, the owner's test, ship

@@ -21,7 +21,15 @@ No stage may be skipped; the one exception is the tests on a promotion whose tre
   a work branch with a PR would run twice.
 - **Costly runners:** jobs on Windows or macOS runners (billed at 2x and 10x) run on `pull_request`
   only (`if: github.event_name == 'pull_request'`); the `push` runs keep the Linux jobs. Every change
-  reaches `dev`, `staging` and `main` through a PR, so the PR run is the gate.
+  reaches `dev`, `staging` and `main` through a PR, so the PR run is the gate. A self-hosted runner costs no minutes,
+  so its Windows jobs may also run on `workflow_dispatch` (the session-0 run in the phase's
+  `references/build.md`, section 6).
+- **Watching CI:** watch with `gh pr checks <n> -R <owner/repo> --watch --interval 30` as a
+  foreground command with a Bash timeout of 540000 ms (9 minutes); if it times out with checks still
+  pending, run it again. Watch a workflow run started by hand the same way, with
+  `gh run watch <id> -R <owner/repo> --interval 30`. Never watch CI with `run_in_background`, Monitor or a background loop:
+  Claude Code kills background watchers when memory runs low, as it does while a self-hosted runner
+  builds on the same PC. Read the result from the command's exit code.
 - **Read a red run before fixing it** (`gh run view <id> -R <owner/repo>`). A job that never started
   because of the spending limit or a billing problem is not a code failure and not a fix round:
   1. run the repo's CI commands locally on the PR's head (the checks of `workflow.md`, **Check before

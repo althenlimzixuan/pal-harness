@@ -225,6 +225,7 @@ armed through Monitor, and `results --phase NNN` after a resume (`references/sta
 | Pal Center older than 0.4.0 (no `doc` kind, no worktree-set reviews) | Record "Codex spec review: not available" and `<kind>: not available (worktree set)` in `codex.skipped` and go on; never run `pal-review` from the owner's checkout for a phase |
 | Features tab and `pal-work` (older than 0.4.0, or exit 5) | Walk the owner through the test script step by step through Remote Control and record the results in `doc/features.yaml` (`env: local` until the project has staging) |
 | Capture command (no `Capture CLI:` line, or exit 5) | Retro ideas go to `_feedbacks/YYYY-MM-DD-HHmm.md` |
+| A Pal Center CLI that Windows Defender blocks ("the file contains a virus or potentially unwanted software", or the `.exe` gone after quarantine) | Treat it as exit 5 for that CLI and go on. Tell the owner once, in the session and in the next owner-stop message, with the command for an admin PowerShell: `Add-MpPreference -ExclusionPath "<the exact .exe path>"`. Exclude the exact file, never a folder or a process |
 | Scheduled pickup, stuck alerts | `/pm pickup` runs the ladder by hand; there is no stuck alert, so send "needs you" yourself when stuck |
 | CI report jobs, fingerprint skip | Run the reports once, locally, on the final commit |
 | On-demand staging | The owner tests on the local stack before `staging` → `main`, so the order of sign-off, test and ship holds. A project whose Workflow Overrides say "test on production" merges to `main` first and tests after |

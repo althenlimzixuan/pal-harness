@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.5.1 — 2026-11-09
+
+Pal Center's phase 010 and 011 notes (althenlimzixuan/ai-workshop#19–#28). Rule text only. The design is `doc/specs/2026-11-09-harness-1.5.1-design.md`.
+
+- `testing.md`: new **Windows security tests**: DACLs compared ACE by ACE (SID, access mask, flags), never by `String()`, SDDL or account name; every precondition set up and asserted in the test; a session-0 gap skips with its reason, listed in `summary.md`. Local Go test runs set `GOFLAGS=-p=1 GOMEMLIMIT=2GiB`; CI never does.
+- `devops_cicd.md`: new **Watching CI**: `gh pr checks --watch --interval 30` (or `gh run watch`) in the foreground with a 9-minute timeout, repeated; never a background watcher. A self-hosted runner's Windows jobs may also run on `workflow_dispatch`. Every `--watch` line in the skills points there.
+- `build.md`: the full check and the **Session-0 run** before the PR (the project's `Session-0 tests:` command, else `gh workflow run` on a self-hosted runner, else a recorded "not available"); **An owner request during the build** (one task added under **Added during build** with a decision, no plan re-review; bigger becomes a `todo` feature); per-task fix rounds run the repo-wide lint and typecheck.
+- `review.md`, `staging-test.md`, quick-fix: a fix round is done only after the repo's full lint, typecheck and test commands; `pal-review-security` also runs when the spec has a Trust boundaries section.
+- `spec.md` and the spec template: a **Trust boundaries** section when code runs as another account or elevated, or reads what another account can write; security claims name what enforces them.
+- `plan.md`, `review-plan`: round 1 starts from the earlier majors (the last 5 phases' plan reviews and owner batches) and a fixed harness list, reported in an **Earlier majors** table; new checks for Trust boundaries, absolute security wording and the session-0 run.
+- `review-security`: checks the code against Trust boundaries and flags absolute wording in guides, UI text and comments.
+- `SKILL.md`: a Pal Center CLI blocked by Defender is treated as exit 5, with one message giving the exact-file exclusion command.
+
 ## 1.5.0 — 2026-11-02
 
 The 21 open harness captures (Pal Center phase 001, LFPV phases 003 and 004, ETP phase 097). The design is `doc/specs/2026-11-02-harness-1.5.0-design.md`.
