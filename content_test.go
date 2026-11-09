@@ -645,3 +645,98 @@ func TestHarness150Rules(t *testing.T) {
 	has("skills/phase/references/review.md", "re-reads the affected features' test scripts")
 	has("skills/phase/references/staging-test.md", "re-reads the affected test scripts")
 }
+
+// pal-harness 1.5.1: Pal Center's phase 010 and 011 notes (1.5.1 design, changes 1-10).
+// Phrases are matched with runs of whitespace collapsed, so a line wrap does not break them.
+func TestHarness151Rules(t *testing.T) {
+	flat := func(s string) string { return strings.Join(strings.Fields(s), " ") }
+	text := func(p string) string {
+		t.Helper()
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return flat(string(b))
+	}
+	has := func(p string, subs ...string) {
+		t.Helper()
+		s := text(p)
+		for _, sub := range subs {
+			if !strings.Contains(s, flat(sub)) {
+				t.Errorf("%s lacks %q", p, sub)
+			}
+		}
+	}
+	lacks := func(p string, subs ...string) {
+		t.Helper()
+		s := text(p)
+		for _, sub := range subs {
+			if strings.Contains(s, flat(sub)) {
+				t.Errorf("%s still contains %q", p, sub)
+			}
+		}
+	}
+
+	// 1. Windows security tests compare SIDs and rights, with explicit preconditions.
+	has("practices/testing.md", "## Windows security tests", "the trustee's SID", "the access mask",
+		"Never compare a security descriptor's `String()`", "asserted before the step under test",
+		"`t.Skip(", "The skip is listed in `summary.md`")
+
+	// 2. CI is watched in the foreground.
+	has("practices/devops_cicd.md", "**Watching CI:**", "`gh pr checks <n> -R <owner/repo> --watch --interval 30`",
+		"540000 ms", "Never watch CI with `run_in_background`, Monitor or a background loop",
+		"`gh run watch <id> -R <owner/repo> --interval 30`")
+	for _, p := range []string{"skills/phase/references/build.md", "skills/phase/references/review.md",
+		"skills/phase/references/signoff.md", "skills/pm/SKILL.md"} {
+		has(p, "**Watching CI**")
+		lacks(p, "--watch`")
+	}
+
+	// 3. The plan reviewer starts from earlier majors.
+	has("agents/review-plan.md", "**Earlier majors first:**", "`specs/*/reviews/pal-review-plan-*.md`",
+		"`specs/*/reviews/owner-*.md`", "the last 5 phases", "`harness list`", "## Earlier majors",
+		"a child process's environment copied from the owner's", "at its original severity")
+	has("skills/phase/references/plan.md", "earlier majors")
+
+	// 4. Windows-security tests run as the runner's account before the PR.
+	has("skills/phase/references/plan.md", "**touches Windows security**", "session-0 run")
+	has("skills/phase/references/build.md", "**Session-0 run.**", "`Session-0 tests: <command>`",
+		"`specs/NNN-slug/reviews/session0-YYYY-MM-DD-HHmm.md`", "`gh workflow run ci.yml -R <owner/repo> --ref <branch>`",
+		"session-0 run: not available (<reason>)")
+	has("skills/quick-fix/SKILL.md", "session-0 run")
+	has("agents/review-plan.md", "**Session-0 run:**")
+	has("practices/devops_cicd.md", "A self-hosted runner costs no minutes", "`workflow_dispatch`")
+	has("practices/testing.md", "Session-0 run")
+
+	// 5. Specs that cross accounts get a Trust boundaries section.
+	has("templates/spec.md", "## Trust boundaries", "What it does not stop", "Delete this section when")
+	has("skills/phase/references/spec.md", "**Trust boundaries:**", "runs as another account or elevated",
+		"what it does not stop")
+	has("agents/review-plan.md", "**Trust boundaries:**")
+	has("agents/review-security.md", "Trust boundaries")
+
+	// 6. A short path for a mid-build owner request.
+	has("skills/phase/references/build.md", "**An owner request during the build.**", "mid-build request:",
+		"**Added during build**", "There is no `pal-review-plan` re-run", "as `todo`")
+
+	// 7. A Defender block on a Pal Center CLI.
+	has("skills/phase/SKILL.md", "the file contains a virus or potentially unwanted software",
+		"`Add-MpPreference -ExclusionPath \"<the exact .exe path>\"`", "never a folder or a process")
+
+	// 8. Local Go tests with less memory.
+	has("practices/testing.md", "`GOFLAGS=-p=1 GOMEMLIMIT=2GiB make test`", "CI never sets them")
+	has("skills/phase/references/build.md", "`GOFLAGS=-p=1 GOMEMLIMIT=2GiB`")
+
+	// 9. Full checks after every fix round.
+	for _, p := range []string{"skills/phase/references/review.md", "skills/phase/references/staging-test.md",
+		"skills/quick-fix/SKILL.md"} {
+		has(p, "full lint, typecheck and test commands")
+	}
+	has("skills/phase/references/review.md", "A single-file or single-package run does not count")
+	has("skills/phase/references/build.md", "repo-wide lint and typecheck")
+
+	// 10. No absolute security wording without its enforcement.
+	has("skills/phase/references/spec.md", "names what enforces it")
+	has("agents/review-plan.md", "**Absolute security wording:**", "major when nothing enforces it")
+	has("agents/review-security.md", "what enforces it")
+}
