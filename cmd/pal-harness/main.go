@@ -40,6 +40,8 @@ const usage = `usage:
   pal-harness render <file.md>
   pal-harness log <phase folder> <headline> [body file]
   pal-harness contrast <foreground> <background>
+  pal-harness mem [--min 2GiB] [--wait 0] [--every 30s]
+  pal-harness adb [dir]
   pal-harness version
 `
 
@@ -90,6 +92,13 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return usageErr(stderr, "contrast takes a foreground and a background colour")
 		}
 		return runContrast(rest[0], rest[1], stdout, stderr)
+	case "adb":
+		if len(rest) > 1 {
+			return usageErr(stderr, "adb takes at most one directory")
+		}
+		return runAdb(dirArg(rest), stdout, stderr)
+	case "mem":
+		return runMem(rest, stdout, stderr)
 	case "spec", "adr":
 		if len(rest) == 0 || rest[0] != "new" {
 			return usageErr(stderr, "expected: "+args[0]+" new <slug>")

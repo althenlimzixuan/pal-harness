@@ -32,6 +32,17 @@ passes, building starts.
    says so, and the last task before the PR is the session-0 run (`references/build.md`, section 6
    step 2).
 9. Every task builds and tests what the spec's **Trust boundaries** table says stops misuse.
+10. **Gate dry-runs.** A gate is a grep, lint rule or script in a task's prove-it commands whose
+    result decides that the task is done, beyond the repo's normal lint and tests. Before the plan
+    review, run each gate on the current tree and fill the plan's **Gate dry-runs** table: the gate,
+    what it matches today (each match marked a real hit or a false hit), and its result on a planted
+    bad sample (a scratch file with one violation, deleted after). A gate passes on code that follows
+    its rule and fails on the sample. A gate with a false hit, or one that misses the sample, is fixed
+    before the review. With no gate, write "none" under the heading.
+11. **A restyle keeps what the screen did.** A task that restyles or re-lays-out an existing screen
+    carries an **Existing behaviour** list: every badge, figure, link, control and state (empty,
+    loading, error) the screen shows today, each with the test that covers it. An item with no test
+    gets one in that task, written first and passing on the old code, before the restyle.
 
 ## 2. The summary
 

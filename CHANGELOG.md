@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.6.0 — 2026-11-09
+
+Pal Center's phase 009 notes and LFPV's phase 003 notes (althenlimzixuan/ai-workshop#29–#38). The design is `doc/specs/2026-11-09-harness-1.6.0-design.md`. The planned `upgrade` command moves to 1.7.0.
+
+- New `pal-harness mem [--min 2GiB] [--wait 0] [--every 30s]`: the available physical memory against a minimum, re-checked while short for up to `--wait` (Windows and Linux). `devops_cicd.md` gains **Free memory before heavy runs**: before reports, full test runs, native builds and phone installs, run it; under 2 GiB stop the session's leftovers and wait up to 9 minutes, then run anyway with a `low memory` log line. `build.md`, `review.md`, `staging-test.md` and quick-fix point there.
+- New `pal-harness adb [dir]`: reconnects each phone in `doc/devices.yaml` (a `second-user` role for a second test account's phone) at its saved address or the one mDNS finds, sets the reverse ports, and prints the pairing request for a phone still missing; it never disconnects or restarts adb. `react_native.md` describes the file and the command, and says Metro's file watching holds in every fix round; the staging-test pre-flight runs it.
+- New template `templates/screens.spec.ts`: a Playwright test that saves every listed page in light and dark at the default and narrowest width. `testing.md` (**Screenshots**), `review.md` (run it before the reviewers and on the final commit when screens changed), `review-ui` (reads the PNGs), `signoff.md` and `signoff-pr.md` (a **Screens** section with the images).
+- `spec.md` and the spec template: a **Data sources** table naming the endpoint and field behind each figure a spec says already exists; `review-plan` flags a figure in neither the table nor a task (major).
+- `plan.md` and the plan template: a **Gate dry-runs** table (each grep or lint gate run on the current tree and on a planted bad sample before the plan review) and an **Existing behaviour** list with a test per item for restyle tasks; `review-plan` checks both and repeats each grep.
+- `build.md`: the implementer reports each new test's RED output before its GREEN; the dispatch to sdd's task reviewer rejects a task without it, and adds the amber (warning colour only where the user must act), window-edge and existing-behaviour checks; **Deferred minors** from sdd's ledger go to `doc/later.md` (or a backlog issue) before the PRs, and `review-code` checks none is missing.
+- `review.md`, `signoff.md`, quick-fix: a Codex skip because auto review is off says "turn it on in Pal Center at Projects → <project> → Reviews".
+
 ## 1.5.1 — 2026-11-09
 
 Pal Center's phase 010 and 011 notes (althenlimzixuan/ai-workshop#19–#28). Rule text only. The design is `doc/specs/2026-11-09-harness-1.5.1-design.md`.

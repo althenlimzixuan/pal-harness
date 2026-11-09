@@ -40,6 +40,11 @@ Write `specs/NNN-slug/spec.md` alone, in the sections `spec new` copied from
    **What to expect now** list instead: what behaves differently and where to see it, one line
    each, with nothing to run.
 5. **UX outline:** screens or steps in plain words; delete it when nothing on screen changes.
+   **Data sources:** when the spec says, or relies on, a screen's data already being served, list
+   each figure, list or badge with the endpoint and field that serves it and where you checked it
+   (the `doc/openapi.yaml` line, or the handler's file and line) in the template's **Data sources**
+   table, before the Codex review. A figure nothing serves becomes a row in **Contract** (the phase
+   adds it) or a numbered question. Delete the table when the phase builds every figure it shows.
 6. **Contract:** only when the phase changes the API; the contract comes before any code. An
    endpoint table (method and path, what it does, errors) plus one sequence diagram per call in
    `specs/NNN-slug/diagrams/<name>.mmd`, linked from the table. REST under `/api/v1/`, RFC 7807 errors. A breaking change is a numbered question

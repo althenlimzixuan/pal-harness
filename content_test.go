@@ -52,6 +52,7 @@ func TestContentComplete(t *testing.T) {
 		"content/templates/phase-state.yaml",
 		"content/templates/plan.md",
 		"content/templates/retro.md",
+		"content/templates/screens.spec.ts",
 		"content/templates/signoff-pr.md",
 		"content/templates/spec.md",
 		"content/templates/test-summary.md",
@@ -739,4 +740,87 @@ func TestHarness151Rules(t *testing.T) {
 	has("skills/phase/references/spec.md", "names what enforces it")
 	has("agents/review-plan.md", "**Absolute security wording:**", "major when nothing enforces it")
 	has("agents/review-security.md", "what enforces it")
+}
+
+func TestHarness160Rules(t *testing.T) {
+	flat := func(s string) string { return strings.Join(strings.Fields(s), " ") }
+	text := func(p string) string {
+		t.Helper()
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return flat(string(b))
+	}
+	has := func(p string, subs ...string) {
+		t.Helper()
+		s := text(p)
+		for _, sub := range subs {
+			if !strings.Contains(s, flat(sub)) {
+				t.Errorf("%s lacks %q", p, sub)
+			}
+		}
+	}
+
+	// 1. A screenshot file for UI phases.
+	has("templates/screens.spec.ts", "SCREENS_DIR", "const pages", "prefers-color-scheme", "setTheme",
+		"fullPage: true", "'light', 'dark'")
+	has("practices/testing.md", "**Screenshots:**", "`.pal-harness/templates/screens.spec.ts`")
+	has("skills/phase/references/review.md", "**Screenshots.**",
+		"`SCREENS_DIR=<set>/specs/NNN-slug/screens npx playwright test <e2e folder>/screens.spec.ts`")
+	has("templates/signoff-pr.md", "## Screens", "?raw=true")
+	has("skills/phase/references/signoff.md", "**Screens:**")
+	has("agents/review-ui.md", "`specs/NNN-slug/screens/`")
+
+	// 2. "Already exists" names its source.
+	has("skills/phase/references/spec.md", "**Data sources:**", "the endpoint and field that serves it")
+	has("templates/spec.md", "## Data sources", "| Figure | Endpoint and field | Checked in |")
+	has("agents/review-plan.md", "**Data sources:**")
+
+	// 3. Gate dry-runs before the plan review.
+	has("skills/phase/references/plan.md", "**Gate dry-runs**", "planted bad sample", "a false hit")
+	has("templates/plan.md", "## Gate dry-runs")
+	has("agents/review-plan.md", "**Gate dry-runs:**", "repeat each grep")
+
+	// 4. RED before GREEN, enforced by the task reviewer.
+	has("skills/phase/references/build.md", "**The task reviewer's checks.**",
+		"reject the task when the report lacks a RED run for any new test, or the RED came after the code",
+		"for each new test, the RED output")
+	has("skills/quick-fix/SKILL.md", "RED then GREEN")
+
+	// 5. Two checks for UI tasks.
+	for _, p := range []string{"skills/phase/references/build.md", "agents/review-ui.md"} {
+		has(p, "**Warning colour only where the user must act:**", "**Window edges tested:**")
+	}
+
+	// 6. A restyle keeps what the screen did.
+	has("skills/phase/references/plan.md", "**Existing behaviour**", "passing on the old code")
+	has("templates/plan.md", "**Existing behaviour:**")
+	has("skills/phase/references/build.md", "every item in its **Existing behaviour** list")
+	has("agents/review-plan.md", "**Existing behaviour:**")
+
+	// 7. Deferred minors to doc/later.md.
+	has("skills/phase/references/build.md", "**Deferred minors.**", "`<set>/.superpowers/sdd/<plan>/progress.md`",
+		"(source: task review, Task K, phase NNN)")
+	has("skills/phase/references/review.md", "the ledger")
+	has("agents/review-code.md", "parked finding")
+
+	// 8. Where to turn auto review on.
+	for _, p := range []string{"skills/phase/references/review.md", "skills/phase/references/signoff.md",
+		"skills/quick-fix/SKILL.md"} {
+		has(p, "turn it on in Pal Center at Projects → <project> → Reviews")
+	}
+
+	// 9. Metro in fix rounds, and the adb helper.
+	has("practices/react_native.md", "every fix round", "`doc/devices.yaml`", "`pal-harness adb`",
+		"role: second-user", "no pairing codes")
+	has("skills/phase/references/staging-test.md", "`pal-harness adb`")
+
+	// 10. Free memory before heavy runs.
+	has("practices/devops_cicd.md", "**Free memory before heavy runs:**", "`pal-harness mem`",
+		"`pal-harness mem --wait 9m`", "low memory: <free> free before <run>")
+	for _, p := range []string{"skills/phase/references/build.md", "skills/phase/references/review.md",
+		"skills/phase/references/staging-test.md", "skills/quick-fix/SKILL.md"} {
+		has(p, "**Free memory before heavy runs**")
+	}
 }
