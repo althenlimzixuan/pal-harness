@@ -92,6 +92,11 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return usageErr(stderr, "contrast takes a foreground and a background colour")
 		}
 		return runContrast(rest[0], rest[1], stdout, stderr)
+	case "adb":
+		if len(rest) > 1 {
+			return usageErr(stderr, "adb takes at most one directory")
+		}
+		return runAdb(dirArg(rest), stdout, stderr)
 	case "mem":
 		return runMem(rest, stdout, stderr)
 	case "spec", "adr":
