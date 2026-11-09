@@ -27,6 +27,11 @@ passes, building starts.
    the sender verifies the recipient.
 7. Under `installer-ready` (SKILL.md, **Flow overrides**), the last task bumps the version in the
    project's version files, in the phase's PR; ship tags that version.
+8. A phase **touches Windows security** when it adds or changes code or tests that use ACLs,
+   accounts, tokens or privileges, window stations or desktops, services or named pipes. The summary
+   says so, and the last task before the PR is the session-0 run (`references/build.md`, section 6
+   step 2).
+9. Every task builds and tests what the spec's **Trust boundaries** table says stops misuse.
 
 ## 2. The summary
 
@@ -54,7 +59,9 @@ goes in the tasks, not the summary.
 2. It checks that every spec feature, test step, contract endpoint and appendix behaviour has a task;
    the code patterns (TDD, clean layers, SOLID, DRY); the approved contract, including the
    provider-repo / SSOT-repo split; trust handoffs; that each test step can run where the owner tests;
-   the size of about one working day; and that every task names its test file and fixture.
+   the size of about one working day; and that every task names its test file and fixture. Its
+   first round starts from the earlier majors: the major and critical findings of the project's
+   earlier plan reviews and owner batches, plus the harness's fixed list (`pal-review-plan`).
 3. Minor findings: fix them and re-run the reviewer, up to 3 rounds. A major or critical finding
    that does not change what gets built is fixed the same way and listed in the summary's risks
    and choices.

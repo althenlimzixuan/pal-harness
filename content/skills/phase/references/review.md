@@ -58,7 +58,7 @@ Run them in parallel.
    | `pal-review-code` | Every phase |
    | `pal-review-tests` | Every phase |
    | `pal-review-errors` | Every phase |
-   | `pal-review-security` | When the phase touches login, user data, payments or credentials |
+   | `pal-review-security` | When the phase touches login, user data, payments or credentials, or the spec has a Trust boundaries section |
    | `pal-review-contract` | When the API or the infrastructure changed |
    | `pal-review-ui` | When screens changed |
 
@@ -84,6 +84,10 @@ report with the reason, and the owner still sees it.
 ## 4. Fix rounds
 
 1. A round fixes every open finding, then re-runs only the reviewers that raised them.
+   - The round is done only when the repo's full lint, typecheck and test commands (`workflow.md`,
+     **Check before every push**) pass in every repo it changed, each read from its own exit code.
+     A single-file or single-package run does not count. Local Go runs set
+     `GOFLAGS=-p=1 GOMEMLIMIT=2GiB` (`testing.md`).
    - A fix for a bug finding starts with a test that reproduces the bug, run red; a fixer's report
      without that red run goes back to the fixer, and that counts as a fix round (build.md, section 3).
    - A contrast fix is measured again with `pal-harness contrast '<foreground>' '<background>'` (or the
@@ -112,7 +116,7 @@ Each finding not fixed goes to one place, recorded for the sign-off PR's review 
 1. Each `feature/NNN-slug` PR body carries the Codex report summary: the verdict, every major and
    critical finding with the owner's decision, the minor ones with what Claude did (`workflow.md`).
 2. Each PR into `dev` merges on its own once CI is green and the reviews pass:
-   `gh pr checks <n> -R <owner/repo> --watch`, then `gh pr merge <n> -R <owner/repo> --merge` (a merge commit, never squash). Do not pass
+   watch CI in the foreground (`devops_cicd.md`, **Watching CI**), then `gh pr merge <n> -R <owner/repo> --merge` (a merge commit, never squash). Do not pass
    `--delete-branch` from inside a worktree; branches go when the set is removed. A PR whose CI was
    blocked by the spending limit merges on its green local run instead (`devops_cicd.md`, **CI runs
    and minutes**); its body links `reviews/local-ci-*.md`.

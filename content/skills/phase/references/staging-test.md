@@ -78,7 +78,8 @@ Ask, with a recommended answer and its reason:
      exit codes, the version rule, severity and 3 fix rounds as in `references/review.md`). A fix
      that changes behaviour the owner sees re-reads the affected test scripts and updates any step
      whose expected result changed, in the spec and in `doc/features.yaml`; the message before the
-     retest says which steps changed.
+     retest says which steps changed. Each fix round is done only when the repo's full lint,
+     typecheck and test commands pass in every repo it changed (`references/review.md`, section 4).
   4. Its PR into `staging` merges on its own after the review and green CI, with
      `gh pr merge <n> -R <owner/repo> --merge` (never squash); staging (or the local
      stack) redeploys. Then PR the same branch into `dev` too, merged with `--merge`.

@@ -77,6 +77,18 @@ Added or changed in this phase: (each part, one line), or "no change".
 `.pal-harness/templates/infra.mmd`. Names and kinds only, like "API on Cloud Run" or "MySQL"; never
 project ids, hostnames, client ids, keys or URLs.)
 
+## Trust boundaries
+
+Delete this section when no code runs as another account or elevated, and nothing reads a file,
+config, environment, pipe or registry value that another account or a less-trusted process can write.
+
+| Input | Who can write it | Who reads or runs it, as which account | Session or desktop | What stops misuse | What it does not stop |
+|---|---|---|---|---|---|
+| (a file, config, environment, pipe or registry value) | (account or process) | (process, account) | (your desktop, session 0, a hidden desktop) | (an ACL, a check in code and its test) | (what is left open) |
+
+Processes that run as another account or elevated, one line each: who starts it, which binary (and
+who can write that path), and where its environment comes from.
+
 ## Out of scope
 
 - (Something a reader might expect, and is not in this phase.)
