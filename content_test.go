@@ -42,6 +42,7 @@ func TestContentComplete(t *testing.T) {
 		"content/skills/phase/references/signoff.md",
 		"content/skills/phase/references/spec.md",
 		"content/skills/phase/references/staging-test.md",
+		"content/skills/phase/references/subagents.md",
 		"content/skills/pm/SKILL.md",
 		"content/skills/pm/references/chores.md",
 		"content/skills/quick-fix/SKILL.md",
@@ -957,4 +958,29 @@ func TestHarness180Rules(t *testing.T) {
 		"Steps that publish")
 	has("skills/pm/SKILL.md", "Under `uat-queue`")
 	has("practices/ssot_standard.md", "`uat-queue`")
+
+	// B1. No push while CI runs; the watch under timeout.
+	has("practices/devops_cicd.md", "**Hold pushes while CI runs.**", "in one push",
+		"`timeout 520 gh pr checks <n> -R <owner/repo> --watch --interval 30`", "Exit 124",
+		"`timeout 520 gh run watch <id> -R <owner/repo> --interval 30`")
+	has("skills/phase/SKILL.md", "while a PR's CI runs")
+
+	// B2. Memory before lint, mocks and tests; smaller retries.
+	has("practices/devops_cicd.md", "`make lint`, `make mock`", "never `run_in_background`",
+		"run again, never pushed over", "one package group at a time", "`GOFLAGS=-p=1`")
+	has("practices/go_api.md", "`mockery --name <Interface>`", "the full `make mock` once before the PR")
+	has("practices/testing.md", "`--maxWorkers=2`", "one CI-scaled constant")
+
+	// B3. Subagents.
+	has("skills/phase/references/subagents.md", "TaskStop", "the second time",
+		"quotes that message's first line", "never wait on their own background work",
+		"a timeout as a failure", "**Known findings**", "no lock held across a network call",
+		"a retry re-reads its rule and its target", "a visible state", "`openapi` required fields",
+		"owner-facing wording", "Language-server diagnostics")
+	has("skills/phase/references/build.md", "`references/subagents.md`")
+	has("skills/phase/references/review.md", "language-server diagnostics")
+
+	// B4. Session habits.
+	has("practices/workflow.md", "**Session habits**", "`git -C <path> symbolic-ref -q HEAD`",
+		"`origin/<branch>`", "auto-mode check", "`--body-file`", "`npm ci`")
 }
