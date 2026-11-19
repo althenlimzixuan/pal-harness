@@ -44,6 +44,9 @@ for the owner (`workflow.md`, **Plain English.**): diagrams, test steps and repo
    run there is rewritten, or moved to the automated tests with a line in Calls I made. A bundle fix the owner can
    see gets a step in the test script of the feature it touches; a fix for a `deferred` feature is
    tested by that feature's failed step. Approving the spec approves how the owner will test.
+   **Destructive or optional steps** (removing the phone's screen lock, deleting an account, a reset)
+   go in their own feature with their own test script, so skipping them is an explicit partial run.
+   A test that needs two roles names the two-role seed (`references/staging-test.md`, section 1).
    Under `no-owner-test` (SKILL.md, **Flow overrides**) the test section is a
    **What to expect now** list instead: what behaves differently and where to see it, one line
    each, with nothing to run.

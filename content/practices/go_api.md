@@ -155,3 +155,6 @@ so a clean local run means a clean CI run. Never `@latest`: a new release adds c
 - **Phase 1** (always): logrus JSON logs, `request_id` injected via middleware, propagated via context
 - **Phase 2** (when app grows): `prometheus/client_golang`, expose `/metrics`
 - **Phase 3** (deployment): Loki + Prometheus + Tempo + Grafana via `docker/compose/observability.yml`
+- **Release check:** in production the API logs a hashed or shortened client address (never the full
+  address) on each request, so the proxy-trust setting (which header the client address comes from)
+  can be confirmed from the logs after the first deploy.

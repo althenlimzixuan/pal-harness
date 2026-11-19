@@ -18,6 +18,10 @@ to `.pal-harness/skills/phase/references/ship.md`, and nothing here runs.
    (`env: prod`).
 4. Mobile: the owner uses Expo Go pointed at the staging API (on the local stack, the API's LAN
    address).
+5. **The two-role seed.** A project whose tests use two roles (an owner and a second user, a sender
+   and a receiver) keeps one two-role seed script: the sign-ups, the shared data, the invite and
+   sample entries. The first phase that needs it adds the script as a plan task. Run it after the
+   fresh seed data, so the owner never builds the setup by hand; the message names what it made.
 
 ## 2. Regression first
 
@@ -32,17 +36,24 @@ Run it before "ready for your test", and again when the owner comes back after t
 or compacted:
 
 1. The API (staging, or the local stack's API, database and seed data) answers its health check,
-   and each test account the message names exists.
+   and each test account the message names exists. When the stack uses Docker, `docker info`
+   answers first: Docker not running is fixed (or asked for) before anything else.
 2. After a checkout switch (section 1), Metro is cold-started with file watching
    (`npx expo start --clear`) and the app is fully reloaded, so no stale bundle or translations
    remain.
 3. In a mobile project, `pal-harness adb` (`react_native.md`, **Device testing**) reports every phone
    in `doc/devices.yaml` ready, with `adb reverse` up for each port the app uses (Metro's 8081, and on
    the local stack the API's port). A phone that needs wireless pairing: the message asks for the pairing code
-   and port up front, not mid-test.
+   and port up front, not mid-test. The adb server is up (`adb devices` answers), and each test
+   phone starts from a fresh app: `adb shell pm clear <package>` (allowed in the project's
+   `.claude/settings.json`; otherwise the app's debug-only reset, `react_native.md`, **Device testing**).
 4. Free memory: `pal-harness mem` (`devops_cicd.md`, **Free memory before heavy runs**); under 2 GB free,
    the message warns the owner, and the session stops what it started and no longer needs (an
    emulator, an old dev server or Metro).
+
+**Step wording.** Each step names exactly what to stop or start ("stop the API only; leave Metro
+running"). Going offline is written as the phone action ("turn on airplane mode on the phone"), never
+"go offline", which reads as the owner leaving.
 
 The message reports each check in one line. A check that fails is fixed before the owner starts, or
 it is the first thing the message asks of the owner.

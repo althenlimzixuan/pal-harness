@@ -41,6 +41,9 @@ jobs:
         run: |
           make wire
           git diff --exit-code
+  # A heavy Windows job may run on the self-hosted runner: set the repository variable
+  # WINDOWS_RUNNER to its label (devops_cicd.md, **Self-hosted runners**), with
+  #   runs-on: ${{ vars.WINDOWS_RUNNER || 'windows-latest' }}
   # Records each job that passed, so the same files are not tested again.
   mark:
     needs: [gate, api]
