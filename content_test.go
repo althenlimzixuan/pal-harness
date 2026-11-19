@@ -34,13 +34,16 @@ func TestContentComplete(t *testing.T) {
 		"content/practices/workflow.md",
 		"content/skills/phase/SKILL.md",
 		"content/skills/phase/references/build.md",
+		"content/skills/phase/references/company-mode.md",
 		"content/skills/phase/references/plan.md",
+		"content/skills/phase/references/qa.md",
 		"content/skills/phase/references/review.md",
 		"content/skills/phase/references/ship.md",
 		"content/skills/phase/references/signoff.md",
 		"content/skills/phase/references/spec.md",
 		"content/skills/phase/references/staging-test.md",
 		"content/skills/pm/SKILL.md",
+		"content/skills/pm/references/chores.md",
 		"content/skills/quick-fix/SKILL.md",
 		"content/templates/adr-conflict.md",
 		"content/templates/adr.md",
@@ -894,4 +897,64 @@ func TestHarness170Rules(t *testing.T) {
 	has("agents/review-plan.md", "**Deletes and locks:**",
 		"a delete or cleanup helper with no read-only check that the target is its own",
 		"a callback fired while a lock is held")
+}
+
+// pal-harness 1.8.0: the 61 open harness notes (1.8.0 design, Parts A-D).
+func TestHarness180Rules(t *testing.T) {
+	flat := func(s string) string { return strings.Join(strings.Fields(s), " ") }
+	text := func(p string) string {
+		t.Helper()
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return flat(string(b))
+	}
+	has := func(p string, subs ...string) {
+		t.Helper()
+		s := text(p)
+		for _, sub := range subs {
+			if !strings.Contains(s, flat(sub)) {
+				t.Errorf("%s lacks %q", p, sub)
+			}
+		}
+	}
+
+	// A1. Company mode and the veto window.
+	has("skills/phase/references/company-mode.md", "`pal-work mode --project <key>`",
+		"`pal-work wait-decision --phase NNN`", "Bash timeout of 600000 ms", "exit 3",
+		"`approved` or `defaulted`", "`changed: <text>`", "`vetoed` or `none`",
+		"`pal-work hold --phase NNN --reason", "money, a password or key, or anything public",
+		"(used by default)", "The sign-off PR and the staging test are always the owner's",
+		"runs `wait-decision` first")
+	has("skills/phase/SKILL.md", "`references/company-mode.md`")
+	has("skills/quick-fix/SKILL.md", "`pal-work mode --project <key>`")
+	has("skills/pm/SKILL.md", "`.pal-harness/skills/phase/references/company-mode.md`",
+		"in the same write as the move")
+
+	// A2. Chores and pickup.
+	has("skills/pm/references/chores.md", "`Chores (Active)`", "`Every: day`", "`When: before phase`",
+		"`When: after phase`", "`Last run: YYYY-MM-DD`", "`Action: harness notes`",
+		"only after the owner's yes", "never edits the board's columns")
+	has("skills/pm/SKILL.md", "`.pal-harness/skills/pm/references/chores.md`", "**Chores.**",
+		"the rung and the reason", "Needs Approved to run")
+
+	// A3. The QA pass.
+	has("skills/phase/references/qa.md", "`harness.qa_command`", "`specs/NNN-slug/qa/`", "`summary.md`",
+		"`screens/`", "`qa: running`", "`qa: passed`", "`qa: failed`", "`kind: findings`",
+		"Under `no-owner-test`")
+	has("skills/phase/references/signoff.md", "`harness.qa_command`", "`references/qa.md`")
+	has("skills/phase/references/staging-test.md", "QA summary")
+	has("practices/ssot_standard.md", "`harness.qa_command`", "`qa:`")
+	has("templates/phase-state.yaml", "qa: none")
+
+	// A4. The UAT queue.
+	has("skills/phase/SKILL.md", "| `uat-queue` |")
+	has("skills/phase/references/staging-test.md", "Under `uat-queue`", "20 minutes", "parked",
+		"`--state waiting`", "every queued phase")
+	has("skills/phase/references/signoff.md", "Under `uat-queue`", "up to 3")
+	has("skills/phase/references/ship.md", "Under `uat-queue`", "the oldest", "already holds",
+		"Steps that publish")
+	has("skills/pm/SKILL.md", "Under `uat-queue`")
+	has("practices/ssot_standard.md", "`uat-queue`")
 }

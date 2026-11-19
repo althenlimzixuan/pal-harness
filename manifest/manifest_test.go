@@ -470,7 +470,7 @@ func TestFlowOverridesParse(t *testing.T) {
 func TestFlowOverridesRejected(t *testing.T) {
 	base := readTestdata(t, "project.yaml")
 	tests := []struct{ list, want string }{
-		{"[auto-merge]", "harness.flow_overrides[0]: must be one of auto-promote, no-owner-test, installer-ready, ci-test-summary"},
+		{"[auto-merge]", "harness.flow_overrides[0]: must be one of auto-promote, no-owner-test, installer-ready, ci-test-summary, uat-queue"},
 		{"[auto-promote, auto-promote]", "harness.flow_overrides[1]: duplicate"},
 	}
 	for _, tc := range tests {
@@ -498,5 +498,37 @@ func TestSingleRepo(t *testing.T) {
 	p.Components[1].Repo = "https://github.com/althenlimzixuan/fhph-web"
 	if p.SingleRepo() {
 		t.Error("mixed: want false")
+	}
+}
+
+// pal-harness 1.8.0: the QA command and the uat-queue flow override (design A3, A4).
+func TestQACommandAndUATQueue(t *testing.T) {
+	base := readTestdata(t, "project.yaml")
+	src := mustReplace(t, base, "overrides: []", "overrides: []\n  flow_overrides: [uat-queue]\n  qa_command: cd desktop && npm run qa")
+	p, err := ParseProject([]byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !p.HasFlowOverride("uat-queue") {
+		t.Errorf("overrides = %v", p.Harness.FlowOverrides)
+	}
+	if p.Harness.QACommand != "cd desktop && npm run qa" {
+		t.Errorf("qa_command = %q", p.Harness.QACommand)
+	}
+	out, err := MarshalProject(p)
+	if err != nil || !strings.Contains(string(out), "qa_command: cd desktop && npm run qa") {
+		t.Fatalf("marshal: %v\n%s", err, out)
+	}
+	// No qa_command: the key is not written.
+	q, err := ParseProject([]byte(base))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if q.Harness.QACommand != "" {
+		t.Errorf("qa_command = %q, want empty", q.Harness.QACommand)
+	}
+	out, err = MarshalProject(q)
+	if err != nil || strings.Contains(string(out), "qa_command") {
+		t.Fatalf("marshal without: %v\n%s", err, out)
 	}
 }
