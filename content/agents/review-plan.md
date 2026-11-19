@@ -25,7 +25,10 @@ You have no shell: read and search the files, and write only your report.
    4. absolute security wording with nothing enforcing it (check 11);
    5. a contract row or appendix behaviour with no task (check 1);
    6. a delete or cleanup helper with no read-only check that the target is its own (check 16);
-   7. a callback fired while a lock is held that is not listed, or that can take the same lock (check 16).
+   7. a callback fired while a lock is held that is not listed, or that can take the same lock (check 16);
+   8. a delete helper whose **Deletes and locks** row names no link and junction test cases (check 16);
+   9. a phase that changes the mobile app with no task that bumps the app version (check 18);
+   10. a native dependency added or upgraded with no resolved versions of its shared libraries (check 18).
 
    Check each item that fits this plan's kind of work. An item that applies and is not covered is a finding at its original severity. This round-1 sweep is what keeps a plan from needing three rounds that each find a major.
 1. **Coverage:** every spec feature, every step of the spec's test script, every endpoint in the spec's `## Contract` and every behaviour in its Appendix has at least one task; list the ones that have none (no exceptions).
@@ -43,7 +46,14 @@ You have no shell: read and search the files, and write only your report.
 13. **Data sources:** every figure, list or badge in the spec's UX outline is in its **Data sources** table or built by a task; one in neither is a major finding.
 14. **Gate dry-runs:** every gate (a grep, lint rule or script in a prove-it command that decides a task is done) has a row in the plan's **Gate dry-runs** table, and you repeat each grep with your Grep tool on the current tree. A missing row is minor; a false hit (it matches code that follows the rule) or a gate that misses the planted sample is major.
 15. **Existing behaviour:** a task that restyles or re-lays-out an existing screen has an **Existing behaviour** list with a test per item; a missing list, or an item with no test, is a major finding.
-16. **Deletes and locks:** every task that deletes or cleans up (files, folders, rows, keys) has a row in the plan's **Deletes and locks** section naming the read-only check that runs first and proves the target is one it created; a path the user chose is never deleted on its name alone. Every callback, event or hook fired while a lock is held is listed with its lock, and it takes neither that lock nor one taken before it elsewhere. A missing row, a delete with no such check, or a callback that can take the same lock is a major finding.
+16. **Deletes and locks:** every task that deletes or cleans up (files, folders, rows, keys) has a row in the plan's **Deletes and locks** section naming the read-only check that runs first and proves the target is one it created; a path the user chose is never deleted on its name alone. A helper that deletes files or folders names its link and junction test cases (a symlink or junction inside the target pointing out of it, and the target itself a link): the delete removes the link, never what it points to. Every callback, event or hook fired while a lock is held is listed with its lock, and it takes neither that lock nor one taken before it elsewhere. A missing row, a delete with no such check, or a callback that can take the same lock is a major finding.
+
+17. **File lists:** each task's **Repo and files** list holds every file its code, its tests, its fixture and its prove-it commands name. A file named in a task's text or commands but missing from its list is a minor finding; a file no task lists but the plan needs (a migration, a generated file, a shared helper) is major.
+18. **Mobile release:** a phase that changes the mobile app has a task that bumps the app version (the runbook's release step), whatever the flow overrides. A task that adds or upgrades a native dependency records the resolved versions of the shared libraries it pulls in, against the existing native modules (for example `./gradlew :app:dependencies` filtered by the library); a missing record, or a mismatch, is a major finding.
+
+## Rounds
+
+A round with only minor findings ends the review: the session applies them and notes "minors applied, no re-review" in the log. A round with a major or critical finding is re-run after the fixes.
 
 ## Report
 

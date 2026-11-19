@@ -113,6 +113,8 @@ Tools: `pal-harness <command>` runs as
 - `doc/features.yaml` is the truth for features: status, test script, results. The Roadmap board is a
   projection of it (a draft card titled `F-012 — <name>`), and stays the truth only for the owner's
   intent on a card (approved or not). Backlog issues stay the truth for bugs and findings.
+  A result names its test-script `step:` or, for an extra check outside the script, `check: <name>`
+  (lower-case words and dashes); exactly one of the two. `check` lists the allowed fields of an unknown one.
 - `doc/decisions.md` holds owner answers to phase questions; expensive architecture choices still go
   to ADRs. `doc/later.md` holds parked findings, kept out of GitHub so they stop feeding the backlog.
 - Never keep a backlog or roadmap ledger in a repo; a markdown roadmap is at most a generated snapshot.

@@ -307,3 +307,26 @@ func TestCITemplateWiring(t *testing.T) {
 		t.Error("the template has no example job")
 	}
 }
+
+// pal-harness 1.8.0: the reusable gate rejects non-UTF-8 text before it fingerprints (design C4).
+func TestCIGateRunsUTF8(t *testing.T) {
+	w := loadYAML(t, ".github/workflows/ci-gate.yml")
+	steps, _ := mapAt(w, "jobs", "gate")["steps"].([]any)
+	utf8At, fpAt := -1, -1
+	for i, st := range steps {
+		s, _ := st.(map[string]any)
+		run, _ := s["run"].(string)
+		if strings.Contains(run, `pal-harness@v${VERSION}" utf8 .`) && utf8At < 0 {
+			utf8At = i
+			if strAt(s, "env", "VERSION") != "${{ inputs.version }}" {
+				t.Errorf("the utf8 step must take the version from env")
+			}
+		}
+		if strings.Contains(run, " fingerprint ") && fpAt < 0 {
+			fpAt = i
+		}
+	}
+	if utf8At < 0 || fpAt < 0 || utf8At > fpAt {
+		t.Errorf("utf8 step at %d, fingerprint step at %d: utf8 must run first", utf8At, fpAt)
+	}
+}

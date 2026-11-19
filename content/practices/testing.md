@@ -4,6 +4,7 @@
 
 - **TDD-first**: Write the failing test before the implementation. Always.
 - **Fixtures over inline data**: Test cases live in `tests/{test_type}/{use_case}.json`. Never hardcode inputs or expected values inline.
+- **Error-path fixtures are real**: a 422, 409 or 503 body in a fixture is copied from a real response (a handler test's output or the `openapi` example), never written by hand: a made-up body hides the real one's bug.
 - **Test behaviour, not implementation**: If refactoring internals breaks tests, the tests are wrong.
 - **Coverage gate**: 80% minimum, enforced in CI. Coverage is a floor, not a target.
 - Tests are documentation. A test that requires comments to understand is a bad test.
@@ -74,6 +75,9 @@ the owner's interactive session and as the self-hosted runner's standard user in
 - Playwright for E2E: test critical user journeys, not every UI state.
 - Snapshot tests are discouraged — they break on styling changes and don't verify behaviour.
 - A new npm advisory in test tooling goes through `audit-ci.jsonc` as `devops_cicd.md` (Security in CI) says.
+- **Jest shims** for native modules export only what the native module exports. A parity test
+  compares the shim's export list with the native module's, so a shim cannot hide a call the
+  device does not have.
 
 ## What Not to Test
 
@@ -117,8 +121,11 @@ the owner's interactive session and as the self-hosted runner's standard user in
   or a web page's Lighthouse performance score 5 points or more lower, than the previous code (the
   first phase sets the baseline). Claude gets 3 fix rounds, then the session asks the owner (a "needs you" notification).
 - **The paired speed check:** the previous code (the phase's base on `origin/dev`) and the new code
-  run in paired, alternating runs on the same machine in one sitting (old, new, old, new; at least 5
-  pairs), and the medians are compared. `summary.md` records the base commit, the number of pairs
+  run in paired, alternating runs on the same machine in one sitting (old, new, old, new; 10 pairs
+  by default and at least 5
+  pairs), and the medians are compared. A slowdown counts only when the p95 is
+  both more than 20% and over 2 ms slower: Windows timers step in about 1 ms, so a 3 ms call can
+  read 33% slower with nothing changed. `summary.md` records the base commit, the number of pairs
   and both medians. The earlier report's numbers are context only, never the comparison.
 - A missing, empty or stale report is a review finding. Staging reports must match the tree hash of
   the staging deploy; every other report must come from the PR's final commit.

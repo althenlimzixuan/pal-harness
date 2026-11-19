@@ -68,6 +68,12 @@ Every 5 phases Pal walks the north star, the feature list and the later list wit
   unchecked and leave it to CI. On Windows, a formatter that flags every file means CRLF endings:
   lint in a checkout with `core.autocrlf input`.
 
+## Plain English
+
+- **Plain English.** Everything the owner reads is written for the owner, in plain words: specs,
+  plans, diagrams, UAT steps, test reports, PR bodies and notices. No jargon or internal names
+  without a one-line meaning; a diagram's labels are words the owner would use.
+
 ## Session habits
 
 - **Branch check.** Before every push, `git -C <path> symbolic-ref -q HEAD` must name the branch

@@ -60,4 +60,7 @@ test: say what ships next and where the What to expect now list is.)
 
 1. F-000 — (name): [test script](link)
 
+Not tested before sign-off (`unverified` steps, hardware you can't reach yet): (each step and its
+reason, or "none").
+
 (With the `no-owner-test` override, link each feature's What to expect now list instead.)

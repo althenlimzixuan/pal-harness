@@ -4,6 +4,7 @@
 - **Spec:** `spec.md` (approved on YYYY-MM-DD)
 
 > Reads in about 10 minutes. There is no plan stop: building starts once Claude's plan review passes.
+> Written in plain English for you: no jargon, and a diagram's labels are words you would use.
 
 ## Summary
 
@@ -35,11 +36,12 @@ Each gate (a grep, lint rule or script that decides a task is done), run before 
 
 ## Deletes and locks
 
-"none" when no task deletes anything or fires a callback under a lock.
+"none" when no task deletes anything or fires a callback under a lock. A helper that deletes files
+or folders lists its link and junction test cases.
 
-| Delete helper (task) | What it deletes | The read-only check first (proves the target is its own) |
-|---|---|---|
-| (helper) (Task N) | (files, folders, rows or keys) | (a marker it wrote, a path under its own root, a row it owns) |
+| Delete helper (task) | What it deletes | The read-only check first (proves the target is its own) | Link and junction test cases |
+|---|---|---|---|
+| (helper) (Task N) | (files, folders, rows or keys) | (a marker it wrote, a path under its own root, a row it owns) | (a link inside pointing out; the target itself a link) |
 
 | Callback under a lock (task) | Lock held | What the callback may take (never the same lock) |
 |---|---|---|
@@ -57,4 +59,9 @@ One block per task.
 - **Prove it:** (the exact commands, the repo's lint script among them, and the result to expect)
 - **Existing behaviour:** (restyle tasks only: each badge, figure, link, control and state the
   screen shows today, and the test that covers it)
+- **Native versions:** (a task that adds or upgrades a native dependency: the resolved versions of
+  the shared libraries it pulls in, against the existing native modules)
+
+A phase that changes the mobile app has a task that bumps the app version (the runbook's release
+step).
 - **Commit:** (the commit message)

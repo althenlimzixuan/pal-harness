@@ -50,7 +50,17 @@ passes, building starts.
       file it wrote, a path under its own root, a row it owns). A path the user chose is never deleted
       without such a check;
     - each callback, event or hook fired while a lock is held: the task, the lock, and what the
-      callback may take. It must not take the same lock, or a lock taken before it elsewhere.
+      callback may take. It must not take the same lock, or a lock taken before it elsewhere;
+    - a helper that deletes files or folders lists its link and junction test cases: a symlink or
+      junction inside the target that points out of it, and a target that is itself a link. The test
+      proves the delete removes the link, never what it points to.
+13. **Mobile phases.** A phase that changes the mobile app has a task that bumps the app version
+    (the runbook's release step), whatever the flow overrides. A task that adds or upgrades a native
+    dependency records the resolved versions of the shared libraries it pulls in, against the
+    existing native modules (`react_native.md`, **Native dependencies**). A mismatch is fixed in the
+    plan, before the build.
+14. **File lists.** Each task's file list holds every file its code, tests, fixture and prove-it
+    commands name.
 
 ## 2. The summary
 
@@ -81,9 +91,9 @@ goes in the tasks, not the summary.
    the size of about one working day; and that every task names its test file and fixture. Its
    first round starts from the earlier majors: the major and critical findings of the project's
    earlier plan reviews and owner batches, plus the harness's fixed list (`pal-review-plan`).
-3. Minor findings: fix them and re-run the reviewer, up to 3 rounds. A major or critical finding
-   that does not change what gets built is fixed the same way and listed in the summary's risks
-   and choices.
+3. A round with only minor findings ends the review: apply them and write "minors applied, no
+   re-review" in the log. A major or critical finding that does not change what gets built is fixed
+   and the reviewer re-run, up to 3 rounds; it is listed in the summary's risks and choices.
 4. Codex never reviews the plan.
 
 ## 4. No plan stop
