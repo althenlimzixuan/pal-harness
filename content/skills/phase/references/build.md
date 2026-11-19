@@ -48,14 +48,11 @@ Without superpowers installed, say so in the log and build a larger phase inline
 5. Add 1 to `tasks.done` and write the log entry with `pal-harness log` (it stamps
    `last_progress_at`; SKILL.md, **Saved state**); commit and push `docs/NNN-slug`.
 
-**Larger phase:** follow `superpowers:subagent-driven-development`.
+**Larger phase:** follow `superpowers:subagent-driven-development`, with the brief, the controller's
+checks and the task reviewer's checks in `references/subagents.md`
+(`.pal-harness/skills/phase/references/subagents.md`).
 
-1. Hand each fresh agent its task text, its worktree path, and the paths of `testing.md`,
-   `workflow.md` and the stack practice. The brief says TDD is required for the task: run the
-   fixture's test before any code, and report, for each new test, the RED output (the command and
-   the failing lines that name the test; one run may show several), then the GREEN output and a clean
-   lint run. Local Go test runs set `GOFLAGS=-p=1 GOMEMLIMIT=2GiB` (`testing.md`, Go-Specific).
-2. sdd's scripts (`sdd-workspace`, `task-brief`, `review-package`) work in the git repo of the
+1. sdd's scripts (`sdd-workspace`, `task-brief`, `review-package`) work in the git repo of the
    current folder, which may be the owner's checkout: never run them from the session's own folder.
    Run each in a subshell started in the set (SKILL.md, **The worktree set**; `<sdd>` is the
    folder of the `subagent-driven-development` skill):
@@ -65,14 +62,7 @@ Without superpowers installed, say so in the log and build a larger phase inline
    - `(cd <set> && bash <sdd>/scripts/task-brief <set>/specs/NNN-slug/plan.md N)`;
    - `review-package` runs in the repo the task changed, with its output in that workspace:
      `(cd <set>/<component> && bash <sdd>/scripts/review-package <set>/specs/NNN-slug/plan.md <base> <head> <workspace>/review-<base7>..<head7>.diff)`.
-3. Check every implementer's and fixer's report for the red run. If it is missing, send the task back
-   to the agent; that counts as one of its fix rounds. The per-task review needs a clean lint run.
-4. **The task reviewer's checks.** The dispatch to sdd's task reviewer adds: reject the task when the
-   report lacks a RED run for any new test, or the RED came after the code (a fix round). For a
-   screen, **Warning colour only where the user must act:** and **Window edges tested:** (`pal-review-ui`
-   checks 8 and 9). For a restyle, every item in its **Existing behaviour** list (`references/plan.md`,
-   section 1) is still on the screen and its test passes.
-5. Review each task when its agent finishes; fix rounds for these per-task reviews: up to 5. A
+2. Review each task when its agent finishes; fix rounds for these per-task reviews: up to 5. A
    per-task fix round is done when the task's prove-it commands and the repo-wide lint and typecheck
    pass; the full tests run once, before the PR (section 6). Update `phase-state.yaml` (step 5) as
    each task lands, not at the end.

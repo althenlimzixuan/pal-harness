@@ -5,7 +5,8 @@
 - **Vehicle:** phase
 
 > Reads in about 10 minutes: about 1,500 words plus diagrams. Detail that does not fit goes in the
-> Appendix. If it still does not fit, split the phase.
+> Appendix. If it still does not fit, split the phase. Written in plain English for you: no jargon,
+> and the test steps and diagrams use the words you would use.
 
 ## Summary
 
@@ -21,6 +22,13 @@ Only questions that change what gets built. Reply in one line, like "accept all"
 "accept all except 2: B".
 
 1. (The question.) Options: A) (…) B) (…). **Recommended: A** — (why, in one line).
+
+## Rulings
+
+(Only while you change the spec in the session: your rulings, numbered and dated, one line each.
+Delete the section when there are none.)
+
+1. YYYY-MM-DD: (the ruling)
 
 ## Calls I made
 
@@ -43,9 +51,14 @@ One block per feature. Approving this spec approves how you will test it.
 1. Do: (what you do) → Expect: (what you should see)
 2. Do: (what you do) → Expect: (what you should see)
 3. (only when a result may surprise you: Do: … → Expect: … by design: why; delete it otherwise)
+4. (only when it needs hardware you can't reach before sign-off: Do: … → Expect: …
+   `unverified: <reason>`; the sign-off PR lists it)
 
 (A step whose result is right but may surprise you says why, in the step: "→ Expect: a new code
 arrives (by design: the app never says whether an account exists)".)
+
+(A destructive or optional step, such as removing the phone's screen lock, goes in their own feature
+block with its own script, so you can skip it on purpose.)
 
 (With the `no-owner-test` override, replace the test script with **What to expect now:** a list of
 what behaves differently and where to see it, one line each, with nothing to run.)

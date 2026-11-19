@@ -1,5 +1,83 @@
 # Changelog
 
+## 1.8.0 — 2026-11-19
+
+The 61 harness notes left in Pal Center's inbox after the 2026-11-19 clean-up (Pal Center phases 005 to 019, LFPV phases 006 to 011), released as one version. The design is `doc/specs/2026-11-19-harness-1.8.0-design.md`, and its notes table maps each note to its change. Note #64 (trial measures) stays open. The planned `upgrade` command moves to 1.9.0.
+
+- **Company mode** (new `skills/phase/references/company-mode.md`):
+  - every `/pm`, pickup, phase and quick fix runs `pal-work mode --project <key>` first;
+  - at a spec-review or findings stop with Company mode on, the session runs `pal-work wait-decision --phase NNN` and acts on approved, defaulted, changed, vetoed or none;
+  - anything about money, a key or anything public is held with `pal-work hold`;
+  - an answer that came from the default is recorded `(used by default)`;
+  - the sign-off PR and the staging test stay the owner's;
+  - `/pm` writes the Bundle line in the same write as the move.
+- **Chores and pickup** (new `skills/pm/references/chores.md`):
+  - the pickup ladder gains a **Chores** rung for due cards in `Chores (Active)` (`Every:` / `When:` / `Last run:`);
+  - `Action: harness notes` cards stay Pal Center's;
+  - a chore card is created only after the owner's yes;
+  - the pickup report gives the rung and reason for each skipped item, and the `/pm` note lists "Needs Approved to run".
+- **QA pass** (new `skills/phase/references/qa.md`):
+  - optional `harness.qa_command` in `project.yaml`, and `qa: none|running|passed|failed` in `phase-state.yaml` (missing reads as `none`);
+  - it runs after the sign-off merge, before the staging test (or before ship under `no-owner-test`);
+  - results go in `specs/NNN-slug/qa/`, and a failure is a fix round.
+- **New flow override `uat-queue`:**
+  - an unanswered staging test parks after 20 minutes;
+  - up to 3 phases wait on `staging` for one combined test;
+  - the oldest phase's session promotes them together, and the others skip promotion;
+  - a failure that later phases build on holds the batch, and steps that publish are never deferred.
+- **CI waits.** `devops_cicd.md` **Waiting on CI and merging**:
+  - **Hold pushes while CI runs** (the one exception to **Saved state** step 3);
+  - every watch runs as `timeout 520 gh pr checks … --watch --interval 30` (exit 124: run it again).
+- **Memory.** **Free memory before heavy runs** covers `make lint` and `make mock`, and every heavy command runs in the foreground with 600000 ms. A run cut short is run again, never pushed over:
+  - `make test` is retried per package group with `GOFLAGS=-p=1`;
+  - mocks fall back to `mockery --name <Interface>` with one full `make mock` before the PR;
+  - Jest uses `--maxWorkers=2`;
+  - startup waits read one CI-scaled constant.
+- **Subagents** (new `skills/phase/references/subagents.md`; `build.md`'s **Larger phase** steps 1, 3 and 4 move there):
+  - TaskStop on a second repeated report;
+  - a reply must quote the latest fix message's first line;
+  - no waiting on own background work, and a timeout is a failure;
+  - a **Known findings** list in every brief;
+  - an owner-facing wording check in the task review;
+  - stale language-server diagnostics are ignored when build, vet and tests pass.
+- **`workflow.md`:**
+  - **Plain English** for everything the owner reads;
+  - **Session habits**: the branch check before and after a push, retrying a temporary auto-mode check failure, `--body-file` for PRs, `npm ci` when `node_modules` is missing or stale, and restating a split plan before acting on it.
+- **Plan review:**
+  - a minors-only round ends the review;
+  - check 17 **File lists** and check 18 **Mobile release** (an app version bump; the resolved versions of a native dependency's shared libraries);
+  - link and junction test cases for delete helpers;
+  - an **Owner-run commands** section in the plan.
+- **The spec:**
+  - a new feature asked for during review becomes its own card;
+  - a running **Rulings** list, with one Codex doc check per batch;
+  - `unverified: <reason>` steps, which the sign-off PR lists;
+  - a store identity check;
+  - destructive or optional steps in their own feature;
+  - the two-role seed.
+- **Reviews:**
+  - `review-code`: client timeout against the server's chained budget; concurrency and lifecycle, applied early; kill switch;
+  - `review-errors`: programming errors not swallowed; failure paths of multi-step operations;
+  - after each fix round the failure path and the retry are re-checked;
+  - error-path fixtures are copied from a real response.
+- **Tests:**
+  - the speed check takes 10 pairs, and a slowdown needs both >20% and >2 ms on the p95;
+  - Jest shims export only the native module's exports, with a parity test;
+  - `screens.spec.ts` grows inner scroll containers before capturing.
+- **New `pal-harness utf8 [dir]`:** every tracked text file must be UTF-8 (`<path>:<line>: not UTF-8`, exit 1). The reusable `ci-gate.yml` runs it before fingerprinting, so every repo on the CI gate gets it.
+- **`features.yaml` results** take `check: <name>` in place of `step:` for an extra check (exactly one of the two). An unknown field in any `features.yaml` or `phase-state.yaml` type names the allowed fields.
+- **Staging test:**
+  - the two-role seed;
+  - a pre-flight that checks Docker (`docker info`) and the adb server, and resets the app with `adb shell pm clear <package>` (allowed in the project's `.claude/settings.json`, or a debug-only reset);
+  - steps that name exactly what to stop or start;
+  - the QA summary link.
+- **Release:**
+  - new `templates/runbook-android-release.md` (EAS keystore, the upload key lock, the Play Console draft);
+  - `ship.md` section 0 does a runbook dry-read and hands over the Owner-run commands;
+  - `devops_cicd.md` rules for **Vercel**, **Cloud Run** and **Self-hosted runners** (`WINDOWS_RUNNER`, shown in `templates/ci.yml`);
+  - `go_api.md` logs a hashed or shortened client address in production.
+- **Retro:** an **Owner stops** section (kind, wait, and whether it could have been a decision under Company mode) with a one-line count.
+
 ## 1.7.0 — 2026-11-19
 
 Pal Center's phase 003 and 005 and quick fix 002 notes, and LFPV's mock note (althenlimzixuan/ai-workshop#39–#47, althenlimzixuan/lfpv-docs#20). The design is `doc/specs/2026-11-19-harness-1.7.0-design.md`. The planned `upgrade` command moves to 1.8.0.

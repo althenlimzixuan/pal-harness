@@ -100,7 +100,8 @@ report with the reason, and the owner still sees it.
    - The round is done only when the repo's full lint, typecheck and test commands (`workflow.md`,
      **Check before every push**) pass in every repo it changed, each read from its own exit code.
      A single-file or single-package run does not count. Local Go runs set
-     `GOFLAGS=-p=1 GOMEMLIMIT=2GiB` (`testing.md`).
+     `GOFLAGS=-p=1 GOMEMLIMIT=2GiB` (`testing.md`). Stale language-server diagnostics are ignored
+     when those commands pass (`references/subagents.md`, section 4).
    - A fix for a bug finding starts with a test that reproduces the bug, run red; a fixer's report
      without that red run goes back to the fixer, and that counts as a fix round (build.md, section 3).
    - A contrast fix is measured again with `pal-harness contrast '<foreground>' '<background>'` (or the
@@ -108,6 +109,9 @@ report with the reason, and the owner still sees it.
    - A fix that changes behaviour the owner sees re-reads the affected features' test scripts in the
      spec and in `doc/features.yaml`. A step whose expected result no longer holds is updated in
      both, and the sign-off PR lists the change in Calls I made.
+   - After each fix round, the reviewer re-checks the failure path and the retry of what was fixed:
+     the fix fails part-way, then the owner tries again (a failed Stop then Start, a failed restore
+     then a second restore).
 2. This whole-branch review gets 3 rounds; the per-task reviews inside a larger build get 5 rounds.
 3. Still unfixed after the limit → "needs you" with what was tried (`kind: findings`).
 4. After the last code change, make the reports (section 1; under `ci-test-summary`, take the CI

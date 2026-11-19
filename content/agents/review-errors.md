@@ -22,7 +22,9 @@ Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listi
 4. **Boundaries:** handlers map errors to the contract's responses (RFC 7807 `application/problem+json`; 401, 403, 422, 429, 503 handled explicitly); screens show an error state, not a blank or an endless spinner.
 5. **Resources and state:** partial writes left behind on failure, missing cleanup, a goroutine or promise whose failure nobody observes.
 6. **Messages:** no secrets, tokens or personal data in error text or logs.
-7. Rate by impact: data loss or a hidden production failure is major or critical; a missing log line is minor.
+7. **Programming errors:** an "any error becomes unavailable" mapping (a blanket catch that shows "offline" or "try again") must not swallow programming errors (TypeError, ReferenceError, a nil dereference, a panic); those show a generic error and are logged, so the bug is visible.
+8. **Failure paths:** for each multi-step operation (a restore, a stop then start, an install, a migration), what does the owner see if a later step fails? A failure that leaves no notice, or leaves the state half-changed with no way back, is a finding.
+9. Rate by impact: data loss or a hidden production failure is major or critical; a missing log line is minor.
 
 ## Report
 

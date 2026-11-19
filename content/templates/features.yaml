@@ -11,3 +11,4 @@
   test_script:
     - {step: 1, do: "Open a trip and set a budget of 500", expect: "The budget shows 500 on the trip page"}
   results: []                  # {date, env: local|staging|prod, step, result: pass|fail, note, issue}
+                               # an extra check outside the test script: check: <name> instead of step:

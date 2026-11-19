@@ -2,6 +2,7 @@
 # first; each job then runs unless its decision is "skip". A job is skipped when the fingerprint of
 # the files it reads (pal-harness fingerprint) already passed, recorded by ci-mark.yml as
 # refs/ci-passed/<job>/<fingerprint>. Start from .pal-harness/templates/ci.yml.
+# Before deciding, it runs pal-harness utf8: a tracked text file that is not UTF-8 makes the gate red.
 name: ci-gate
 on:
   workflow_call:
@@ -50,6 +51,11 @@ jobs:
         with:
           go-version: "1.26"
           cache: false
+      - name: Check text files are UTF-8
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: go run "github.com/althenlimzixuan/pal-harness/cmd/pal-harness@v${VERSION}" utf8 .
       - name: Decide which jobs run
         id: decide
         shell: bash
