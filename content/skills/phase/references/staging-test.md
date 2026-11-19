@@ -57,6 +57,8 @@ it is the first thing the message asks of the owner.
    link, and says where to test: the URL, the test account for each role (names, never passwords),
    Expo Go. With a `Pal Center version:` line of 0.4.0 or later, it adds: the steps are also there
    in Pal Center's Work tab, each feature's **Test** button under Waiting on you opens its steps.
+   After a QA pass (`references/qa.md`), it links the QA summary (`specs/NNN-slug/qa/summary.md`)
+   and says every step passed there.
 4. Collect the results:
    - With a `Work CLI: "<path>"` line and `Pal Center version:` 0.4.0 or later, arm
      `"<path>" wait-results --phase NNN --timeout 9m` through Monitor and re-arm it on exit 3 (still
@@ -67,6 +69,17 @@ it is the first thing the message asks of the owner.
      one step (do, expect), wait for pass or fail with an optional note, then the next.
 5. Record every step in the feature's `results` in `doc/features.yaml`:
    `{date, env, step, result, note, issue}`. Commit and push after each feature.
+
+**Under `uat-queue`** (SKILL.md, **Flow overrides**):
+
+1. **Park.** A test still unanswered 20 minutes after the "needs you" is parked as awaiting UAT:
+   `waiting_on_owner` stays set, the session reports `--state waiting` (SKILL.md, **Owner stops**
+   step 6), and `wait-results` stays armed. `/pm pickup` may then start the next card.
+2. **One test.** When a later phase joins the queue (`references/signoff.md`, section 1), its
+   message replaces the earlier ones: it lists every queued phase's steps, oldest phase first, each
+   under its phase number, so the owner tests once. Each session records only its own phase's results.
+3. A failed step is handled by its own phase's session, as section 5 says; the hold on the batch
+   is in `references/ship.md`, section 1.
 
 ## 5. A failed step: fix now or defer
 

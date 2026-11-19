@@ -166,3 +166,20 @@ func TestShippedNeedsNoOwnerTest(t *testing.T) {
 	_, got = ValidateFeaturesFor([]byte(strings.Replace(validFeature, "label: need", "label: x", 1)), nil)
 	check(t, got, []string{"F-001: label must be need or might"})
 }
+
+// pal-harness 1.8.0: the QA pass state (design A3).
+func TestPhaseStateQA(t *testing.T) {
+	base := string(read(t, "phase-state.yaml"))
+	ps, findings := ParsePhaseState([]byte(base))
+	if len(findings) != 0 || ps.QA != "none" {
+		t.Fatalf("missing qa: got %q, findings %v", ps.QA, findings)
+	}
+	for _, v := range QAStates {
+		ps, findings := ParsePhaseState([]byte(base + "qa: " + v + "\n"))
+		if len(findings) != 0 || ps.QA != v {
+			t.Errorf("qa %s: got %q, findings %v", v, ps.QA, findings)
+		}
+	}
+	_, findings = ParsePhaseState([]byte(base + "qa: done\n"))
+	check(t, findings, []string{"qa must be none, running, passed or failed"})
+}

@@ -11,6 +11,9 @@ feature list, the boards and the later list honest. You do not build: a phase ru
 from the project's SSOT root. Recommend, don't survey: every list you show marks one pick with a
 one-line reason.
 
+**Mode first.** `/pm` and `/pm pickup` run `pal-work mode --project <key>` before anything else and
+follow `.pal-harness/skills/phase/references/company-mode.md`; never trust a note about the mode.
+
 ## Invocations
 
 - `/pm` — reconcile, then the start-of-session note and recommended next.
@@ -112,7 +115,9 @@ Numbered, about ten lines, phone-readable:
 2. Waiting on you: the count, then one line each (what to do, and the link from `waiting_on_owner`).
 3. Retest: the count. Deferred: the count. These never take a recommended slot.
 4. Recommended next, with the proposed bundle and vehicle (below).
-5. Later list: its line count, and the phases left until the north-star review.
+5. Needs Approved to run: the items pickup cannot take on its own (a phase card, or one that needs
+   spend, a credential or a decision), one line each, so the owner knows what to approve.
+6. Later list: its line count, and the phases left until the north-star review.
 
 ## Recommended next
 
@@ -142,7 +147,8 @@ Numbered, about ten lines, phone-readable:
 3. Mark the bundle inside the column: write
    `Bundle: F-012 + owner/repo#431, owner/repo#455 · vehicle: phase — <reason>` as the first line of
    the lead card's body (the feature's draft card; for a backlog-only bundle, a comment on the lead
-   issue).
+   issue). Write it whenever you recommend work or a pickup claims a card, in the same write as the
+   move: Pal Center reads the vehicle from it.
 4. The owner adjusts it, then approves by moving the lead card to `Approved to run` or by saying so
    (you move it). Approval sets the feature `picked`. Then route:
    - `phase` → follow `.pal-harness/skills/phase/SKILL.md` with the bundle;
@@ -162,6 +168,8 @@ projects**). Read its phase state there as usual; nothing else in this skill cha
   `staging-test`, `shipping` or `done`; so does a card in `In flight`.
 - The next phase may start building while the previous one waits for the owner's staging test. Its
   sign-off PR waits until that test is done (one staging at a time).
+- Under `uat-queue` (phase skill, **Flow overrides**), a phase whose staging test is parked awaiting
+  UAT does not block: pickup may start the next card, and up to 3 phases wait on `staging` together.
 
 ## Reviewer findings and the later list
 
@@ -203,28 +211,33 @@ projects**). Read its phase state there as usual; nothing else in this skill cha
 
 ## `/pm pickup` — the ladder
 
-Run it by hand until Pal Center schedules it. Stop at the first rung you can take without spending
-the owner's authority.
+Run it by hand when Pal Center has not. Stop at the first rung you can take without spending the
+owner's authority. For each card or backlog item it passes over, the report gives the rung and the
+reason in one line ("rung 4: needs a contract change").
 
-0. Busy check (**One card at a time**). Busy → say what is in flight and stop. If a board cannot be
-   read, say it was unreachable; never report that as "nothing approved".
-1. **Approved card.** A card in `Approved to run` is the owner's approval. Claim it first: move it to
+0. Busy check (**One card at a time**). Busy → say what is in flight, run a due chore (rung 1) if
+   there is one, and stop. If a board cannot be read, say it was unreachable; never report that as
+   "nothing approved".
+1. **Chores.** A due chore in the Roadmap board's `Chores (Active)` column runs first, by
+   `.pal-harness/skills/pm/references/chores.md`; a chore may run beside a phase. A card with
+   `Action: harness notes` is Pal Center's and is left alone.
+2. **Approved card.** A card in `Approved to run` is the owner's approval. Claim it first: move it to
    `In flight` before any other work; if that write fails, stop. Re-read the truth from the files,
    never the card, then route by vehicle (**Bundle and vehicle** step 4). No vehicle on the card →
    `Waiting on you` with "set the vehicle". Not runnable (no matching feature or issue, a goal too
    vague, a prerequisite unmet) → `Discard`, with `Discarded by Pal: <reason>` as the first line of
    the card's body (a comment on an issue card), and tell the owner.
-2. **Pal's recommended card** (the lead card in `Recommended next`). Refuse it, leaving it where it
+3. **Pal's recommended card** (the lead card in `Recommended next`). Refuse it, leaving it where it
    is, when starting it needs cost (anything that moves the monthly bill), credentials or sensitive
    data, a product-direction decision or a breaking contract change, or a human gate already known.
-   On refusal, tell the owner the one decision that unblocks it and go to rung 3. Otherwise claim it
-   as in rung 1, noting in `phase-state.yaml` `notes` that pickup took it without approval: a `phase`
+   On refusal, tell the owner the one decision that unblocks it and go to rung 4. Otherwise claim it
+   as in rung 2, noting in `phase-state.yaml` `notes` that pickup took it without approval: a `phase`
    card drafts the spec, then stops at spec review; a `quick-fix` card runs
-   only if it also passes the rung 3 bar; an `owner-task` card is skipped.
-3. **Safe backlog `Todo` items.** Read the backlog board's `Todo` column only, never `Triage`:
+   only if it also passes the rung 4 bar; an `owner-task` card is skipped.
+4. **Safe backlog `Todo` items.** Read the backlog board's `Todo` column only, never `Triage`:
    `gh project item-list <n> --owner <o> --limit 500 --format json --jq '.items[] | select(.status=="Todo")'`.
    Before claiming, require `state == OPEN` (`gh issue view`); a closed issue's card moves to `Done`
    and you take the next. An open issue may still be delivered: check the source before starting.
    Take the top item that needs no new spend, no credential, no contract change and no product
    decision; run it as a `quick-fix` and stop where its gates stop it.
-4. Nothing qualifies → say so and stop. An idle morning honestly reported is a fine outcome.
+5. Nothing qualifies → say so and stop. An idle morning honestly reported is a fine outcome.
