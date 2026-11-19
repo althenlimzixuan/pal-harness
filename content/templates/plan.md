@@ -47,6 +47,13 @@ or folders lists its link and junction test cases.
 |---|---|---|
 | (callback, event or hook) (Task N) | (lock) | (locks or calls it makes) |
 
+## Owner-run commands
+
+Commands only you can run, with their exact text, in the order ship needs them. "none" when there
+are none.
+
+1. (where to run it) `(the exact command)` (what it does, in one line)
+
 ## Tasks
 
 One block per task.

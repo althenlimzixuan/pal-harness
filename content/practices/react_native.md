@@ -246,6 +246,11 @@ appId: com.company.etp
   `--non-interactive`, so a file added in a fix round bundles without a restart. This holds in
   every fix round and every restart, not only the first start.
 - Never run `adb disconnect` or `adb kill-server`, and never toggle the phone's wireless debugging.
+- **A fresh app for each test.** The staging-test pre-flight clears the app's data on each phone with
+  `adb shell pm clear <package>`. Auto mode blocks it unless the project allows exactly that command
+  in its `.claude/settings.json` (`"Bash(adb shell pm clear <package>)"` under `permissions.allow`,
+  with the real package). A project that cannot allow it ships a debug-only reset in the app (a
+  hidden developer action that clears its storage) and the pre-flight uses that.
 - The test devices are listed in `doc/devices.yaml`: names and addresses only, no pairing codes.
 
   ```yaml

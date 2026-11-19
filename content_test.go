@@ -57,6 +57,7 @@ func TestContentComplete(t *testing.T) {
 		"content/templates/phase-state.yaml",
 		"content/templates/plan.md",
 		"content/templates/retro.md",
+		"content/templates/runbook-android-release.md",
 		"content/templates/screens.spec.ts",
 		"content/templates/signoff-pr.md",
 		"content/templates/spec.md",
@@ -1017,4 +1018,29 @@ func TestHarness180Rules(t *testing.T) {
 	has("practices/ssot_standard.md", "`check: <name>`")
 	has("templates/features.yaml", "check:")
 	has("practices/devops_cicd.md", "`pal-harness utf8`")
+
+	// D1. Owner tests.
+	has("skills/phase/references/staging-test.md", "two-role seed", "`docker info`", "adb server",
+		"`adb shell pm clear <package>`", "stop the API only", "airplane mode")
+	has("skills/phase/references/spec.md", "**Destructive or optional steps**", "their own feature",
+		"two-role seed")
+	has("templates/spec.md", "their own feature")
+	has("practices/workflow.md", "**A split plan**", "waits for a yes")
+	has("practices/react_native.md", "`adb shell pm clear <package>`", "`.claude/settings.json`",
+		"debug-only reset")
+
+	// D2. Release and devops.
+	has("templates/runbook-android-release.md", "keystore", "upload key", "Play Console",
+		"Add from library", "advertising ID")
+	has("skills/phase/references/plan.md", "**Owner-run commands**")
+	has("templates/plan.md", "## Owner-run commands")
+	has("skills/phase/references/ship.md", "Owner-run commands", "dry-read")
+	has("practices/devops_cicd.md", "**Vercel:**", "root folder and production branch", "a preview first",
+		"**Cloud Run:**", "old revision", "**Self-hosted runners:**", "`WINDOWS_RUNNER`")
+	has("templates/ci.yml", "WINDOWS_RUNNER")
+	has("practices/go_api.md", "hashed or shortened client address")
+
+	// D3. Trial measures in the retro.
+	has("agents/retro.md", "**Owner stops:**", "could have been a decision under Company mode")
+	has("templates/retro.md", "## Owner stops")
 }

@@ -19,8 +19,9 @@ Use Bash only for read-only inspection (`git log`) and for the capture command b
 1. Copy `.pal-harness/templates/retro.md` to `specs/NNN-slug/retro.md` and fill it in.
 2. **Went well:** what to keep doing, each with the evidence in one line.
 3. **Went badly:** what to fix, and what it cost (rounds, hours, rework). Facts from the folder, not guesses.
-4. **Ideas:** each an improvement to the harness or the flow (skills, agents, practices, templates, Pal Center), one line each, about the process and not the product. No ideas is a valid answer: write `none`.
-5. Write no file other than `retro.md` and, for the fallback below, the feedback file.
+4. **Owner stops:** each owner stop from `phase-log.md` and `phase-state.yaml` history: its kind, how long it waited (from `since` to the answer), and whether it could have been a decision under Company mode (a spec-review or findings stop with recommended answers and no money, key or public question). End with a one-line count: `N stops, M could have been decisions, H hours waiting`.
+5. **Ideas:** each an improvement to the harness or the flow (skills, agents, practices, templates, Pal Center), one line each, about the process and not the product. No ideas is a valid answer: write `none`.
+6. Write no file other than `retro.md` and, for the fallback below, the feedback file.
 
 ## File the ideas
 

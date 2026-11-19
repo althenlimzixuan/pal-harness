@@ -82,6 +82,8 @@ Every 5 phases Pal walks the north star, the feature list and the later list wit
   origin/<branch>` after a fetch).
 - **A temporary auto-mode check failure** (the permission check could not run) is retried after a
   short wait, with other work going on meanwhile. It is never an owner stop.
+- **A split plan** from the owner ("this session reviews, the next pickup builds") is restated in
+  one line, and the session waits for a yes before acting on it.
 - **PR bodies** are written to a file and passed with `--body-file`, never inline: a heredoc breaks
   on backticks.
 - **Dependencies.** At session start, each component with a `package.json` and no `node_modules`

@@ -4,6 +4,16 @@ After the owner's staging test is passed or deferred (under `no-owner-test`, str
 sign-off): promote to `main`, deploy, tear staging down, write the retro, close out. SKILL.md's
 **Flow overrides** change sections 1, 2 and 4 as marked.
 
+## 0. Before ship
+
+1. **The runbook dry-read.** Read every command and file name in the phase's runbooks
+   (`doc/runbooks/`, and the plan's **Owner-run commands**) against the owner's real files: the
+   `.tfvars` names, the workflow names, the package, the profile names. Fix any mismatch in the
+   runbook first, on `docs/NNN-slug`.
+2. **Hand over the Owner-run commands** as one numbered list in one message, with the exact text and
+   where to run each, before the promotion; never find them mid-run. Wait for the owner's "done" on
+   the ones ship needs before going on; the rest go in the final message.
+
 ## 1. Promote to `main`
 
 1. In each component repo the phase touched, and in the SSOT repo (single-repo: the SSOT repo

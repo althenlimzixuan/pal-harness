@@ -61,6 +61,11 @@ passes, building starts.
     plan, before the build.
 14. **File lists.** Each task's file list holds every file its code, tests, fixture and prove-it
     commands name.
+15. **Owner-run commands.** Every command only the owner can run (a production `terraform apply`,
+    `gh workflow run` on a protected workflow, `eas submit`, a store or console step, anything auto
+    mode refuses) is listed under the plan's **Owner-run commands**, with its exact text and where to
+    run it, in the order ship needs them. A first store release copies
+    `.pal-harness/templates/runbook-android-release.md` (or the project's runbook) in a task.
 
 ## 2. The summary
 

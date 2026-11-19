@@ -57,6 +57,9 @@ One block per feature. Approving this spec approves how you will test it.
 (A step whose result is right but may surprise you says why, in the step: "→ Expect: a new code
 arrives (by design: the app never says whether an account exists)".)
 
+(A destructive or optional step, such as removing the phone's screen lock, goes in their own feature
+block with its own script, so you can skip it on purpose.)
+
 (With the `no-owner-test` override, replace the test script with **What to expect now:** a list of
 what behaves differently and where to see it, one line each, with nothing to run.)
 

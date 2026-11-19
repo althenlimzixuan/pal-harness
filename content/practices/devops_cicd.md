@@ -90,6 +90,10 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
      notification and keep working (it is not an owner stop);
   3. keep `ci: red` with the note `ci blocked: Actions spending limit; local CI green`. A PR into
      `dev` may merge on that local evidence; the sign-off PR says CI did not run.
+- **Self-hosted runners:** a repo that runs out of free minutes moves its heavy jobs (Windows,
+  long builds) to the owner's self-hosted runner. The job reads the runner from a repository
+  variable, `runs-on: ${{ vars.WINDOWS_RUNNER || 'windows-latest' }}` (`templates/ci.yml` shows it),
+  so setting `WINDOWS_RUNNER` to the runner's label moves it, and unsetting it moves it back.
 - **Bot PRs get CI:** a workflow that opens a PR with `GITHUB_TOKEN` gets no CI, since GitHub starts
   no workflow for it. So `ci.yml` has `workflow_dispatch:`, and the bot workflow (with
   `actions: write`) runs `gh workflow run ci.yml --ref <branch>` after opening the PR;
@@ -130,10 +134,15 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
 - GCP path: Cloud Run (primary recommendation — scales to zero, managed)
 - AWS path: ECS Fargate (more control, more ops)
 - Migrations run manually before deploy: `make migrate-up`
+- **Cloud Run:** after `terraform apply`, traffic stays on the old revision until the deploy
+  workflow runs, so the runbook runs the deploy workflow next and checks the serving revision
 
 **Next.js Web + Admin**:
 - Vercel (default, regardless of backend cloud)
 - Environment variables set in Vercel dashboard, not committed
+- **Vercel:** a project is set up with its root folder and production branch before the first
+  deploy (a monorepo's root folder is the app's folder, the production branch is `main`). A
+  production redeploy or a settings change is tried on a preview first.
 
 **React Native Mobile**:
 - EAS Build for binary compilation
