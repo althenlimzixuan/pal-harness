@@ -7,6 +7,9 @@
 - **Test behaviour, not implementation**: If refactoring internals breaks tests, the tests are wrong.
 - **Coverage gate**: 80% minimum, enforced in CI. Coverage is a floor, not a target.
 - Tests are documentation. A test that requires comments to understand is a bad test.
+- **Startup waits**: a test that waits for a server's health or startup reads its limit from one
+  CI-scaled constant per repo (longer when `CI` is set or on the self-hosted runner), never a
+  literal such as 15 seconds.
 
 ## Test Fixture Format
 
@@ -98,7 +101,8 @@ the owner's interactive session and as the self-hosted runner's standard user in
   dependencies installed.
 - **One report at a time:** the command runs the components' reports one after another. Two Jest
   processes never run at once (on Windows they collide on the transform cache with EPERM); if EPERM
-  still appears, that run uses `--no-cache`.
+  still appears, that run uses `--no-cache`. Jest full runs and the report command pass
+  `--maxWorkers=2`, after `pal-harness mem` (`devops_cicd.md`, **Free memory before heavy runs**).
 - **Location:** `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/` in the SSOT repo, committed.
 - **Every phase:** `unit_test.html`, `test_coverage.html`, `regression.html`,
   `profiling.html`, and a numbered `summary.md` (pass/fail counts, coverage %, slowest calls, the paired speed check

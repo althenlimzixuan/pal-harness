@@ -25,12 +25,19 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
   reaches `dev`, `staging` and `main` through a PR, so the PR run is the gate. A self-hosted runner costs no minutes,
   so its Windows jobs may also run on `workflow_dispatch` (the session-0 run in the phase's
   `references/build.md`, section 6).
-- **Waiting on CI and merging:** watch with `gh pr checks <n> -R <owner/repo> --watch --interval 30` as a
-  foreground command with a Bash timeout of 540000 ms (9 minutes); if it times out with checks still
-  pending, run it again. Watch a workflow run started by hand the same way, with
-  `gh run watch <id> -R <owner/repo> --interval 30`. Never watch CI with `run_in_background`, Monitor or a background loop:
+- **Waiting on CI and merging:** watch with `gh pr checks <n> -R <owner/repo> --watch --interval 30`,
+  always run as `timeout 520 gh pr checks <n> -R <owner/repo> --watch --interval 30` in the
+  foreground with a Bash timeout of 540000 ms (9 minutes): the `timeout` ends it before the tool
+  can, so Claude Code never moves it to the background. Exit 124 means checks are still running: run
+  the same command again. Watch a workflow run started by hand the same way, with
+  `gh run watch <id> -R <owner/repo> --interval 30`, run as `timeout 520 gh run watch <id> -R <owner/repo> --interval 30`. Never watch CI with `run_in_background`, Monitor or a background loop:
   Claude Code kills background watchers when memory runs low, as it does while a self-hosted runner
   builds on the same PC.
+  0. **Hold pushes while CI runs.** The CI gate cancels the older run when a newer push reaches the
+     same PR, so a state, log or docs push to a PR's branch while its CI runs costs a whole run.
+     Commit those to the branch locally and push them in one push once the watch ends. This is the
+     one exception to the phase skill's **Saved state** step 3; it is safe because a CI run is far
+     shorter than the 1-hour stuck limit. Pushes to other branches go on as usual.
   1. **Wait** with that one foreground watch.
   2. **A watch that ends without its own exit code** (the tool says it was killed, interrupted or
      timed out) is run again. From the second such end in a row, run `pal-harness mem --wait 9m`
@@ -60,14 +67,20 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
   - The SSOT repo's `ssot` check runs on every push, `specs/**` included: it validates
     `phase-state.yaml` and runs on GitHub's machines, not the owner's PC.
 - **Free memory before heavy runs:** before the test reports, a full test run (the full check before
-  the PR, a fix round's check), a release or native build (Tauri, local Gradle or EAS, Docker) or an
-  app install on a phone (`pal-harness` is run as `.pal-harness/practices/ssot_standard.md` says):
+  the PR, a fix round's check), `make lint`, `make mock`, a release or native build (Tauri, local Gradle or EAS, Docker) or an
+  app install on a phone (`pal-harness` is run as `.pal-harness/practices/ssot_standard.md` says).
+  Every heavy command (mock, lint, test, build) runs in the foreground with a Bash timeout of
+  600000 ms, never `run_in_background`:
   1. run `pal-harness mem` (exit 0: at least 2 GiB available);
   2. under the minimum (exit 1): stop what the session started and no longer needs (an emulator, an
      old dev server, Metro from another checkout), then run `pal-harness mem --wait 9m` in the
      foreground (Bash timeout 600000 ms); it re-checks every 30 seconds;
   3. still under: run anyway and write `low memory: <free> free before <run>` in the log. It is not
      an owner stop. Exit 2 (a platform it cannot read) is noted in the log, and the run goes on.
+  4. **A run cut short by low memory** (killed, or no exit code of its own) is run again, never pushed over:
+     lint is run again; `make test` is re-run one package group at a time with `GOFLAGS=-p=1`,
+     retrying only the group that was cut; a stopped `make mock` falls back to
+     `mockery --name <Interface>` as `go_api.md` (**Mocks.**) says.
 - **Read a red run before fixing it** (`gh run view <id> -R <owner/repo>`). A job that never started
   because of the spending limit or a billing problem is not a code failure and not a fix round:
   1. run the repo's CI commands locally on the PR's head (the checks of `workflow.md`, **Check before
