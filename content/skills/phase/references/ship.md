@@ -9,7 +9,7 @@ sign-off): promote to `main`, deploy, tear staging down, write the retro, close 
 1. In each component repo the phase touched, and in the SSOT repo (single-repo: the SSOT repo
    only):
    `gh pr create -R <owner/repo> --base main --head staging --title "Promote staging to main (phase NNN)"`,
-   watch CI, merge with a merge commit (`gh pr merge <n> -R <owner/repo> --merge`). It merges on its
+   wait on CI and merge with a merge commit (`devops_cicd.md`, **Waiting on CI and merging**; `gh pr merge <n> -R <owner/repo> --merge`). It merges on its
    own until the product is in production.
 2. A project in production has the owner's gate on `main` (its Workflow Overrides): title these PRs
    `[HUMAN GATE] …` and wait for the owner as an owner stop (`kind: signoff`); never merge them
@@ -76,7 +76,7 @@ sign-off): promote to `main`, deploy, tear staging down, write the retro, close 
 2. Open the close-out PR (`gh pr create -R <owner/repo> --base dev --head docs/NNN-slug`) from
    `docs/NNN-slug` into `dev` (the branch's second PR): the retro, the
    results and statuses in `doc/features.yaml`, the final `phase-state.yaml`, any `_feedbacks/`
-   note. It merges on its own once CI is green (`gh pr merge <n> -R <owner/repo> --merge`). Pal Center reads
+   note. It merges on its own once CI is green (`devops_cicd.md`, **Waiting on CI and merging**; `gh pr merge <n> -R <owner/repo> --merge`). Pal Center reads
    the phase from `dev` from now on.
 3. Once deployed (or, with no production yet, once staging → main merges; under `installer-ready`,
    once the installer is downloaded) and the close-out PR merged, write **recommended next**: run the

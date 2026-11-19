@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.7.0 — 2026-11-19
+
+Pal Center's phase 003 and 005 and quick fix 002 notes, and LFPV's mock note (althenlimzixuan/ai-workshop#39–#47, althenlimzixuan/lfpv-docs#20). The design is `doc/specs/2026-11-19-harness-1.7.0-design.md`. The planned `upgrade` command moves to 1.8.0.
+
+- New CI gate: reusable workflows `.github/workflows/ci-gate.yml` (fingerprints each job's paths and skips a job whose fingerprint already passed) and `ci-mark.yml` (records a passed job as `refs/ci-passed/<job>/<fingerprint>`), a new `pal-harness fingerprint [--rev HEAD] [--with <path>]... [--dir .] <spec | ->` command, and `templates/ci.yml`, the caller with a concurrency group that cancels the older run. `devops_cicd.md` gains **The CI gate**; the pipeline's one skip and `testing.md`'s Test reports move from "promotion tree hash" to "job fingerprint". Projects adopt it by one quick fix each.
+- `devops_cicd.md`: **Watching CI** becomes **Waiting on CI and merging**: a watch killed for low memory is run again (with `pal-harness mem --wait 9m` from the second kill), never parked for the owner; before every `gh pr merge`, the unpiped `gh pr checks` exit code (`8` still running: do not merge); `ci:` is only `green`, `red`, `running` or `none`. Every merge in the phase, quick-fix and pm skills points there.
+- `devops_cicd.md` and `go_api.md`: a **Generated code** stage, `make wire` then `git diff --exit-code`, so a stale `wire_gen.go` fails CI.
+- `go_api.md` and `testing.md`: mocks are `go run github.com/vektra/mockery/v2@v2.53.7 --all --output mocks` into a flat top-level `mocks/` (package `mocks`), as LFPV runs it; `--keeptree` is gone; interface names are unique across the module.
+- `plan.md`, the plan template and `review-plan`: a **Deletes and locks** section (each delete helper's read-only check that its target is its own; each callback fired under a lock, with the lock); check 16 and two `harness list` items make a missing one a major finding.
+- `pal-work wait-ci` and the CI nudge (ai-workshop#41, #42) went to Pal Center as a product capture; the RED-per-test rule (ai-workshop#44) already shipped in 1.6.0.
+
 ## 1.6.0 — 2026-11-09
 
 Pal Center's phase 009 notes and LFPV's phase 003 notes (althenlimzixuan/ai-workshop#29–#38). The design is `doc/specs/2026-11-09-harness-1.6.0-design.md`. The planned `upgrade` command moves to 1.7.0.

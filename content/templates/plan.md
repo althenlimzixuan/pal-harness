@@ -33,6 +33,18 @@ Each gate (a grep, lint rule or script that decides a task is done), run before 
 |---|---|---|
 | (command) (Task N) | (N matches, all real hits; or the false hit's file:line) | fails, as it should |
 
+## Deletes and locks
+
+"none" when no task deletes anything or fires a callback under a lock.
+
+| Delete helper (task) | What it deletes | The read-only check first (proves the target is its own) |
+|---|---|---|
+| (helper) (Task N) | (files, folders, rows or keys) | (a marker it wrote, a path under its own root, a row it owns) |
+
+| Callback under a lock (task) | Lock held | What the callback may take (never the same lock) |
+|---|---|---|
+| (callback, event or hook) (Task N) | (lock) | (locks or calls it makes) |
+
 ## Tasks
 
 One block per task.

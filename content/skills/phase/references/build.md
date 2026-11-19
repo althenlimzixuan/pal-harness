@@ -21,7 +21,7 @@ Without superpowers installed, say so in the log and build a larger phase inline
    (`gh pr list -R <owner/repo> --base dev --author app/github-actions`):
    1. no checks → `gh pr close <n> -R <owner/repo>`, then `gh pr reopen <n> -R <owner/repo>`: a
       reopen by the session fires `pull_request`, so the full CI runs, in every repo, with or
-      without `workflow_dispatch:`. Watch it in the foreground (`devops_cicd.md`, **Watching CI**);
+      without `workflow_dispatch:`. Watch it in the foreground (`devops_cicd.md`, **Waiting on CI and merging**);
    2. green → `gh pr merge <n> -R <owner/repo> --merge`, then branch from the new `origin/dev`;
    3. red → leave it and note it in the log. If the phase's CI then fails on the same check, merge
       the bot's branch into the phase branch instead of fixing it by hand; that is not a fix round.
@@ -133,18 +133,18 @@ stuck (section 6 step 4).
       it and save its output as `specs/NNN-slug/reviews/session0-YYYY-MM-DD-HHmm.md`;
    2. no command named, but `ci.yml` has `workflow_dispatch:` and its Windows job runs on a
       self-hosted runner: push the branch, run `gh workflow run ci.yml -R <owner/repo> --ref <branch>`,
-      watch the run in the foreground (`devops_cicd.md`, **Watching CI**) and save its result there;
+      watch the run in the foreground (`devops_cicd.md`, **Waiting on CI and merging**) and save its result there;
    3. neither: write `session-0 run: not available (<reason>)` in the log and in the PR body.
 
    Red → fix it test first, then run it again; 3 rounds, then section 5. It runs again only when a
    later fix changes that code or those tests.
 3. Open each `feature/NNN-slug` PR into `dev` (`gh pr create -R <owner/repo> --base dev --head feature/NNN-slug`); do
    not merge yet. Single-repo: open the code PR `docs/NNN-slug` → `dev` instead. Set
-   `ci: running`; watch it in the foreground (`devops_cicd.md`, **Watching CI**).
+   `ci: running`; watch it in the foreground (`devops_cicd.md`, **Waiting on CI and merging**).
 4. CI red → read why first (`gh run view <id> -R <owner/repo>`). A job that never started because
    of the spending limit or billing is not a fix round and does not make the build stuck: run CI
    locally as `devops_cicd.md` (**CI runs and minutes**) says; a green local run counts as this
    PR's CI for the merge gates (`review.md` section 6, quick-fix, sign-off). Otherwise fix, push,
-   watch again (each fix is a round; 3 rounds, then section 5). Green on every PR → `ci: green`.
-5. `stage: code-review`; bundle features `code-review`. Commit and push.
-6. Go to `.pal-harness/skills/phase/references/review.md`.
+   watch again (each fix is a round; 3 rounds, then section 5). Green on every PR → `ci: green`;
+   `ci:` takes only `green`, `red`, `running` or `none` (exit 8 is `running`, never `pending`).
+5. `stage: code-review`; bundle features `code-review`. Commit and push. Go to `references/review.md`.

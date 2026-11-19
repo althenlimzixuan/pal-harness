@@ -25,7 +25,7 @@ pass (section 4).
    `doc/decisions.md`, `doc/later.md` and `phase-state.yaml` (`stage: signoff`).
 2. Single-repo: skip this section; the code PR already brought the branch into `dev` (SKILL.md,
    **Single-repo projects**). Otherwise open its PR into `dev` just before the sign-off PR. It
-   merges on its own once CI is green, with a merge commit so the same branch can PR again at ship: watch CI in the foreground (`devops_cicd.md`, **Watching CI**), then
+   merges on its own once CI is green, with a merge commit so the same branch can PR again at ship: watch CI in the foreground (`devops_cicd.md`, **Waiting on CI and merging**), then
    `gh pr merge <n> -R <owner/repo> --merge` (CI blocked by the spending limit: on the green local run,
    `devops_cicd.md`, **CI runs and minutes**). Keep the branch: Pal Center reads `phase-state.yaml` from it, and the
    close-out PR at ship comes from it.
@@ -73,7 +73,7 @@ Fill `.pal-harness/templates/signoff-pr.md` (the template's first line is the ti
      notify again.
    - Merged: go on.
 
-Under `auto-promote`, steps 2–4 do not apply: watch CI in the foreground (`devops_cicd.md`, **Watching CI**), merge with
+Under `auto-promote`, steps 2–4 do not apply: watch CI in the foreground (`devops_cicd.md`, **Waiting on CI and merging**), merge with
 `gh pr merge <n> -R <owner/repo> --merge`, and go to section 5.
 
 ## 5. After the owner merges (or, under `auto-promote`, after the merge)
@@ -81,7 +81,7 @@ Under `auto-promote`, steps 2–4 do not apply: watch CI in the foreground (`dev
 1. `gates.signoff_merged` the date; clear `waiting_on_owner`; commit and push.
 2. Promote each component repo the phase touched, `dev → staging`, yourself: open
    `gh pr create -R <owner/repo> --base staging --head dev --title "Promote dev to staging (phase NNN)"`,
-   watch CI, and merge with a merge commit (`gh pr merge <n> -R <owner/repo> --merge`). These PRs
+   wait on CI and merge with a merge commit (`devops_cicd.md`, **Waiting on CI and merging**; `gh pr merge <n> -R <owner/repo> --merge`). These PRs
    carry no `[HUMAN GATE]`: the owner's merge above approved them. Single-repo: there are none.
 3. `stage: staging-test`. Commit and push; compact (SKILL.md, **Owner stops** step 6).
    Under `no-owner-test`: `stage: shipping` instead (`gates.staging_test_done` stays `null`).
