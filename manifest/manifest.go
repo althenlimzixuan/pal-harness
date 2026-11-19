@@ -89,10 +89,13 @@ type Harness struct {
 	LegacySpecsBefore string     `yaml:"legacy_specs_before,omitempty"`
 	Overrides         []Override `yaml:"overrides"`
 	FlowOverrides     []string   `yaml:"flow_overrides,omitempty"`
+	// QACommand, when set, is the command line (run from the SSOT root) that
+	// starts the project's QA environment for the phase's QA pass.
+	QACommand string `yaml:"qa_command,omitempty"`
 }
 
 // FlowOverrideNames are the phase-flow overrides a project may turn on.
-var FlowOverrideNames = []string{"auto-promote", "no-owner-test", "installer-ready", "ci-test-summary"}
+var FlowOverrideNames = []string{"auto-promote", "no-owner-test", "installer-ready", "ci-test-summary", "uat-queue"}
 
 // HasFlowOverride reports whether the project turned on the named flow override.
 func (pr *Project) HasFlowOverride(name string) bool {

@@ -8,7 +8,10 @@ pass (section 4).
 ## 1. Before opening it
 
 1. **One staging at a time.** Read the `phase-state.yaml` of every other live phase of this project
-   (`origin/docs/[0-9]*` branches). One in `staging-test` or `shipping` holds staging, so pause:
+   (`origin/docs/[0-9]*` branches). Under `uat-queue`, up to 3 phases may sit merged on `staging`
+   at once: pause only when 3 are already there (in `staging-test` or `shipping`), or when one is in
+   `shipping` (its promotion has started). Otherwise one in `staging-test` or `shipping` holds
+   staging, so pause:
    1. Set `waiting_on_owner` to `{kind: staging-test, since: <now>, link: <that phase's test link
       from its waiting_on_owner>, questions: 0}`, add a note `waiting for phase MMM's staging
       test`, write a log entry, commit and push.
@@ -83,7 +86,10 @@ Under `auto-promote`, steps 2–4 do not apply: watch CI in the foreground (`dev
    `gh pr create -R <owner/repo> --base staging --head dev --title "Promote dev to staging (phase NNN)"`,
    wait on CI and merge with a merge commit (`devops_cicd.md`, **Waiting on CI and merging**; `gh pr merge <n> -R <owner/repo> --merge`). These PRs
    carry no `[HUMAN GATE]`: the owner's merge above approved them. Single-repo: there are none.
-3. `stage: staging-test`. Commit and push; compact (SKILL.md, **Owner stops** step 6).
+3. **QA pass.** When `project.yaml` sets `harness.qa_command`, run `references/qa.md` now
+   (`.pal-harness/skills/phase/references/qa.md`), before the staging test or, under
+   `no-owner-test`, before ship. Unset: skip it.
+4. `stage: staging-test`. Commit and push; compact (SKILL.md, **Owner stops** step 6).
    Under `no-owner-test`: `stage: shipping` instead (`gates.staging_test_done` stays `null`).
-4. Go to `.pal-harness/skills/phase/references/staging-test.md` (under `no-owner-test`,
+5. Go to `.pal-harness/skills/phase/references/staging-test.md` (under `no-owner-test`,
    `.pal-harness/skills/phase/references/ship.md`).

@@ -27,6 +27,23 @@ const widths = [
 
 const themes = ['light', 'dark'] as const
 
+// A full-page capture only grows the page itself. Content inside an inner scroll container (a
+// main panel with overflow: auto) would be cut off, so each inner scroll container is let grow to
+// its content first.
+async function growInnerScroll(page: Page) {
+  await page.evaluate(() => {
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>('body *'))) {
+      const style = getComputedStyle(el)
+      const scrolls = /(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight
+      if (scrolls) {
+        el.style.overflowY = 'visible'
+        el.style.height = 'auto'
+        el.style.maxHeight = 'none'
+      }
+    }
+  })
+}
+
 // The theme follows prefers-color-scheme. If the app's theme is an in-app setting instead, change
 // this hook to set it (a stored setting, a class on <html>, a toggle click) after the page loads.
 async function setTheme(page: Page, theme: (typeof themes)[number]) {
@@ -51,6 +68,7 @@ for (const p of pages) {
           await page.goto(p.path ?? '/')
         }
         await page.waitForLoadState('networkidle')
+        await growInnerScroll(page)
         await page.screenshot({ path: path.join(out, `${p.name}-${theme}-${w.name}.png`), fullPage: true })
       })
     }

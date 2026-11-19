@@ -189,6 +189,13 @@ eas update --branch production               # OTA JS-only update (no store revi
 - Three EAS build profiles: `development` (dev client), `preview` (internal), `production` (store)
 - OTA updates for JS changes. Native changes (new native modules, permissions) always require a full build
 - Bundle IDs: `com.<company>.<product>` for iOS, same for Android package name
+- **App version:** every phase that changes the app bumps the app version (`version`, and the
+  build number EAS does not set itself) in a plan task, the runbook's release step, whatever the
+  flow overrides. A shipped build without a bump cannot be told apart from the last one.
+- **Native dependencies:** a task that adds or upgrades a native dependency records the resolved
+  versions of the shared libraries it pulls in (for Android, `./gradlew :app:dependencies` filtered
+  by the library, such as `androidx.credentials`), against the existing native modules. A
+  mismatch is a major plan finding: every test can pass while the device breaks.
 
 ## Native builds on Windows
 
@@ -215,6 +222,8 @@ eas update --branch production               # OTA JS-only update (no store revi
 - **E2E**: Maestro — YAML flow files in `tests/e2e/`. Test critical journeys on simulator + real device
 - Never test navigation internals — test that the correct screen content appears
 - `jest.config.js` uses `jest-expo` preset
+- Jest shims for native modules export only what the native module exports, with a parity test
+  (`testing.md`, Next.js / React-Specific)
 - Lint and format through the repo's scripts (`npm run lint`, `npm run format`), never a bare
   `npx prettier` (`workflow.md`, **Check before every push**)
 
@@ -237,6 +246,11 @@ appId: com.company.etp
   `--non-interactive`, so a file added in a fix round bundles without a restart. This holds in
   every fix round and every restart, not only the first start.
 - Never run `adb disconnect` or `adb kill-server`, and never toggle the phone's wireless debugging.
+- **A fresh app for each test.** The staging-test pre-flight clears the app's data on each phone with
+  `adb shell pm clear <package>`. Auto mode blocks it unless the project allows exactly that command
+  in its `.claude/settings.json` (`"Bash(adb shell pm clear <package>)"` under `permissions.allow`,
+  with the real package). A project that cannot allow it ships a debug-only reset in the app (a
+  hidden developer action that clears its storage) and the pre-flight uses that.
 - The test devices are listed in `doc/devices.yaml`: names and addresses only, no pairing codes.
 
   ```yaml

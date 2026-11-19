@@ -34,13 +34,17 @@ func TestContentComplete(t *testing.T) {
 		"content/practices/workflow.md",
 		"content/skills/phase/SKILL.md",
 		"content/skills/phase/references/build.md",
+		"content/skills/phase/references/company-mode.md",
 		"content/skills/phase/references/plan.md",
+		"content/skills/phase/references/qa.md",
 		"content/skills/phase/references/review.md",
 		"content/skills/phase/references/ship.md",
 		"content/skills/phase/references/signoff.md",
 		"content/skills/phase/references/spec.md",
 		"content/skills/phase/references/staging-test.md",
+		"content/skills/phase/references/subagents.md",
 		"content/skills/pm/SKILL.md",
+		"content/skills/pm/references/chores.md",
 		"content/skills/quick-fix/SKILL.md",
 		"content/templates/adr-conflict.md",
 		"content/templates/adr.md",
@@ -53,6 +57,7 @@ func TestContentComplete(t *testing.T) {
 		"content/templates/phase-state.yaml",
 		"content/templates/plan.md",
 		"content/templates/retro.md",
+		"content/templates/runbook-android-release.md",
 		"content/templates/screens.spec.ts",
 		"content/templates/signoff-pr.md",
 		"content/templates/spec.md",
@@ -590,8 +595,8 @@ func TestHarness150Rules(t *testing.T) {
 		"fake file store", "airplane mode or Wi-Fi off drops wireless adb", "moved to the automated tests")
 
 	// 9. The red run comes first and is checked.
-	has("skills/phase/references/build.md", "TDD is required for the task", "the red run",
-		"send the task back\n   to the agent; that counts as one of its fix rounds")
+	has("skills/phase/references/subagents.md", "TDD is required for the task", "the red run",
+		"send the task back to the agent; that counts as one of its fix rounds")
 	has("skills/phase/references/review.md", "starts with a test that reproduces the bug, run red")
 	has("skills/quick-fix/SKILL.md", "run it red")
 
@@ -711,7 +716,7 @@ func TestHarness151Rules(t *testing.T) {
 
 	// 8. Local Go tests with less memory.
 	has("practices/testing.md", "`GOFLAGS=-p=1 GOMEMLIMIT=2GiB make test`", "CI never sets them")
-	has("skills/phase/references/build.md", "`GOFLAGS=-p=1 GOMEMLIMIT=2GiB`")
+	has("skills/phase/references/subagents.md", "`GOFLAGS=-p=1 GOMEMLIMIT=2GiB`")
 
 	// 9. Full checks after every fix round.
 	for _, p := range []string{"skills/phase/references/review.md", "skills/phase/references/staging-test.md",
@@ -768,20 +773,20 @@ func TestHarness160Rules(t *testing.T) {
 	has("agents/review-plan.md", "**Gate dry-runs:**", "repeat each grep")
 
 	// 4. RED before GREEN, enforced by the task reviewer.
-	has("skills/phase/references/build.md", "**The task reviewer's checks.**",
+	has("skills/phase/references/subagents.md", "**The task reviewer's checks.**",
 		"reject the task when the report lacks a RED run for any new test, or the RED came after the code",
 		"for each new test, the RED output")
 	has("skills/quick-fix/SKILL.md", "RED then GREEN")
 
 	// 5. Two checks for UI tasks.
-	for _, p := range []string{"skills/phase/references/build.md", "agents/review-ui.md"} {
+	for _, p := range []string{"skills/phase/references/subagents.md", "agents/review-ui.md"} {
 		has(p, "**Warning colour only where the user must act:**", "**Window edges tested:**")
 	}
 
 	// 6. A restyle keeps what the screen did.
 	has("skills/phase/references/plan.md", "**Existing behaviour**", "passing on the old code")
 	has("templates/plan.md", "**Existing behaviour:**")
-	has("skills/phase/references/build.md", "every item in its **Existing behaviour** list")
+	has("skills/phase/references/subagents.md", "every item in its **Existing behaviour** list")
 	has("agents/review-plan.md", "**Existing behaviour:**")
 
 	// 7. Deferred minors to doc/later.md.
@@ -894,4 +899,148 @@ func TestHarness170Rules(t *testing.T) {
 	has("agents/review-plan.md", "**Deletes and locks:**",
 		"a delete or cleanup helper with no read-only check that the target is its own",
 		"a callback fired while a lock is held")
+}
+
+// pal-harness 1.8.0: the 61 open harness notes (1.8.0 design, Parts A-D).
+func TestHarness180Rules(t *testing.T) {
+	flat := func(s string) string { return strings.Join(strings.Fields(s), " ") }
+	text := func(p string) string {
+		t.Helper()
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return flat(string(b))
+	}
+	has := func(p string, subs ...string) {
+		t.Helper()
+		s := text(p)
+		for _, sub := range subs {
+			if !strings.Contains(s, flat(sub)) {
+				t.Errorf("%s lacks %q", p, sub)
+			}
+		}
+	}
+
+	// A1. Company mode and the veto window.
+	has("skills/phase/references/company-mode.md", "`pal-work mode --project <key>`",
+		"`pal-work wait-decision --phase NNN`", "Bash timeout of 600000 ms", "exit 3",
+		"`approved` or `defaulted`", "`changed: <text>`", "`vetoed` or `none`",
+		"`pal-work hold --phase NNN --reason", "money, a password or key, or anything public",
+		"(used by default)", "The sign-off PR and the staging test are always the owner's",
+		"runs `wait-decision` first")
+	has("skills/phase/SKILL.md", "`references/company-mode.md`")
+	has("skills/quick-fix/SKILL.md", "`pal-work mode --project <key>`")
+	has("skills/pm/SKILL.md", "`.pal-harness/skills/phase/references/company-mode.md`",
+		"in the same write as the move")
+
+	// A2. Chores and pickup.
+	has("skills/pm/references/chores.md", "`Chores (Active)`", "`Every: day`", "`When: before phase`",
+		"`When: after phase`", "`Last run: YYYY-MM-DD`", "`Action: harness notes`",
+		"only after the owner's yes", "never edits the board's columns")
+	has("skills/pm/SKILL.md", "`.pal-harness/skills/pm/references/chores.md`", "**Chores.**",
+		"the rung and the reason", "Needs Approved to run")
+
+	// A3. The QA pass.
+	has("skills/phase/references/qa.md", "`harness.qa_command`", "`specs/NNN-slug/qa/`", "`summary.md`",
+		"`screens/`", "`qa: running`", "`qa: passed`", "`qa: failed`", "`kind: findings`",
+		"Under `no-owner-test`")
+	has("skills/phase/references/signoff.md", "`harness.qa_command`", "`references/qa.md`")
+	has("skills/phase/references/staging-test.md", "QA summary")
+	has("practices/ssot_standard.md", "`harness.qa_command`", "`qa:`")
+	has("templates/phase-state.yaml", "qa: none")
+
+	// A4. The UAT queue.
+	has("skills/phase/SKILL.md", "| `uat-queue` |")
+	has("skills/phase/references/staging-test.md", "Under `uat-queue`", "20 minutes", "parked",
+		"`--state waiting`", "every queued phase")
+	has("skills/phase/references/signoff.md", "Under `uat-queue`", "up to 3")
+	has("skills/phase/references/ship.md", "Under `uat-queue`", "the oldest", "already holds",
+		"Steps that publish")
+	has("skills/pm/SKILL.md", "Under `uat-queue`")
+	has("practices/ssot_standard.md", "`uat-queue`")
+
+	// B1. No push while CI runs; the watch under timeout.
+	has("practices/devops_cicd.md", "**Hold pushes while CI runs.**", "in one push",
+		"`timeout 520 gh pr checks <n> -R <owner/repo> --watch --interval 30`", "Exit 124",
+		"`timeout 520 gh run watch <id> -R <owner/repo> --interval 30`")
+	has("skills/phase/SKILL.md", "while a PR's CI runs")
+
+	// B2. Memory before lint, mocks and tests; smaller retries.
+	has("practices/devops_cicd.md", "`make lint`, `make mock`", "never `run_in_background`",
+		"run again, never pushed over", "one package group at a time", "`GOFLAGS=-p=1`")
+	has("practices/go_api.md", "`mockery --name <Interface>`", "the full `make mock` once before the PR")
+	has("practices/testing.md", "`--maxWorkers=2`", "one CI-scaled constant")
+
+	// B3. Subagents.
+	has("skills/phase/references/subagents.md", "TaskStop", "the second time",
+		"quotes that message's first line", "never wait on their own background work",
+		"a timeout as a failure", "**Known findings**", "no lock held across a network call",
+		"a retry re-reads its rule and its target", "a visible state", "`openapi` required fields",
+		"owner-facing wording", "Language-server diagnostics")
+	has("skills/phase/references/build.md", "`references/subagents.md`")
+	has("skills/phase/references/review.md", "language-server diagnostics")
+
+	// B4. Session habits.
+	has("practices/workflow.md", "## Session habits", "`git -C <path> symbolic-ref -q HEAD`",
+		"`origin/<branch>`", "auto-mode check", "`--body-file`", "`npm ci`")
+
+	// C1. Plan review.
+	has("agents/review-plan.md", "A round with only minor findings ends the review",
+		"minors applied, no re-review", "**File lists:**", "link and junction", "app version",
+		"resolved versions")
+	has("skills/phase/references/plan.md", "minors applied, no re-review", "link and junction test cases",
+		"bumps the app version", "resolved versions")
+	has("templates/plan.md", "link and junction", "app version", "resolved versions")
+	has("practices/react_native.md", "bumps the app version", "`./gradlew :app:dependencies`")
+
+	// C2. The spec.
+	has("skills/phase/references/spec.md", "becomes its own card", "running list of the owner's rulings",
+		"once per batch", "`unverified: <reason>`", "**Store identity.**", "plain English")
+	has("templates/spec.md", "## Rulings", "`unverified: <reason>`", "plain English")
+	has("templates/plan.md", "plain English")
+	has("templates/signoff-pr.md", "`unverified")
+	has("practices/workflow.md", "**Plain English.**")
+
+	// C3. Review checklists.
+	has("agents/review-code.md", "chained call budget", "kill switch", "identity read before an await")
+	has("agents/review-errors.md", "programming errors", "TypeError", "a later step fails")
+	has("skills/phase/references/review.md", "re-checks the failure path and the retry")
+	has("practices/testing.md", "copied from a real response")
+	has("agents/review-tests.md", "copied from a real response")
+
+	// C4. Tests and checks.
+	has("practices/testing.md", "10 pairs", "over 2 ms", "export only what the native module exports",
+		"parity test")
+	has("agents/review-tests.md", "over 2 ms")
+	has("practices/react_native.md", "export only what the native module exports")
+	has("templates/screens.spec.ts", "inner scroll")
+	has("practices/ssot_standard.md", "`check: <name>`")
+	has("templates/features.yaml", "check:")
+	has("practices/devops_cicd.md", "`pal-harness utf8`")
+
+	// D1. Owner tests.
+	has("skills/phase/references/staging-test.md", "two-role seed", "`docker info`", "adb server",
+		"`adb shell pm clear <package>`", "stop the API only", "airplane mode")
+	has("skills/phase/references/spec.md", "**Destructive or optional steps**", "their own feature",
+		"two-role seed")
+	has("templates/spec.md", "their own feature")
+	has("practices/workflow.md", "**A split plan**", "waits for a yes")
+	has("practices/react_native.md", "`adb shell pm clear <package>`", "`.claude/settings.json`",
+		"debug-only reset")
+
+	// D2. Release and devops.
+	has("templates/runbook-android-release.md", "keystore", "upload key", "Play Console",
+		"Add from library", "advertising ID")
+	has("skills/phase/references/plan.md", "**Owner-run commands**")
+	has("templates/plan.md", "## Owner-run commands")
+	has("skills/phase/references/ship.md", "Owner-run commands", "dry-read")
+	has("practices/devops_cicd.md", "**Vercel:**", "root folder and production branch", "a preview first",
+		"**Cloud Run:**", "old revision", "**Self-hosted runners:**", "`WINDOWS_RUNNER`")
+	has("templates/ci.yml", "WINDOWS_RUNNER")
+	has("practices/go_api.md", "hashed or shortened client address")
+
+	// D3. Trial measures in the retro.
+	has("agents/retro.md", "**Owner stops:**", "could have been a decision under Company mode")
+	has("templates/retro.md", "## Owner stops")
 }

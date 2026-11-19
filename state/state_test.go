@@ -166,3 +166,73 @@ func TestShippedNeedsNoOwnerTest(t *testing.T) {
 	_, got = ValidateFeaturesFor([]byte(strings.Replace(validFeature, "label: need", "label: x", 1)), nil)
 	check(t, got, []string{"F-001: label must be need or might"})
 }
+
+// pal-harness 1.8.0: the QA pass state (design A3).
+func TestPhaseStateQA(t *testing.T) {
+	base := string(read(t, "phase-state.yaml"))
+	ps, findings := ParsePhaseState([]byte(base))
+	if len(findings) != 0 || ps.QA != "none" {
+		t.Fatalf("missing qa: got %q, findings %v", ps.QA, findings)
+	}
+	for _, v := range QAStates {
+		ps, findings := ParsePhaseState([]byte(base + "qa: " + v + "\n"))
+		if len(findings) != 0 || ps.QA != v {
+			t.Errorf("qa %s: got %q, findings %v", v, ps.QA, findings)
+		}
+	}
+	_, findings = ParsePhaseState([]byte(base + "qa: done\n"))
+	check(t, findings, []string{"qa must be none, running, passed or failed"})
+}
+
+// pal-harness 1.8.0: named extra checks in results and the allowed-fields hint (design C4).
+func TestResultChecks(t *testing.T) {
+	res := func(r string) string {
+		return strings.Replace(validFeature, "results: []", "results:\n    - "+r, 1)
+	}
+	tests := []struct {
+		name string
+		in   string
+		want []string
+	}{
+		{"check only", res("{date: 2026-11-19, env: local, check: offline-banner, result: pass}"), nil},
+		{"step only", res("{date: 2026-11-19, env: local, step: 2, result: pass}"), nil},
+		{"both", res("{date: 2026-11-19, env: local, step: 1, check: offline-banner, result: pass}"),
+			[]string{"F-001: result 1: set step or check, not both"}},
+		{"neither", res("{date: 2026-11-19, env: local, result: pass}"),
+			[]string{"F-001: result 1: needs a step or a check"}},
+		{"bad check", res("{date: 2026-11-19, env: local, check: Offline Banner, result: pass}"),
+			[]string{"F-001: result 1: check must be lower-case words joined by dashes, like offline-banner"}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, got := ParseFeatures([]byte(tc.in))
+			check(t, got, tc.want)
+		})
+	}
+}
+
+func TestUnknownFieldHints(t *testing.T) {
+	tests := []struct {
+		name, in, want string
+	}{
+		{"result", strings.Replace(validFeature, "results: []",
+			"results:\n    - {date: 2026-11-19, env: local, step: 1, result: fail, fix: later}", 1),
+			"field fix not found in type state.Result (allowed fields: date, env, step, check, result, note, issue)"},
+		{"step", strings.Replace(validFeature, `{step: 2, do: "d", expect: "e"}`, `{step: 2, do: "d", expect: "e", why: "w"}`, 1),
+			"field why not found in type state.Step (allowed fields: step, do, expect)"},
+		{"feature", strings.Replace(validFeature, "label: need", "label: need\n  owner: me", 1),
+			"field owner not found in type state.Feature (allowed fields: id, name, label, why, use_case, status, phase, test_script, results)"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, got := ParseFeatures([]byte(tc.in))
+			if len(got) != 1 || !strings.HasPrefix(got[0], "invalid YAML") || !strings.Contains(got[0], tc.want) {
+				t.Fatalf("findings = %q, want one containing %q", got, tc.want)
+			}
+		})
+	}
+	_, got := ParsePhaseState([]byte(string(read(t, "phase-state.yaml")) + "extra: 1\n"))
+	if len(got) != 1 || !strings.Contains(got[0], "field extra not found in type state.PhaseState (allowed fields: phase, slug,") {
+		t.Errorf("phase-state finding = %q", got)
+	}
+}

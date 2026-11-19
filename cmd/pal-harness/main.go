@@ -43,6 +43,7 @@ const usage = `usage:
   pal-harness mem [--min 2GiB] [--wait 0] [--every 30s]
   pal-harness adb [dir]
   pal-harness fingerprint [--rev HEAD] [--with <path>]... [--dir .] <spec file | ->
+  pal-harness utf8 [dir]
   pal-harness version
 `
 
@@ -102,6 +103,11 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runMem(rest, stdout, stderr)
 	case "fingerprint":
 		return runFingerprint(rest, stdout, stderr)
+	case "utf8":
+		if len(rest) > 1 {
+			return usageErr(stderr, "utf8 takes at most one directory")
+		}
+		return runUTF8(dirArg(rest), stdout, stderr)
 	case "spec", "adr":
 		if len(rest) == 0 || rest[0] != "new" {
 			return usageErr(stderr, "expected: "+args[0]+" new <slug>")

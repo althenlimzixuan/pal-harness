@@ -49,6 +49,7 @@ override changes there.
 | `no-owner-test` | No staging test: sign-off goes straight to ship. The spec's test section is a **What to expect now** list. Features end as `shipped`, never `passed`. |
 | `installer-ready` | Ship downloads the release's installer to this PC for the owner to run, instead of a deploy. |
 | `ci-test-summary` | Review and sign-off use the final commit's CI test summary instead of `_test_reports/`. The 80% gate still blocks. |
+| `uat-queue` | An unanswered staging test parks after 20 minutes; up to 3 phases wait on `staging` for one combined test, and the oldest phase's session promotes them together (`references/staging-test.md`, `signoff.md`, `ship.md`). |
 
 ## The worktree set
 
@@ -58,9 +59,8 @@ repo the phase touches at its project path inside it (`<KEY>-096/api`). `<worksp
 holding `workspace.yaml` (a parent of the project); `<KEY>` is `project.yaml` `key`. A session Pal
 Center started works in a set already: `<workspace>/.pal-worktrees/<KEY>-1` or `-2`. Any session
 whose folder is under `.pal-worktrees/` is in a set; a session the owner starts by hand uses
-`<KEY>-<NNN>`. Use absolute paths or `git -C <path>` for
-every command and never `cd` into the set, so the owner's checkouts never move. `/pm` uses `<KEY>-pm-<YYYYMMDD-HHmm>` for its own
-bookkeeping, never a phase's set.
+`<KEY>-<NNN>`. Use absolute paths or `git -C <path>` for every command and never `cd` into the set, so the
+owner's checkouts never move. `/pm` uses `<KEY>-pm-<YYYYMMDD-HHmm>` for its own bookkeeping, never a phase's set.
 
 A script that writes files gets its target as an absolute path inside the set. A script that
 resolves its target from the current folder (which may be the owner's checkout) is never run from
@@ -117,15 +117,13 @@ A project is single-repo when every component's `repo` equals `ssot.repo`.
    unpushed commits in each worktree before anything else. Missing → recreate it:
    `git -C <project root> worktree add <set> docs/NNN-slug` (git makes the local branch from the
    remote one), then each component's `feature/NNN-slug` the same way. A local branch that already exists
-   (`docs/NNN-slug`, `feature/NNN-slug`) is reattached, then `git -C <path> pull --ff-only` in that
-   worktree.
+   (`docs/NNN-slug`, `feature/NNN-slug`) is reattached, then `git -C <path> pull --ff-only` in that worktree.
 3. Read `phase-state.yaml`, the last entries of `phase-log.md` and the stage's reference. They and
    `git log` win over anything you remember.
 4. Set `session:` to this session's name if known, write a "resumed" log entry, push.
 5. `waiting_on_owner` set → send its link again and wait (**Owner stops** step 4). Exception: at
    `stage: signoff` waiting for another phase's staging test, check that phase; once it is `done`,
-   clear `waiting_on_owner`, push and carry on (`references/signoff.md` section 1). Otherwise carry
-   on with the stage.
+   clear `waiting_on_owner`, push and carry on (`references/signoff.md` section 1). Otherwise carry on with the stage.
 
 ## Saved state
 
@@ -136,11 +134,10 @@ a new session, the phase continues from it and `git log` alone.
    branch (from `dev` once the phase is `done`). Write only the template's keys; `pal-harness check`
    rejects unknown ones. Quote `phase: "NNN"` and gate dates (`"YYYY-MM-DD"`).
 2. Update `last_progress_at` (RFC 3339 with offset; `pal-harness log` writes it) at every task and
-   every stage change; `tasks`
-   as tasks finish; `ci` as CI changes; `stage` on entering a stage; a gate's date when it passes.
-3. **Commit and push `docs/NNN-slug` after every `phase-state.yaml` write.** Pal Center reads the
-   pushed branch, and its stuck detection reads `last_progress_at`: an unpushed write makes a busy
-   phase look stuck after 1 hour.
+   every stage change; `tasks` as tasks finish; `ci` as CI changes; `stage` on entering a stage; a gate's date when it passes.
+3. **Commit and push `docs/NNN-slug` after every `phase-state.yaml` write.** Pal Center reads the pushed branch, and its
+   stuck detection reads `last_progress_at`: an unpushed write makes a busy phase look stuck after 1 hour. Exception:
+   while a PR's CI runs on that branch, commit and hold the push (`devops_cicd.md`, **Waiting on CI and merging**).
 4. Each write gets a `phase-log.md` entry (`## YYYY-MM-DD HH:MM — <headline>`, a few lines); `notes`
    holds one-line breadcrumbs only. Write every entry with
    `pal-harness log <set>/specs/NNN-slug '<headline>' [body file]`: it takes the stamp and
@@ -175,6 +172,10 @@ notification. Everything else is decided by you and listed under "Calls I made".
 For the last two, write the batch or the note to `specs/NNN-slug/reviews/owner-YYYY-MM-DD-HHmm.md`
 first: the problem, what was tried, and numbered options with a recommended one.
 
+**Company mode.** Start, Resume and every quick fix run `pal-work mode --project <key>` first. At a
+spec-review or findings stop, after step 4 below, follow `references/company-mode.md` (the veto
+window, holds for money, keys or anything public, and how a default answer is recorded).
+
 At every stop:
 
 1. Everything sent reads in about 10 minutes, opens with numbered points and works on a phone.
@@ -185,9 +186,9 @@ At every stop:
 3. Set `waiting_on_owner: {kind, since, link, questions}` (`questions` counts the numbered
    questions, 0 if none) and the bundle features' statuses; commit and push.
 4. Send a PushNotification that starts "needs you": the phase, what to read, how long it takes, the
-   link. If the PushNotification tool is not available, write the "needs you" text in the session,
-   say it could not notify, and keep waiting. Keep the session open and waiting; the owner reads on the phone and answers in this
-   session through Remote Control. Do not end the session and do not poll.
+   link. If the PushNotification tool is not available, write the "needs you" text in the session, say it could not
+   notify, and keep waiting. Keep the session open and waiting; the owner reads on the phone and answers in this session
+   through Remote Control. Do not end the session and do not poll.
 5. When the owner replies: record the answer (owner answers to questions go in
    `doc/decisions.md`), clear `waiting_on_owner`, update `last_progress_at`, commit and push.
 6. Work state: at a stop run `pal-work status --session <name> --state waiting` (the `Work CLI:`
@@ -212,13 +213,12 @@ the session) and **stuck** (from Pal Center over Slack, once it exists).
 
 ## Until Pal Center and CI catch up
 
-The session-start line `Pal Center version: X.Y.Z` is the installed Pal Center. The `doc` Codex
-kind, reviews from a worktree set and the Features tab need 0.4.0 or later. The lines
-`Work CLI: "<path>"`, `Capture CLI: "<path>"` and `Codex review CLI: "<path>"` give the paths of
-`pal-work`, `pal-capture` and `pal-review`. A CLI that exits 5 means Pal Center is not running. With
-no version line, an older version or exit 5, use the interim rows.
-With Pal Center 0.4.0 or later the staging test collects results with `wait-results --phase NNN`
-armed through Monitor, and `results --phase NNN` after a resume (`references/staging-test.md` section 4).
+The session-start line `Pal Center version: X.Y.Z` is the installed Pal Center. The `doc` Codex kind, reviews from a
+worktree set and the Features tab need 0.4.0 or later. The lines `Work CLI: "<path>"`, `Capture CLI: "<path>"` and
+`Codex review CLI: "<path>"` give the paths of `pal-work`, `pal-capture` and `pal-review`. A CLI that exits 5 means Pal
+Center is not running. With no version line, an older version or exit 5, use the interim rows. With Pal Center 0.4.0 or
+later the staging test collects results with `wait-results --phase NNN` armed through Monitor, and `results --phase NNN`
+after a resume (`references/staging-test.md` section 4).
 
 | Missing piece | Do this |
 |---|---|
@@ -230,20 +230,20 @@ armed through Monitor, and `results --phase NNN` after a resume (`references/sta
 | CI report jobs, fingerprint skip | Run the reports once, locally, on the final commit |
 | On-demand staging | The owner tests on the local stack before `staging` → `main`, so the order of sign-off, test and ship holds. A project whose Workflow Overrides say "test on production" merges to `main` first and tests after |
 
-Session PRs (phase build PRs, fix-now PRs, quick-fix PRs) merge with `gh pr merge --merge` after the
-merge guard (`devops_cicd.md`, **Waiting on CI and merging**), never squash: Pal Center tells a session folder's work is safely on GitHub from the merge commit after
-the branch is deleted.
+Session PRs (phase build PRs, fix-now PRs, quick-fix PRs) merge with `gh pr merge --merge` after the merge guard
+(`devops_cicd.md`, **Waiting on CI and merging**), never squash: Pal Center tells a session folder's work is safely
+on GitHub from the merge commit after the branch is deleted.
 
 ## Rules for every stage
 
 - One card at a time per project (pm skill, **One card at a time**). The next phase may build while
-  this one waits for the staging test; its sign-off PR waits until this test is done.
+  this one waits for the staging test; its sign-off PR waits until this test is done (under
+  `uat-queue`, up to 3 phases wait on `staging` together: `references/signoff.md`, section 1).
 - Never force-push. On a rejected push, fetch and merge (or `git -C <path> pull --ff-only`), then push.
 - Never merge a `[HUMAN GATE]` PR and never turn on auto-merge for one.
 - Secrets come from the environment only. Never open `.env` or credential files.
 - Read a build or test result from the command's own exit code, unpiped.
 - The process itself changes only through retro ideas, never by editing `.pal-harness/`.
 - Remove the set when the phase is `done` and nothing in it is unpushed (`git status` clean and
-  `git log '@{u}..'` empty in every worktree; run git through Bash, and on a detached HEAD compare
-  with `git -C <path> log origin/<branch>..<branch>`): `git worktree remove` each component worktree, then the
-  SSOT one (`references/ship.md`).
+  `git log '@{u}..'` empty in every worktree; run git through Bash, and on a detached HEAD compare with
+  `git -C <path> log origin/<branch>..<branch>`): `git worktree remove` each component worktree, then the SSOT one (`references/ship.md`).

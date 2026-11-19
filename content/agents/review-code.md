@@ -25,7 +25,10 @@ Use Bash only for read-only inspection (`git diff`, `git log`, `git show`, listi
 6. **Stack practice:** the component follows its practice file (`go_api`, `nextjs_web`, `react_native`, `django_admin`).
 7. A breach of the code patterns is a finding like any other; rate it by impact, not by how small the diff is.
 8. **Parked findings:** in a larger build the session gives you the path of sdd's ledger. Each finding parked there that no later task fixed is in `doc/later.md` on `docs/NNN-slug` or in a backlog issue; a parked finding in neither is a minor finding.
-9. **Owner guide:** when the project has an owner guide (a quick guide or an owner checklist) and owner-facing behaviour changes (a screen, a command, a setting, a message the owner sees), the phase's changes update that guide. A missing update is a finding. Do not ask for README updates on every screen change.
+9. **Timeouts:** every client timeout is at least the server's chained call budget: the sum of the timeouts of the calls the server makes in a row for that request (a 10-second client wait against 15 seconds of chained device calls is a finding).
+10. **Concurrency and lifecycle:** a lock held across a network call or a wait; an undo or sign-in racing the action it guards; identity read before an await and used after it (read it again after the await); a component or session that ends while its work still runs. The session runs these checks on the first task that touches shared state, in its own per-task review, not only at the end.
+11. **Kill switch:** for a feature with a global stop, pause or kill switch: can anything start after it is thrown (a queued job, a retry, a timer, a second window)? Anything that can is a major finding.
+12. **Owner guide:** when the project has an owner guide (a quick guide or an owner checklist) and owner-facing behaviour changes (a screen, a command, a setting, a message the owner sees), the phase's changes update that guide. A missing update is a finding. Do not ask for README updates on every screen change.
 
 ## Report
 
