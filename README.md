@@ -25,6 +25,7 @@ where `<version>` is the project's `harness.version`. `dir` defaults to `.`.
 | `mem [--min 2GiB] [--wait 0] [--every 30s]` | Prints the available physical memory against the minimum. With `--wait`, re-checks every `--every` until it is enough or the wait ends. Windows and Linux. Exit `0` enough, `1` still short, `2` usage or a platform it cannot read. |
 | `adb [dir]` | Reads `doc/devices.yaml` (ports, and devices with a name, a role, a USB serial and a last wireless address), reconnects each device at its saved address or the one `adb mdns services` finds, and sets `adb reverse` for each port. Prints one line per device, a new address to save, and the pairing request for a device still missing. Never disconnects a device or restarts the adb server. Exit `0` every device ready, `1` one not ready, `2` usage, no `doc/devices.yaml` or no `adb`. |
 | `fingerprint [--rev HEAD] [--with <path>]... [--dir .] <spec \| ->` | Reads a spec of one `<job>: <path> <path> ...` line per CI job and prints `<job>=<fingerprint>` for each: the SHA-1 of the job name and the git object id at `--rev` of each path it lists and each `--with` path (`missing` when absent). The CI gate skips a job whose fingerprint already passed. Exit `0` printed, `2` usage, a bad spec or not a git repository. |
+| `utf8 [dir]` | Checks every file git tracks under `dir` (default `.`) and prints `<path>:<line>: not UTF-8` for each text file that is not valid UTF-8, with its first bad line. Binary files (a NUL in the first 8000 bytes) are skipped. Exit `0` clean, `1` a bad file, `2` usage or not a git repository. |
 | `version` | Prints the harness version. |
 
 Exit codes: `0` clean or done, `1` findings (or a block `generate` cannot write), `2` usage,
@@ -37,7 +38,7 @@ Called from a project's `.github/workflows/` at `@v<version>`:
 | Workflow | What it does |
 |---|---|
 | `check.yml` | Runs `pal-harness check` (the SSOT repo's `ssot.yml`). |
-| `ci-gate.yml` | Fingerprints each job's paths (`fingerprint`) and outputs `decisions` (`run` or `skip`) and `fingerprints` as JSON; a job whose fingerprint already passed is skipped. |
+| `ci-gate.yml` | Runs `utf8` (a non-UTF-8 text file makes the gate red), then fingerprints each job's paths (`fingerprint`) and outputs `decisions` (`run` or `skip`) and `fingerprints` as JSON; a job whose fingerprint already passed is skipped. |
 | `ci-mark.yml` | Records each job that passed as `refs/ci-passed/<job>/<fingerprint>`. |
 
 A project's `ci.yml` starts from `.pal-harness/templates/ci.yml` (`devops_cicd.md`, **The CI gate**).

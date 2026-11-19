@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -49,6 +50,7 @@ type Result struct {
 	Date   string `yaml:"date"`
 	Env    string `yaml:"env"`
 	Step   int    `yaml:"step"`
+	Check  string `yaml:"check"`
 	Result string `yaml:"result"`
 	Note   string `yaml:"note"`
 	Issue  string `yaml:"issue"`
@@ -110,7 +112,35 @@ var (
 	phaseRe     = regexp.MustCompile(`^\d{3}$`)
 	issueRe     = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9._-]+#\d+$`)
 	dateRe      = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
+	checkRe     = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
+	unknownRe   = regexp.MustCompile(`field \S+ not found in type state\.(\w+)`)
 )
+
+// allowed maps each decoded type to its YAML field names, for the unknown-field hint.
+var allowed = func() map[string]string {
+	m := map[string]string{}
+	for _, v := range []any{Feature{}, Step{}, Result{}, PhaseState{}, Bundle{}, Waiting{}, Tasks{}, Codex{}, Gates{}} {
+		t := reflect.TypeOf(v)
+		var names []string
+		for i := 0; i < t.NumField(); i++ {
+			name, _, _ := strings.Cut(t.Field(i).Tag.Get("yaml"), ",")
+			names = append(names, name)
+		}
+		m[t.Name()] = strings.Join(names, ", ")
+	}
+	return m
+}()
+
+// hintAllowed appends the allowed field names after each unknown-field error.
+func hintAllowed(msg string) string {
+	return unknownRe.ReplaceAllStringFunc(msg, func(m string) string {
+		typ := unknownRe.FindStringSubmatch(m)[1]
+		if names, ok := allowed[typ]; ok {
+			return m + " (allowed fields: " + names + ")"
+		}
+		return m
+	})
+}
 
 func oneOf(v string, set []string) bool {
 	for _, s := range set {
@@ -143,7 +173,7 @@ func decode(b []byte, out any) string {
 		}
 		msg := strings.TrimPrefix(err.Error(), "yaml: unmarshal errors:")
 		msg = strings.TrimPrefix(strings.TrimSpace(msg), "yaml: ")
-		return "invalid YAML: " + strings.Join(strings.Fields(strings.ReplaceAll(msg, "\n", "; ")), " ")
+		return "invalid YAML: " + hintAllowed(strings.Join(strings.Fields(strings.ReplaceAll(msg, "\n", "; ")), " "))
 	}
 	var extra yaml.Node
 	switch err := dec.Decode(&extra); {
@@ -215,7 +245,16 @@ func ParseFeatures(b []byte) ([]Feature, []string) {
 			if !oneOf(r.Env, []string{"local", "staging", "prod"}) {
 				add(id, "result %d: env must be local, staging or prod", n)
 			}
-			if !steps[r.Step] {
+			switch {
+			case r.Step != 0 && r.Check != "":
+				add(id, "result %d: set step or check, not both", n)
+			case r.Check != "":
+				if !checkRe.MatchString(r.Check) {
+					add(id, "result %d: check must be lower-case words joined by dashes, like offline-banner", n)
+				}
+			case r.Step == 0:
+				add(id, "result %d: needs a step or a check", n)
+			case !steps[r.Step]:
 				add(id, "result %d: step %d is not in the test script", n, r.Step)
 			}
 			if r.Result != "pass" && r.Result != "fail" {

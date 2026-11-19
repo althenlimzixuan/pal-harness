@@ -43,11 +43,11 @@ func repo(t *testing.T, tracked, untracked map[string][]byte) string {
 
 func TestCheck(t *testing.T) {
 	dir := repo(t, map[string][]byte{
-		"ok.md":            []byte("plain\nUTF-8: café ✓\n"),
-		"docs/cp1252.md":   []byte("line one\nline two\nquote \x93here\x94\n"),
-		"logo.png":         append([]byte("\x89PNG\r\n\x1a\n\x00\x00"), 0x93, 0xff),
-		"bom.txt":          []byte("\xef\xbb\xbfwith a BOM\n"),
-		"late-nul.txt":     append(append([]byte("x\n\xff\n"), bytes.Repeat([]byte("a"), 9000)...), 0),
+		"ok.md":          []byte("plain\nUTF-8: café ✓\n"),
+		"docs/cp1252.md": []byte("line one\nline two\nquote \x93here\x94\n"),
+		"logo.png":       append([]byte("\x89PNG\r\n\x1a\n\x00\x00"), 0x93, 0xff),
+		"bom.txt":        []byte("\xef\xbb\xbfwith a BOM\n"),
+		"late-nul.txt":   append(append([]byte("x\n\xff\n"), bytes.Repeat([]byte("a"), 9000)...), 0),
 	}, map[string][]byte{
 		"untracked.md": []byte("\x93untracked\n"),
 	})
