@@ -180,7 +180,7 @@ func TestCIGateWorkflowsHardened(t *testing.T) {
 		runHas     []string
 	}{
 		{"ci-gate.yml", "read", []string{"version", "jobs", "shared"}, []string{"decisions", "fingerprints"},
-			[]string{"fingerprint", "--with .github/workflows/ci.yml", "refs/ci-passed/", "GITHUB_STEP_SUMMARY"}},
+			[]string{"fingerprint", "--with .github/workflows/ci.yml", "git/ref/ci-passed/", "GITHUB_STEP_SUMMARY"}},
 		{"ci-mark.yml", "write", []string{"fingerprints", "results"}, nil,
 			[]string{"refs/ci-passed/", "::warning::"}},
 	} {
@@ -281,8 +281,8 @@ func TestCITemplateWiring(t *testing.T) {
 	if strAt(mark, "permissions", "contents") != "write" {
 		t.Error("mark must have contents: write")
 	}
-	if !strings.Contains(strAt(mark, "if"), "always()") {
-		t.Errorf("mark.if = %q, want always()", strAt(mark, "if"))
+	if c := strAt(mark, "if"); !strings.Contains(c, "!cancelled()") || !strings.Contains(c, "needs.gate.result == 'success'") {
+		t.Errorf("mark.if = %q, want !cancelled() and a gate that succeeded", c)
 	}
 	work := 0
 	for name, j := range jobs {
