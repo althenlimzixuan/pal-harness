@@ -43,6 +43,14 @@ passes, building starts.
     carries an **Existing behaviour** list: every badge, figure, link, control and state (empty,
     loading, error) the screen shows today, each with the test that covers it. An item with no test
     gets one in that task, written first and passing on the old code, before the restyle.
+12. **Deletes and locks.** While writing the tasks, fill the plan's **Deletes and locks** section
+    ("none" when no task has either):
+    - each helper that deletes or cleans up files, folders, rows or keys: the task, what it deletes,
+      and the **read-only check** that runs first and proves the target is one it created (a marker
+      file it wrote, a path under its own root, a row it owns). A path the user chose is never deleted
+      without such a check;
+    - each callback, event or hook fired while a lock is held: the task, the lock, and what the
+      callback may take. It must not take the same lock, or a lock taken before it elsewhere.
 
 ## 2. The summary
 

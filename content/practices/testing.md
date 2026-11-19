@@ -35,9 +35,9 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
 
 ## Go-Specific
 
-- Mocks generated via `mockery --all --keeptree --dir internal --output internal/mocks` (`make mock`,
-  same settings in `.mockery.yaml`); inside `internal/`, the mirrored paths are importable. Never
-  hand-write mocks.
+- Mocks generated via `mockery --all --output mocks` (`make mock`, same settings in
+  `.mockery.yaml`): flat, in a top-level `mocks/` folder, package `mocks`. Interface names are unique
+  across the module (`go_api.md`, Make Targets). Never hand-write mocks.
 - Integration tests use `testcontainers-go` for MySQL + Redis — no shared test DB.
 - Table-driven test pattern is the default: `[]struct{ name, input, expected }`.
 - `//go:build integration` tag keeps unit test runs fast.
@@ -83,8 +83,8 @@ the owner's interactive session and as the self-hosted runner's standard user in
 
 - **One run, on the final commit.** CI runs the tests once on each PR's final commit; that run makes
   the reports, except the staging reports (regression, and the load test when requested), which come
-  from the staging deploy of the merged sign-off. A promotion whose code fingerprint (git tree hash) already passed skips the tests and
-  only builds and deploys. Reports live in the SSOT repo, so committing them never changes the code
+  from the staging deploy of the merged sign-off. A job whose fingerprint already passed (the CI gate, `devops_cicd.md`) skips its tests, so a
+  promotion only builds and deploys. Reports live in the SSOT repo, so committing them never changes the code
   under test. In a single-repo project the final commit is the last commit that changes code;
   report, review and state commits after it do not make a report stale. Until CI has report jobs, the session runs the reports once, locally, on the final commit.
 - **One report command.** Each project has one (`make reports`, or `npm run reports` in a Node-only

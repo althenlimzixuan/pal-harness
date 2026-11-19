@@ -230,8 +230,8 @@ armed through Monitor, and `results --phase NNN` after a resume (`references/sta
 | CI report jobs, fingerprint skip | Run the reports once, locally, on the final commit |
 | On-demand staging | The owner tests on the local stack before `staging` → `main`, so the order of sign-off, test and ship holds. A project whose Workflow Overrides say "test on production" merges to `main` first and tests after |
 
-Session PRs (phase build PRs, fix-now PRs, quick-fix PRs) merge with `gh pr merge --merge`, never
-squash: Pal Center tells a session folder's work is safely on GitHub from the merge commit after
+Session PRs (phase build PRs, fix-now PRs, quick-fix PRs) merge with `gh pr merge --merge` after the
+merge guard (`devops_cicd.md`, **Waiting on CI and merging**), never squash: Pal Center tells a session folder's work is safely on GitHub from the merge commit after
 the branch is deleted.
 
 ## Rules for every stage

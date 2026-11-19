@@ -81,6 +81,9 @@ close-out PR at ship comes from it.
 4. A fix that touches Windows security (the phase's `references/plan.md`, section 1) gets the
    session-0 run before its PR, as the phase's `references/build.md` section 6 step 2 says.
 5. Open the PR into `dev` with the Codex summary in its body; it merges on its own once CI is green (or, under a spending-limit block, its local run is), with `gh pr merge --merge` (never squash).
+   Wait and merge as `devops_cicd.md`, **Waiting on CI and merging**, says: one foreground watch, run again
+   when it is killed (never park for the owner), and the unpiped `gh pr checks` exit code before the
+   merge (`8` is still running: do not merge). `ci:` takes only `green`, `red`, `running` or `none`.
    `stage: code-review` while reviewing, then `stage: signoff`.
 
 ## 5. Sign-off, the owner's test, ship
