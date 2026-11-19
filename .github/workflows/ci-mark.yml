@@ -1,0 +1,40 @@
+# Records each CI job that passed as refs/ci-passed/<job>/<fingerprint>, so ci-gate.yml skips it
+# while its files stay the same (practices/devops_cicd.md, **The CI gate**).
+name: ci-mark
+on:
+  workflow_call:
+    inputs:
+      fingerprints:
+        description: The gate's fingerprints output.
+        type: string
+        required: true
+      results:
+        description: The caller's toJSON(needs).
+        type: string
+        required: true
+permissions:
+  contents: write
+jobs:
+  mark:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record the jobs that passed
+        shell: bash
+        env:
+          FINGERPRINTS: ${{ inputs.fingerprints }}
+          RESULTS: ${{ inputs.results }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          [ -n "$FINGERPRINTS" ] || exit 0
+          jq -r 'to_entries[] | "\(.key) \(.value)"' <<<"$FINGERPRINTS" | while read -r job fp; do
+            result=$(jq -r --arg j "$job" '.[$j].result // ""' <<<"$RESULTS")
+            [ "$result" = success ] || continue
+            # Creating fails when another run recorded it first; then it exists. Best effort: an
+            # unrecorded pass only means the same files are tested again next time.
+            gh api -X POST "repos/${REPO}/git/refs" -f ref="refs/ci-passed/${job}/${fp}" -f sha="$SHA" --silent \
+              || gh api "repos/${REPO}/git/ref/ci-passed/${job}/${fp}" --silent \
+              || echo "::warning::could not record the ${job} pass (fingerprint ${fp}); the same files will be tested again"
+          done

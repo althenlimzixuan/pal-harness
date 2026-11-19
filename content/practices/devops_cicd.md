@@ -10,10 +10,11 @@ Every repository must pass all stages on a PR's final commit before it merges:
 | Type check | `go build ./...` | `tsc --noEmit` | `tsc --noEmit` |
 | Unit tests + coverage | `make test` (80% gate) | `jest` (80% gate) | `jest` (80% gate) |
 | Integration tests | `make test-int` | — | — |
+| Generated code | `make wire` then `git diff --exit-code` (a stale `wire_gen.go` fails) | — | — |
 | Build | `make build` | `next build` | `eas build --platform all` |
 | Docker build | Yes (API only) | — (Vercel) | — (EAS) |
 
-No stage may be skipped; the one exception is the tests on a promotion whose tree hash already passed (`testing.md`, Test reports). Flaky tests must be fixed, not retried.
+No stage may be skipped; the one exception is a job whose fingerprint already passed (the CI gate): see **The CI gate** below and `testing.md`, Test reports. Flaky tests must be fixed, not retried.
 
 ## CI runs and minutes
 
@@ -24,12 +25,40 @@ No stage may be skipped; the one exception is the tests on a promotion whose tre
   reaches `dev`, `staging` and `main` through a PR, so the PR run is the gate. A self-hosted runner costs no minutes,
   so its Windows jobs may also run on `workflow_dispatch` (the session-0 run in the phase's
   `references/build.md`, section 6).
-- **Watching CI:** watch with `gh pr checks <n> -R <owner/repo> --watch --interval 30` as a
+- **Waiting on CI and merging:** watch with `gh pr checks <n> -R <owner/repo> --watch --interval 30` as a
   foreground command with a Bash timeout of 540000 ms (9 minutes); if it times out with checks still
   pending, run it again. Watch a workflow run started by hand the same way, with
   `gh run watch <id> -R <owner/repo> --interval 30`. Never watch CI with `run_in_background`, Monitor or a background loop:
   Claude Code kills background watchers when memory runs low, as it does while a self-hosted runner
-  builds on the same PC. Read the result from the command's exit code.
+  builds on the same PC.
+  1. **Wait** with that one foreground watch.
+  2. **A watch that ends without its own exit code** (the tool says it was killed, interrupted or
+     timed out) is run again. From the second such end in a row, run `pal-harness mem --wait 9m`
+     (Bash timeout 600000 ms) first. It is never an owner stop: no `pal-work hold`, no `waiting`
+     status, no limit on retries.
+  3. **Merge guard.** Before every `gh pr merge`, run `gh pr checks <n> -R <owner/repo>` on its own,
+     with no pipe (a pipe returns the last command's exit code and hides this one), and read its exit
+     code: `0` every check passed or was skipped → merge; `8` still running → back to step 1; `1` a
+     check failed → read the run (**Read a red run before fixing it**). The spending-limit case below
+     keeps its local-evidence rule.
+  4. **`ci:` values.** `phase-state.yaml` `ci:` is only `green`, `red`, `running` or `none`
+     (`pal-harness check` rejects anything else). Exit 8 is written `running`; never `pending`.
+- **The CI gate:** every repo with a code CI starts its `.github/workflows/ci.yml` from
+  `.pal-harness/templates/ci.yml`. Its `gate` job calls the harness's reusable `ci-gate.yml`, which
+  runs `pal-harness fingerprint` over the paths each job reads; a job whose fingerprint already
+  passed (recorded by `ci-mark.yml` as `refs/ci-passed/<job>/<fingerprint>`) is skipped. So
+  docs-only and `specs/**` changes, the push after a merge and promotions do not run the suite
+  again. The concurrency group (`cancel-in-progress: true`) cancels the older run when a newer push
+  reaches the same PR or branch.
+  - Each job's line in `gate.with.jobs` lists everything the job reads: code, build files, lint
+    config, a contract copy its drift check compares. A job that starts reading a new path adds it
+    in the same PR. `.github/workflows/ci.yml` is always included, so a change to it (a re-pin
+    included) runs every job.
+  - A gate that failed or never started (no GitHub minutes left) runs every job.
+  - Locally, `pal-harness fingerprint --with .github/workflows/ci.yml <spec>` shows whether a change
+    keeps a job's fingerprint.
+  - The SSOT repo's `ssot` check runs on every push, `specs/**` included: it validates
+    `phase-state.yaml` and runs on GitHub's machines, not the owner's PC.
 - **Free memory before heavy runs:** before the test reports, a full test run (the full check before
   the PR, a fix round's check), a release or native build (Tauri, local Gradle or EAS, Docker) or an
   app install on a phone (`pal-harness` is run as `.pal-harness/practices/ssot_standard.md` says):
@@ -63,7 +92,7 @@ No stage may be skipped; the one exception is the tests on a promotion whose tre
 - A "fix now" during a staging test branches from `staging`, PRs into `staging` (staging redeploys), and is merged back into `dev`
 - No direct commits to `main`
 - Require passing CI before merge; the reviews are in `workflow.md`
-- CI runs the tests once per PR's final commit; a promotion whose tree hash already passed skips them (`testing.md`)
+- CI runs each job once per set of files it reads; a job whose fingerprint already passed is skipped (**The CI gate**, `testing.md`)
 
 ## Docker Conventions (Go API)
 

@@ -82,7 +82,8 @@ Ask, with a recommended answer and its reason:
      whose expected result changed, in the spec and in `doc/features.yaml`; the message before the
      retest says which steps changed. Each fix round is done only when the repo's full lint,
      typecheck and test commands pass in every repo it changed (`references/review.md`, section 4).
-  4. Its PR into `staging` merges on its own after the review and green CI, with
+  4. Its PR into `staging` merges on its own after the review and green CI (`devops_cicd.md`,
+     **Waiting on CI and merging**), with
      `gh pr merge <n> -R <owner/repo> --merge` (never squash); staging (or the local
      stack) redeploys. Then PR the same branch into `dev` too, merged with `--merge`.
   5. The step reopens: the feature becomes `retest`. Run the pre-flight (section 3) again after the

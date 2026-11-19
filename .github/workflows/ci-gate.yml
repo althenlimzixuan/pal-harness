@@ -1,0 +1,85 @@
+# The CI gate's decision (practices/devops_cicd.md, **The CI gate**). A project's ci.yml calls it
+# first; each job then runs unless its decision is "skip". A job is skipped when the fingerprint of
+# the files it reads (pal-harness fingerprint) already passed, recorded by ci-mark.yml as
+# refs/ci-passed/<job>/<fingerprint>. Start from .pal-harness/templates/ci.yml.
+name: ci-gate
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: The harness version (project.yaml harness.version).
+        type: string
+        required: true
+      jobs:
+        description: 'One "<job>: <path> <path> ..." line per job, listing every path the job reads.'
+        type: string
+        required: true
+      shared:
+        description: Paths every job reads, besides .github/workflows/ci.yml, separated by spaces.
+        type: string
+        required: false
+        default: ""
+    outputs:
+      decisions:
+        description: 'JSON: {"<job>": "run" or "skip"}.'
+        value: ${{ jobs.gate.outputs.decisions }}
+      fingerprints:
+        description: 'JSON: {"<job>": "<fingerprint>"}, for ci-mark.yml.'
+        value: ${{ jobs.gate.outputs.fingerprints }}
+permissions:
+  contents: read
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      decisions: ${{ steps.decide.outputs.decisions }}
+      fingerprints: ${{ steps.decide.outputs.fingerprints }}
+    steps:
+      - name: Validate the harness version
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          re='^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'
+          if [[ ! "$VERSION" =~ $re ]]; then
+            echo "invalid harness version: $VERSION" >&2
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache: false
+      - name: Decide which jobs run
+        id: decide
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+          JOBS: ${{ inputs.jobs }}
+          SHARED: ${{ inputs.shared }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          set -f # the shared paths are words, never globs
+          spec="$RUNNER_TEMP/ci-jobs.txt"
+          sums="$RUNNER_TEMP/ci-fingerprints.txt"
+          printf '%s\n' "$JOBS" > "$spec"
+          args=(--with .github/workflows/ci.yml)
+          for p in $SHARED; do args+=(--with "$p"); done
+          go run "github.com/althenlimzixuan/pal-harness/cmd/pal-harness@v${VERSION}" fingerprint "${args[@]}" "$spec" > "$sums"
+          decisions='{}'
+          fingerprints='{}'
+          while IFS='=' read -r job fp; do
+            fingerprints=$(jq -c --arg j "$job" --arg f "$fp" '. + {($j): $f}' <<<"$fingerprints")
+            # Any failure to read the ref (missing, API error) runs the job.
+            if gh api "repos/${REPO}/git/ref/ci-passed/${job}/${fp}" --silent 2>/dev/null; then
+              decision=skip
+              printf '### %s\n- skipped: these files already passed CI (fingerprint %s)\n' "$job" "$fp" >> "$GITHUB_STEP_SUMMARY"
+            else
+              decision=run
+            fi
+            decisions=$(jq -c --arg j "$job" --arg d "$decision" '. + {($j): $d}' <<<"$decisions")
+          done < "$sums"
+          echo "decisions=$decisions" >> "$GITHUB_OUTPUT"
+          echo "fingerprints=$fingerprints" >> "$GITHUB_OUTPUT"
