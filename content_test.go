@@ -983,4 +983,38 @@ func TestHarness180Rules(t *testing.T) {
 	// B4. Session habits.
 	has("practices/workflow.md", "## Session habits", "`git -C <path> symbolic-ref -q HEAD`",
 		"`origin/<branch>`", "auto-mode check", "`--body-file`", "`npm ci`")
+
+	// C1. Plan review.
+	has("agents/review-plan.md", "A round with only minor findings ends the review",
+		"minors applied, no re-review", "**File lists:**", "link and junction", "app version",
+		"resolved versions")
+	has("skills/phase/references/plan.md", "minors applied, no re-review", "link and junction test cases",
+		"bumps the app version", "resolved versions")
+	has("templates/plan.md", "link and junction", "app version", "resolved versions")
+	has("practices/react_native.md", "bumps the app version", "`./gradlew :app:dependencies`")
+
+	// C2. The spec.
+	has("skills/phase/references/spec.md", "becomes its own card", "running list of the owner's rulings",
+		"once per batch", "`unverified: <reason>`", "**Store identity.**", "plain English")
+	has("templates/spec.md", "## Rulings", "`unverified: <reason>`", "plain English")
+	has("templates/plan.md", "plain English")
+	has("templates/signoff-pr.md", "`unverified")
+	has("practices/workflow.md", "**Plain English.**")
+
+	// C3. Review checklists.
+	has("agents/review-code.md", "chained call budget", "kill switch", "identity read before an await")
+	has("agents/review-errors.md", "programming errors", "TypeError", "a later step fails")
+	has("skills/phase/references/review.md", "re-checks the failure path and the retry")
+	has("practices/testing.md", "copied from a real response")
+	has("agents/review-tests.md", "copied from a real response")
+
+	// C4. Tests and checks.
+	has("practices/testing.md", "10 pairs", "over 2 ms", "export only what the native module exports",
+		"parity test")
+	has("agents/review-tests.md", "over 2 ms")
+	has("practices/react_native.md", "export only what the native module exports")
+	has("templates/screens.spec.ts", "inner scroll")
+	has("practices/ssot_standard.md", "`check: <name>`")
+	has("templates/features.yaml", "check:")
+	has("practices/devops_cicd.md", "`pal-harness utf8`")
 }
