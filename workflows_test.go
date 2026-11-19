@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	harness "github.com/althenlimzixuan/pal-harness"
 	"gopkg.in/yaml.v3"
 )
 
@@ -125,5 +126,192 @@ func TestReleaseGuardWorkflow(t *testing.T) {
 	}
 	if !strings.Contains(r, "GITHUB_REF_NAME") || !strings.Contains(r, "go run ./cmd/pal-harness version") {
 		t.Errorf("must compare GITHUB_REF_NAME with the version command:\n%s", r)
+	}
+}
+
+// loadYAML reads a workflow file as a plain map, for jobs that call reusable workflows.
+func loadYAML(t *testing.T, path string) map[string]any {
+	t.Helper()
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var m map[string]any
+	if err := yaml.Unmarshal(b, &m); err != nil {
+		t.Fatalf("%s: %v", path, err)
+	}
+	return m
+}
+
+func mapAt(m map[string]any, keys ...string) map[string]any {
+	for _, k := range keys {
+		m, _ = m[k].(map[string]any)
+	}
+	return m
+}
+
+func strAt(m map[string]any, keys ...string) string {
+	last := keys[len(keys)-1]
+	s, _ := mapAt(m, keys[:len(keys)-1]...)[last].(string)
+	return s
+}
+
+func needsOf(job map[string]any) []string {
+	switch n := job["needs"].(type) {
+	case string:
+		return []string{n}
+	case []any:
+		var out []string
+		for _, v := range n {
+			s, _ := v.(string)
+			out = append(out, s)
+		}
+		return out
+	}
+	return nil
+}
+
+func contains(list []string, s string) bool {
+	for _, v := range list {
+		if v == s {
+			return true
+		}
+	}
+	return false
+}
+
+func TestCIGateWorkflowsHardened(t *testing.T) {
+	for _, c := range []struct {
+		file, perm string
+		inputs     []string
+		outputs    []string
+		runHas     []string
+	}{
+		{"ci-gate.yml", "read", []string{"version", "jobs", "shared"}, []string{"decisions", "fingerprints"},
+			[]string{"fingerprint", "--with .github/workflows/ci.yml", "refs/ci-passed/", "GITHUB_STEP_SUMMARY"}},
+		{"ci-mark.yml", "write", []string{"fingerprints", "results"}, nil,
+			[]string{"refs/ci-passed/", "::warning::"}},
+	} {
+		w := loadYAML(t, ".github/workflows/"+c.file)
+		call := mapAt(w, "on", "workflow_call")
+		if call == nil {
+			t.Errorf("%s: not a workflow_call workflow", c.file)
+			continue
+		}
+		for _, in := range c.inputs {
+			if mapAt(call, "inputs", in) == nil {
+				t.Errorf("%s: no input %q", c.file, in)
+			}
+		}
+		for _, out := range c.outputs {
+			if mapAt(call, "outputs", out) == nil {
+				t.Errorf("%s: no output %q", c.file, out)
+			}
+		}
+		if got := strAt(w, "permissions", "contents"); got != c.perm {
+			t.Errorf("%s: permissions.contents = %q, want %q", c.file, got, c.perm)
+		}
+		var runs []string
+		validated := false
+		for name, j := range mapAt(w, "jobs") {
+			steps, _ := j.(map[string]any)["steps"].([]any)
+			for i, st := range steps {
+				s, _ := st.(map[string]any)
+				run, _ := s["run"].(string)
+				uses, _ := s["uses"].(string)
+				runs = append(runs, run)
+				if strings.Contains(run, "${{") {
+					t.Errorf("%s %s step %d interpolates an expression into run; pass it via env", c.file, name, i)
+				}
+				if strings.HasPrefix(uses, "actions/setup-go@") && mapAt(s, "with")["cache"] != false {
+					t.Errorf("%s: setup-go must set cache: false", c.file)
+				}
+				if strings.Contains(run, `^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$`) {
+					validated = true
+				}
+				if strings.Contains(run, "pal-harness@v") {
+					if !validated {
+						t.Errorf("%s step %d runs pal-harness before the version is validated", c.file, i)
+					}
+					if strAt(s, "env", "VERSION") != "${{ inputs.version }}" {
+						t.Errorf("%s step %d must take the version from env", c.file, i)
+					}
+				}
+			}
+		}
+		all := strings.Join(runs, "\n")
+		for _, sub := range c.runHas {
+			if !strings.Contains(all, sub) {
+				t.Errorf("%s: no step runs %q", c.file, sub)
+			}
+		}
+	}
+}
+
+func TestCITemplateWiring(t *testing.T) {
+	w := loadYAML(t, "content/templates/ci.yml")
+	if got := strAt(w, "concurrency", "group"); got != "ci-${{ github.event.pull_request.number || github.ref }}" {
+		t.Errorf("concurrency.group = %q", got)
+	}
+	if mapAt(w, "concurrency")["cancel-in-progress"] != true {
+		t.Error("concurrency must set cancel-in-progress: true")
+	}
+	on := mapAt(w, "on")
+	for _, ev := range []string{"pull_request", "push", "workflow_dispatch"} {
+		if _, ok := on[ev]; !ok {
+			t.Errorf("on lacks %s", ev)
+		}
+	}
+	if b, _ := mapAt(on, "push")["branches"].([]any); len(b) != 3 {
+		t.Errorf("on.push.branches = %v, want dev, staging, main", b)
+	}
+	jobs := mapAt(w, "jobs")
+	gate, mark := mapAt(jobs, "gate"), mapAt(jobs, "mark")
+	base := "althenlimzixuan/pal-harness/.github/workflows/"
+	if got := strAt(gate, "uses"); got != base+"ci-gate.yml@v"+harness.Version {
+		t.Errorf("gate.uses = %q", got)
+	}
+	if got := strAt(gate, "with", "version"); got != harness.Version {
+		t.Errorf("gate.with.version = %q, want %q", got, harness.Version)
+	}
+	if strAt(gate, "with", "jobs") == "" {
+		t.Error("gate.with.jobs is empty")
+	}
+	if got := strAt(mark, "uses"); got != base+"ci-mark.yml@v"+harness.Version {
+		t.Errorf("mark.uses = %q", got)
+	}
+	if got := strAt(mark, "with", "results"); got != "${{ toJSON(needs) }}" {
+		t.Errorf("mark.with.results = %q", got)
+	}
+	if got := strAt(mark, "with", "fingerprints"); got != "${{ needs.gate.outputs.fingerprints }}" {
+		t.Errorf("mark.with.fingerprints = %q", got)
+	}
+	if strAt(mark, "permissions", "contents") != "write" {
+		t.Error("mark must have contents: write")
+	}
+	if !strings.Contains(strAt(mark, "if"), "always()") {
+		t.Errorf("mark.if = %q, want always()", strAt(mark, "if"))
+	}
+	work := 0
+	for name, j := range jobs {
+		if name == "gate" || name == "mark" {
+			continue
+		}
+		work++
+		job, _ := j.(map[string]any)
+		if !contains(needsOf(job), "gate") {
+			t.Errorf("%s must need gate", name)
+		}
+		cond := strAt(job, "if")
+		if !strings.Contains(cond, "!cancelled()") || !strings.Contains(cond, "needs.gate.outputs.decisions || '{}'") ||
+			!strings.Contains(cond, "."+name+" != 'skip'") {
+			t.Errorf("%s.if = %q", name, cond)
+		}
+		if !contains(needsOf(mark), name) {
+			t.Errorf("mark must need %s", name)
+		}
+	}
+	if work == 0 {
+		t.Error("the template has no example job")
 	}
 }
