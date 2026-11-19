@@ -23,6 +23,8 @@ var (
 	Stages = []string{"spec", "spec-review", "planning", "plan-review", "building", "code-review",
 		"signoff", "staging-test", "shipping", "done"}
 	WaitingKinds = []string{"spec-review", "plan-review", "questions", "findings", "signoff", "staging-test"}
+	// QAStates are the values of phase-state's qa: (a missing qa: reads as none).
+	QAStates = []string{"none", "running", "passed", "failed"}
 )
 
 type Feature struct {
@@ -64,6 +66,7 @@ type PhaseState struct {
 	Session        string    `yaml:"session"`
 	Tasks          Tasks     `yaml:"tasks"`
 	CI             string    `yaml:"ci"`
+	QA             string    `yaml:"qa"`
 	LoadTest       bool      `yaml:"load_test"`
 	Codex          Codex     `yaml:"codex"`
 	Gates          Gates     `yaml:"gates"`
@@ -271,6 +274,12 @@ func ParsePhaseState(b []byte) (*PhaseState, []string) {
 	}
 	if !oneOf(ps.CI, []string{"green", "red", "running", "none"}) {
 		add("ci must be green, red, running or none")
+	}
+	if ps.QA == "" {
+		ps.QA = "none"
+	}
+	if !oneOf(ps.QA, QAStates) {
+		add("qa must be none, running, passed or failed")
 	}
 	if w := ps.WaitingOnOwner; w != nil {
 		if !oneOf(w.Kind, WaitingKinds) {

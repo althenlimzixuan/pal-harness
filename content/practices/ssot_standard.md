@@ -70,9 +70,12 @@ Tools: `pal-harness <command>` runs as
   decision and a `harness.overrides` entry (item, source, reason, since) in `project.yaml`. A patch
   goes back upstream only by a PR to `pal-harness`.
 - **Flow overrides:** `harness.flow_overrides` in `project.yaml` lists the phase-flow changes a
-  project turns on (`auto-promote`, `no-owner-test`, `installer-ready`, `ci-test-summary`), with
-  the owner's reason in its `CLAUDE.md` Workflow Overrides. The phase skill's **Flow overrides**
-  table says what each does; `check` fails on an unknown name.
+  project turns on (`auto-promote`, `no-owner-test`, `installer-ready`, `ci-test-summary`,
+  `uat-queue`), with the owner's reason in its `CLAUDE.md` Workflow Overrides. The phase skill's
+  **Flow overrides** table says what each does; `check` fails on an unknown name.
+- **QA command:** `harness.qa_command` (optional) is the command line, run from the SSOT root, that
+  starts the project's QA environment (`cd desktop && npm run qa`). When it is set, each phase runs
+  the QA pass and records it in `phase-state.yaml` `qa:` (`none`, `running`, `passed`, `failed`).
 
 ## 3. Manifest and generated blocks (§4.2, §5.1)
 
