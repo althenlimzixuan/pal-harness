@@ -18,7 +18,15 @@ Read-only, from the SSOT worktree:
 ## 2. Draft
 
 Write `specs/NNN-slug/spec.md` alone, in the sections `spec new` copied from
-`.pal-harness/templates/spec.md`. Ask the owner nothing while drafting.
+`.pal-harness/templates/spec.md`. Ask the owner nothing while drafting. Write it in plain English
+for the owner (`workflow.md`, **Plain English.**): diagrams, test steps and reports included.
+
+- **Hardware the owner can't reach.** A test step that needs a device, an account or a place the
+  owner cannot reach before sign-off is marked `unverified: <reason>` in the step. It still ships,
+  and the sign-off PR lists it under its test scripts, so it is never signed off as tested.
+- **Store identity.** Before a spec fixes an app package or bundle id, read the package of the
+  existing Play or App Store app (its store listing or the release runbook) and record it in Calls I
+  made. A new id for an app already in a store is a numbered question.
 
 1. **Summary:** the numbered points the template lists.
 2. **Questions for the owner:** only questions that change what gets built. Numbered, at the top,
@@ -117,6 +125,12 @@ Codex never reviews the plan.
 2. A request for changes: revise the spec, then Codex checks the revision again (section 4) unless
    the reply says `skip Codex`; then add `doc rN: owner said skip Codex` to `codex.skipped`.
    Render, publish and send again (section 5).
+   - **A new feature asked for during spec review** becomes its own card by default: a `todo` entry
+     in `doc/features.yaml` with its why and use case, at most one line in this spec's Out of scope.
+     It joins this phase only when the owner says so after being told it is a new feature.
+   - **Live spec changes.** While the owner rules on the spec in the session, keep one running list
+     of the owner's rulings in the spec's **Rulings** section, numbered and dated. Re-run the Codex
+     doc check once per batch of changes, when the owner says the batch is done, not once per message.
 3. An unclear reply: ask one short follow-up in the session.
 
 ## 7. On approval

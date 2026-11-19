@@ -52,7 +52,8 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
      (`pal-harness check` rejects anything else). Exit 8 is written `running`; never `pending`.
 - **The CI gate:** every repo with a code CI starts its `.github/workflows/ci.yml` from
   `.pal-harness/templates/ci.yml`. Its `gate` job calls the harness's reusable `ci-gate.yml`, which
-  runs `pal-harness fingerprint` over the paths each job reads; a job whose fingerprint already
+  first runs `pal-harness utf8` (a tracked text file that is not UTF-8 makes the gate, and so the
+  run, red; save the file as UTF-8), then runs `pal-harness fingerprint` over the paths each job reads; a job whose fingerprint already
   passed (recorded by `ci-mark.yml` as `refs/ci-passed/<job>/<fingerprint>`) is skipped. So
   docs-only and `specs/**` changes, the push after a merge and promotions do not run the suite
   again. The concurrency group (`cancel-in-progress: true`) cancels the older run when a newer push
