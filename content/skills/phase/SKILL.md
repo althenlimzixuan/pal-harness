@@ -135,9 +135,9 @@ a new session, the phase continues from it and `git log` alone.
    rejects unknown ones. Quote `phase: "NNN"` and gate dates (`"YYYY-MM-DD"`).
 2. Update `last_progress_at` (RFC 3339 with offset; `pal-harness log` writes it) at every task and
    every stage change; `tasks` as tasks finish; `ci` as CI changes; `stage` on entering a stage; a gate's date when it passes.
-3. **Commit and push `docs/NNN-slug` after every `phase-state.yaml` write.** Pal Center reads the
-   pushed branch, and its stuck detection reads `last_progress_at`: an unpushed write makes a busy
-   phase look stuck after 1 hour.
+3. **Commit and push `docs/NNN-slug` after every `phase-state.yaml` write.** Pal Center reads the pushed branch, and its
+   stuck detection reads `last_progress_at`: an unpushed write makes a busy phase look stuck after 1 hour. Exception:
+   while a PR's CI runs on that branch, commit and hold the push (`devops_cicd.md`, **Waiting on CI and merging**).
 4. Each write gets a `phase-log.md` entry (`## YYYY-MM-DD HH:MM — <headline>`, a few lines); `notes`
    holds one-line breadcrumbs only. Write every entry with
    `pal-harness log <set>/specs/NNN-slug '<headline>' [body file]`: it takes the stamp and

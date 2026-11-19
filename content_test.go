@@ -594,8 +594,8 @@ func TestHarness150Rules(t *testing.T) {
 		"fake file store", "airplane mode or Wi-Fi off drops wireless adb", "moved to the automated tests")
 
 	// 9. The red run comes first and is checked.
-	has("skills/phase/references/build.md", "TDD is required for the task", "the red run",
-		"send the task back\n   to the agent; that counts as one of its fix rounds")
+	has("skills/phase/references/subagents.md", "TDD is required for the task", "the red run",
+		"send the task back to the agent; that counts as one of its fix rounds")
 	has("skills/phase/references/review.md", "starts with a test that reproduces the bug, run red")
 	has("skills/quick-fix/SKILL.md", "run it red")
 
@@ -715,7 +715,7 @@ func TestHarness151Rules(t *testing.T) {
 
 	// 8. Local Go tests with less memory.
 	has("practices/testing.md", "`GOFLAGS=-p=1 GOMEMLIMIT=2GiB make test`", "CI never sets them")
-	has("skills/phase/references/build.md", "`GOFLAGS=-p=1 GOMEMLIMIT=2GiB`")
+	has("skills/phase/references/subagents.md", "`GOFLAGS=-p=1 GOMEMLIMIT=2GiB`")
 
 	// 9. Full checks after every fix round.
 	for _, p := range []string{"skills/phase/references/review.md", "skills/phase/references/staging-test.md",
@@ -772,20 +772,20 @@ func TestHarness160Rules(t *testing.T) {
 	has("agents/review-plan.md", "**Gate dry-runs:**", "repeat each grep")
 
 	// 4. RED before GREEN, enforced by the task reviewer.
-	has("skills/phase/references/build.md", "**The task reviewer's checks.**",
+	has("skills/phase/references/subagents.md", "**The task reviewer's checks.**",
 		"reject the task when the report lacks a RED run for any new test, or the RED came after the code",
 		"for each new test, the RED output")
 	has("skills/quick-fix/SKILL.md", "RED then GREEN")
 
 	// 5. Two checks for UI tasks.
-	for _, p := range []string{"skills/phase/references/build.md", "agents/review-ui.md"} {
+	for _, p := range []string{"skills/phase/references/subagents.md", "agents/review-ui.md"} {
 		has(p, "**Warning colour only where the user must act:**", "**Window edges tested:**")
 	}
 
 	// 6. A restyle keeps what the screen did.
 	has("skills/phase/references/plan.md", "**Existing behaviour**", "passing on the old code")
 	has("templates/plan.md", "**Existing behaviour:**")
-	has("skills/phase/references/build.md", "every item in its **Existing behaviour** list")
+	has("skills/phase/references/subagents.md", "every item in its **Existing behaviour** list")
 	has("agents/review-plan.md", "**Existing behaviour:**")
 
 	// 7. Deferred minors to doc/later.md.
@@ -981,6 +981,6 @@ func TestHarness180Rules(t *testing.T) {
 	has("skills/phase/references/review.md", "language-server diagnostics")
 
 	// B4. Session habits.
-	has("practices/workflow.md", "**Session habits**", "`git -C <path> symbolic-ref -q HEAD`",
+	has("practices/workflow.md", "## Session habits", "`git -C <path> symbolic-ref -q HEAD`",
 		"`origin/<branch>`", "auto-mode check", "`--body-file`", "`npm ci`")
 }

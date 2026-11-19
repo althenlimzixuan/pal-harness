@@ -68,6 +68,19 @@ Every 5 phases Pal walks the north star, the feature list and the later list wit
   unchecked and leave it to CI. On Windows, a formatter that flags every file means CRLF endings:
   lint in a checkout with `core.autocrlf input`.
 
+## Session habits
+
+- **Branch check.** Before every push, `git -C <path> symbolic-ref -q HEAD` must name the branch
+  being pushed; on a detached HEAD the session (or the fixer) stops and reattaches the branch first.
+  After the push, the local tip must equal `origin/<branch>` (`git -C <path> rev-parse HEAD
+  origin/<branch>` after a fetch).
+- **A temporary auto-mode check failure** (the permission check could not run) is retried after a
+  short wait, with other work going on meanwhile. It is never an owner stop.
+- **PR bodies** are written to a file and passed with `--body-file`, never inline: a heredoc breaks
+  on backticks.
+- **Dependencies.** At session start, each component with a `package.json` and no `node_modules`
+  (or one older than the lockfile) runs `npm ci` before the first test run.
+
 ## Build rules
 
 - **TDD**: write the failing test from a JSON fixture first (`testing.md`), then implement.

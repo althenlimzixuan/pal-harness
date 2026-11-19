@@ -100,7 +100,8 @@ report with the reason, and the owner still sees it.
    - The round is done only when the repo's full lint, typecheck and test commands (`workflow.md`,
      **Check before every push**) pass in every repo it changed, each read from its own exit code.
      A single-file or single-package run does not count. Local Go runs set
-     `GOFLAGS=-p=1 GOMEMLIMIT=2GiB` (`testing.md`).
+     `GOFLAGS=-p=1 GOMEMLIMIT=2GiB` (`testing.md`). Stale language-server diagnostics are ignored
+     when those commands pass (`references/subagents.md`, section 4).
    - A fix for a bug finding starts with a test that reproduces the bug, run red; a fixer's report
      without that red run goes back to the fixer, and that counts as a fix round (build.md, section 3).
    - A contrast fix is measured again with `pal-harness contrast '<foreground>' '<background>'` (or the
