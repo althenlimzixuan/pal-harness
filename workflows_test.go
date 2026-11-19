@@ -2,6 +2,7 @@ package harness_test
 
 import (
 	"os"
+	"slices"
 	"strings"
 	"testing"
 
@@ -171,15 +172,6 @@ func needsOf(job map[string]any) []string {
 	return nil
 }
 
-func contains(list []string, s string) bool {
-	for _, v := range list {
-		if v == s {
-			return true
-		}
-	}
-	return false
-}
-
 func TestCIGateWorkflowsHardened(t *testing.T) {
 	for _, c := range []struct {
 		file, perm string
@@ -299,7 +291,7 @@ func TestCITemplateWiring(t *testing.T) {
 		}
 		work++
 		job, _ := j.(map[string]any)
-		if !contains(needsOf(job), "gate") {
+		if !slices.Contains(needsOf(job), "gate") {
 			t.Errorf("%s must need gate", name)
 		}
 		cond := strAt(job, "if")
@@ -307,7 +299,7 @@ func TestCITemplateWiring(t *testing.T) {
 			!strings.Contains(cond, "."+name+" != 'skip'") {
 			t.Errorf("%s.if = %q", name, cond)
 		}
-		if !contains(needsOf(mark), name) {
+		if !slices.Contains(needsOf(mark), name) {
 			t.Errorf("mark must need %s", name)
 		}
 	}
