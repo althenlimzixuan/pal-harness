@@ -16,6 +16,16 @@ sign-off): promote to `main`, deploy, tear staging down, write the retro, close 
    yourself. Under `auto-promote`, `staging` → `main` merges on its own once CI passes, with no
    `[HUMAN GATE]` prefix.
 3. Already promoted (a "test on production" project): skip this section.
+4. **Under `uat-queue`**, every queued phase (all merged on `staging`) is promoted together:
+   1. Wait until every queued phase's test is passed or deferred. A failed step in a phase that a
+      later queued phase builds on holds the whole batch until it is fixed now or deferred. Steps that
+      publish anything (a store release, a public post, a payment) stay must-wait: never deferred to
+      unblock the batch.
+   2. The session of the oldest queued phase promotes `staging` → `main` as step 1 says, once for all.
+   3. Every other session checks that `main` already holds its sign-off merge commit
+      (`git -C <path> merge-base --is-ancestor <commit> origin/main` after a fetch), skips this
+      section and does the rest of ship (deploy check, statuses, retro, close-out). Each session
+      writes only its own phase's state.
 
 ## 2. Deploy and smoke check
 

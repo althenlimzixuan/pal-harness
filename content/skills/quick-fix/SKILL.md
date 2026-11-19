@@ -18,6 +18,9 @@ owner (an owner stop, `kind: questions`) and recommend running it as a phase.
 
 ## 1. Start
 
+Run `pal-work mode --project <key>` first and keep its output: a findings stop follows the phase's
+`references/company-mode.md`.
+
 1. Create the worktree set and the phase folder exactly as the phase skill's **Start** steps 1–2
    (`pal-harness spec new <slug>` makes `specs/NNN-slug/` on `docs/NNN-slug`). Delete the generated
    `spec.md`: a quick fix has none.
