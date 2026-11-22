@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.9.0 — 2026-11-22
+
+Ten harness notes raised in Pal Center (ai-workshop#48 to #57), mostly from Pal Center phase 020's retro. The design is `doc/specs/2026-11-22-harness-1.9.0-design.md`. The planned `upgrade` command and automatic re-pin move to 1.10.0.
+
+**Release order.** 1.9.0 adds the `owner_stops` field to `phase-state.yaml`, and Pal Center reads phase state with the harness version in its own `daemon/go.mod`. Move Pal Center's dependency to 1.9.0 and ship it **before** any project re-pins to 1.9.0. Until then, the reader check keeps sessions from writing `owner_stops`.
+
+- **Trial measure** (#48): optional `owner_stops:` in `phase-state.yaml`, one entry per answered owner stop: `{kind, since, answered, could_decide, via}`, where `via` is `owner` or the `wait-decision` result. `check` validates it. The phase skill's **Owner stops** step 5 and `company-mode.md` section 4 write it, and the retro's **Owner stops** table reads it, falling back to the log for older phases.
+- **Pal Center and the pin agree** (#55, #56):
+  - the phase-state template leaves out optional keys whose default applies (`qa`, `owner_stops` are comments), and **Saved state** writes them only with a non-default value;
+  - new `pal-harness check --reader <version>` prints a `warning:` line for each field a state file uses that is newer than that reader (`state.FieldSince`: `qa` and `results.check` 1.8.0, `owner_stops` 1.9.0). Warnings don't change the exit code;
+  - **Reader check** at phase start, resume and ship: read the harness version in Pal Center's `daemon/go.mod` at tag `v<Pal Center version>` and run `check --reader` with it. On a warning, the session leaves the newer keys out and tells the owner to update Pal Center.
+- **Plans** (#49): a plan over 8 tasks or about 30 KB is written in parts (`plan.md`, `plan-2.md` …), each reviewed on its own (`pal-review-plan-partN-…`). Round 1 of the plan review is the whole review; a later round checks only the fixes, and a new finding on unchanged text is raised only when critical.
+- **QA warm-up** (#50): the QA pass loads the first page once before the first step, and a first-load timeout is retried once (`cold start: retried`). `templates/screens.spec.ts` warms up in `beforeAll`.
+- **Subagents** (#51, #54):
+  - implementers finish or stop every background command, Monitor and watcher before the final report;
+  - a report from a finished task is ignored, and a second gets TaskStop;
+  - should-fix minors from task K's review go on task K+1's **Carry-over** list and are fixed first (`Fix Task K review minors`). The last task's go to one fixer before the whole-branch review.
+- **CI outages** (#52): `devops_cicd.md` **Outage re-run**. A job that failed with a mirror or network sign (`Failed to fetch`, `Hash Sum mismatch`, `Could not resolve host`, connection reset or timed out, a registry 5xx) is re-run once with `gh run rerun <run-id> --failed` and logged as `infra re-run`, not a fix round. If it fails the same way again, a green local CI run counts.
+- **Linux checks on Windows** (#53): new `skills/phase/references/linux-check.md` covers:
+  - `GOOS=linux` lint and vet first;
+  - WSL with git 2.28 or later (the git-core PPA as an owner-run command);
+  - TMPDIR on `/dev/shm`;
+  - Docker `rust:1-bookworm` for Tauri;
+  - `pal-harness mem` minimums and `.wslconfig`;
+  - `Linux proof: CI's Linux job` when none of these is available.
+
+  It is linked from `build.md` and the quick-fix skill.
+- **Every ending tested** (#57): the task reviewer's checks and `pal-review-tests` check 10 list every way an outcome feature's run can end (start failed, owner stop, restart mid-run, idle, waiting, cancelled, timed out, crashed or killed, plus the feature's own). A missing test for any of them is a major finding.
+
 ## 1.8.0 — 2026-11-19
 
 The 61 harness notes left in Pal Center's inbox after the 2026-11-19 clean-up (Pal Center phases 005 to 019, LFPV phases 006 to 011), released as one version. The design is `doc/specs/2026-11-19-harness-1.8.0-design.md`, and its notes table maps each note to its change. Note #64 (trial measures) stays open. The planned `upgrade` command moves to 1.9.0.
