@@ -10,6 +10,7 @@ import (
 	harness "github.com/althenlimzixuan/pal-harness"
 	"github.com/althenlimzixuan/pal-harness/manifest"
 	"github.com/althenlimzixuan/pal-harness/state"
+	"gopkg.in/yaml.v3"
 )
 
 func TestContentComplete(t *testing.T) {
@@ -35,6 +36,7 @@ func TestContentComplete(t *testing.T) {
 		"content/skills/phase/SKILL.md",
 		"content/skills/phase/references/build.md",
 		"content/skills/phase/references/company-mode.md",
+		"content/skills/phase/references/linux-check.md",
 		"content/skills/phase/references/plan.md",
 		"content/skills/phase/references/qa.md",
 		"content/skills/phase/references/review.md",
@@ -1043,4 +1045,93 @@ func TestHarness180Rules(t *testing.T) {
 	// D3. Trial measures in the retro.
 	has("agents/retro.md", "**Owner stops:**", "could have been a decision under Company mode")
 	has("templates/retro.md", "## Owner stops")
+}
+
+// pal-harness 1.9.0: the phase-state template leaves out optional keys whose
+// default applies, so a reader on an older harness can still read a new phase
+// (design B1).
+func TestPhaseStateTemplateOptionalKeys(t *testing.T) {
+	b, err := harness.Content.ReadFile("content/templates/phase-state.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var keys map[string]any
+	if err := yaml.Unmarshal(b, &keys); err != nil {
+		t.Fatal(err)
+	}
+	for _, k := range []string{"qa", "owner_stops"} {
+		if _, ok := keys[k]; ok {
+			t.Errorf("templates/phase-state.yaml writes the optional key %s", k)
+		}
+		if !strings.Contains(string(b), "# "+k+":") {
+			t.Errorf("templates/phase-state.yaml does not name the optional key %s in a comment", k)
+		}
+	}
+	if ns := state.NewerFields("phase-state", b, state.Version{1, 3, 0}); len(ns) != 0 {
+		t.Errorf("the template uses fields a 1.3.0 reader cannot read: %v", ns)
+	}
+}
+
+// pal-harness 1.9.0: the ten Pal Center notes (design 2026-11-22, changes A to I).
+func TestHarness190Rules(t *testing.T) {
+	flat := func(s string) string { return strings.Join(strings.Fields(s), " ") }
+	has := func(p string, subs ...string) {
+		t.Helper()
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		s := flat(string(b))
+		for _, sub := range subs {
+			if !strings.Contains(s, flat(sub)) {
+				t.Errorf("%s lacks %q", p, sub)
+			}
+		}
+	}
+
+	// A. The trial measure in the phase state.
+	has("skills/phase/SKILL.md", "add an `owner_stops` entry")
+	has("skills/phase/references/company-mode.md", "`via:` is the `wait-decision` result")
+	has("agents/retro.md", "from `owner_stops` in `phase-state.yaml`", "falls back to the log")
+
+	// B. Pal Center and the pin agree on the phase state.
+	has("skills/phase/SKILL.md", "Write an optional key (`qa`, `owner_stops`) only when it holds a non-default value",
+		"**Reader check**", "`pal-harness check --reader <version>`", "`reader check: not available (<why>)`",
+		"`daemon/go.mod` at tag `vX`")
+	has("skills/phase/references/ship.md", "**Reader check**")
+
+	// C. Plan size and one-round plan reviews.
+	has("skills/phase/references/plan.md", "over 8 tasks", "`plan-2.md`", "`pal-review-plan-partN-YYYY-MM-DD-HHmm.md`",
+		"Round 1 is the whole review")
+	has("agents/review-plan.md", "Round 1 is the whole review", "raised only when it is critical", "`plan-2.md`")
+	has("templates/plan.md", "`plan-2.md`")
+
+	// D. QA warm-up.
+	has("skills/phase/references/qa.md", "warm-up", "`cold start: retried`")
+	has("templates/screens.spec.ts", "warm-up")
+
+	// E. Background work and finished tasks.
+	has("skills/phase/references/subagents.md", "finishes or stops every background command, Monitor and watcher",
+		"A report from a task already marked done is ignored")
+
+	// F. CI outages are re-run, not fixed.
+	has("practices/devops_cicd.md", "**Outage re-run.**", "`gh run rerun <run-id> -R <owner/repo> --failed`",
+		"`infra re-run: <job> (<sign>)`", "`Hash Sum mismatch`", "`Could not resolve host`", "not a fix round")
+	has("skills/phase/references/build.md", "`infra re-run`")
+
+	// G. The Linux-check recipe.
+	has("skills/phase/references/linux-check.md", "`GOOS=linux golangci-lint run ./...`", "git-core PPA",
+		"`mktemp -d -p /dev/shm`", "rust:1-bookworm", "`pal-harness mem --min 4GiB`", "`Linux proof: CI's Linux job`",
+		".wslconfig")
+	has("skills/phase/references/build.md", "`references/linux-check.md`")
+	has("skills/quick-fix/SKILL.md", "`references/linux-check.md`")
+
+	// H. Should-fix minors go into the next task.
+	has("skills/phase/references/subagents.md", "**Carry-over**", "`Fix Task K review minors`")
+	has("skills/phase/references/build.md", "**Carry-over**")
+
+	// I. Every ending tested.
+	endings := "start failed, owner stop, restart mid-run, idle, waiting, cancelled, timed out, crashed or killed"
+	has("skills/phase/references/subagents.md", "**Every ending tested.**", endings)
+	has("agents/review-tests.md", "**Every ending tested.**", endings)
 }

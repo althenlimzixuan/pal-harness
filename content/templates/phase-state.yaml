@@ -11,9 +11,13 @@ approach: inline               # inline | subagent
 session: ""                    # name of the Claude session running this phase
 tasks: {done: 0, total: 0}
 ci: none                       # green | red | running | none
-qa: none                       # none | running | passed | failed (the QA pass, when qa_command is set)
+# qa: none                     # optional: none | running | passed | failed (the QA pass, when qa_command
+                               # is set); write it only when it leaves none
 load_test: false
 codex: {spec: 0, code: 0, uiux: 0, skipped: []}
 gates: {spec_approved: null, plan_approved: null, signoff_merged: null, staging_test_done: null}
 last_progress_at: 2026-01-01T09:00:00+08:00
 notes: []                      # one-line breadcrumbs
+# owner_stops:                 # optional: one entry per answered owner stop, added when the answer comes
+#   - {kind: spec-review, since: <RFC3339>, answered: <RFC3339>, could_decide: true, via: owner}
+#     via: owner | approved | defaulted | changed | vetoed

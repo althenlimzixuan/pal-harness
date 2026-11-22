@@ -4,6 +4,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"io/fs"
@@ -32,7 +33,7 @@ func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr)) }
 var now = time.Now
 
 const usage = `usage:
-  pal-harness check [dir]
+  pal-harness check [--reader <version>] [dir]
   pal-harness generate [dir]
   pal-harness pin [dir]
   pal-harness spec new <slug> [dir]
@@ -67,15 +68,31 @@ func run(args []string, stdout, stderr io.Writer) int {
 		}
 		fmt.Fprintln(stdout, harness.Version)
 		return 0
-	case "check", "generate", "pin":
+	case "check":
+		flags := flag.NewFlagSet("check", flag.ContinueOnError)
+		flags.SetOutput(io.Discard)
+		readerArg := flags.String("reader", "", "")
+		if err := flags.Parse(rest); err != nil {
+			return usageErr(stderr, "check: "+err.Error())
+		}
+		if flags.NArg() > 1 {
+			return usageErr(stderr, "check takes at most one directory")
+		}
+		var reader *state.Version
+		if *readerArg != "" {
+			v, err := state.ParseVersion(*readerArg)
+			if err != nil {
+				return usageErr(stderr, "check: --reader: "+err.Error())
+			}
+			reader = &v
+		}
+		return runCheck(dirArg(flags.Args()), reader, stdout, stderr)
+	case "generate", "pin":
 		if len(rest) > 1 {
 			return usageErr(stderr, args[0]+" takes at most one directory")
 		}
 		dir := dirArg(rest)
-		switch args[0] {
-		case "check":
-			return runCheck(dir, stdout, stderr)
-		case "generate":
+		if args[0] == "generate" {
 			return runGenerate(dir, stderr)
 		}
 		return runPin(dir, stderr)
@@ -238,7 +255,10 @@ func targets(dir string) (mode string, p *manifest.Project, docs []docBlock, fil
 	return "", nil, nil, "", nil
 }
 
-func runCheck(dir string, stdout, stderr io.Writer) int {
+// runCheck checks dir. With a reader (the harness version an installed Pal
+// Center reads phase state with), it also warns about each newer field the
+// state files use; warnings do not change the exit code.
+func runCheck(dir string, reader *state.Version, stdout, stderr io.Writer) int {
 	mode, p, docs, mfile, err := targets(dir)
 	if mode == "" {
 		fmt.Fprintln(stderr, "no project.yaml or workspace.yaml in "+dir)
@@ -288,19 +308,24 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 		}
 		findings = append(findings, ldiff...)
 	}
+	var warnings []string
 	if mode == "project" {
-		sf, serr := stateFindings(dir, p)
+		sf, sw, serr := stateFindings(dir, p, reader)
 		if serr != nil {
 			fmt.Fprintln(stderr, serr)
 			return 2
 		}
 		findings = append(findings, sf...)
+		warnings = sw
 	}
 	if mode == "project" && !callsCheck(dir) {
 		add(".github/workflows/ssot.yml: must call %s with version %s", checkUses, harness.Version)
 	}
 	for _, f := range findings {
 		fmt.Fprintln(stdout, f)
+	}
+	for _, w := range warnings {
+		fmt.Fprintln(stdout, "warning: "+w)
 	}
 	if p.HasFlowOverride("auto-promote") {
 		fmt.Fprintln(stdout, "warning: auto-promote is on: sign-off and ship PRs merge without the owner")
@@ -316,15 +341,17 @@ func runCheck(dir string, stdout, stderr io.Writer) int {
 // dir. Specs numbered below p's legacy_specs_before (when set) are skipped. With
 // no valid manifest (p == nil) the flow overrides are unknown, so the shipped
 // rule is skipped. A file that exists but cannot be read is an error (exit 2).
-func stateFindings(dir string, p *manifest.Project) ([]string, error) {
+// With a reader, it also returns one warning per field a file uses that is
+// newer than the reader (state.NewerFields).
+func stateFindings(dir string, p *manifest.Project, reader *state.Version) ([]string, []string, error) {
 	legacyBefore := ""
 	features := func(b []byte) []string { _, f := state.ParseFeatures(b); return f }
 	if p != nil {
 		legacyBefore = p.Harness.LegacySpecsBefore
 		features = func(b []byte) []string { _, f := state.ValidateFeaturesFor(b, p.Harness.FlowOverrides); return f }
 	}
-	var out []string
-	check := func(rel string, parse func([]byte) []string) error {
+	var out, warnings []string
+	check := func(rel, kind string, parse func([]byte) []string) error {
 		b, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(rel)))
 		if errors.Is(err, fs.ErrNotExist) {
 			return nil
@@ -335,28 +362,34 @@ func stateFindings(dir string, p *manifest.Project) ([]string, error) {
 		for _, f := range parse(b) {
 			out = append(out, rel+": "+f)
 		}
+		if reader != nil {
+			for _, n := range state.NewerFields(kind, b, *reader) {
+				warnings = append(warnings, fmt.Sprintf("%s: %s needs harness %s; a reader on %s calls this file unreadable",
+					rel, n.Field, n.Since, reader))
+			}
+		}
 		return nil
 	}
-	if err := check("doc/features.yaml", features); err != nil {
-		return nil, err
+	if err := check("doc/features.yaml", "features", features); err != nil {
+		return nil, nil, err
 	}
 	matches, err := filepath.Glob(filepath.Join(dir, "specs", "*", "phase-state.yaml"))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	for _, m := range matches {
 		rel, err := filepath.Rel(dir, m)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if isLegacySpec(filepath.Base(filepath.Dir(m)), legacyBefore) {
 			continue
 		}
-		if err := check(filepath.ToSlash(rel), func(b []byte) []string { _, f := state.ParsePhaseState(b); return f }); err != nil {
-			return nil, err
+		if err := check(filepath.ToSlash(rel), "phase-state", func(b []byte) []string { _, f := state.ParsePhaseState(b); return f }); err != nil {
+			return nil, nil, err
 		}
 	}
-	return out, nil
+	return out, warnings, nil
 }
 
 // isLegacySpec reports whether a spec folder "NNN-slug" is numbered below the

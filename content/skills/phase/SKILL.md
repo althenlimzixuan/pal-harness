@@ -14,8 +14,7 @@ You run one phase: from a card the owner approved to features the owner tested a
 
 - `/phase` (or a route from `/pm`) with an approved bundle: **Start**.
 - `/phase resume NNN`: **Resume**.
-- `/phase status`: report the stage, `waiting_on_owner`, tasks and CI from `phase-state.yaml`; do
-  nothing else.
+- `/phase status`: report the stage, `waiting_on_owner`, tasks and CI from `phase-state.yaml`; nothing else.
 
 ## Stages
 
@@ -34,8 +33,7 @@ On entering a stage, and on resuming into one, read its reference first; read on
 | `shipping` | Promote to `main`, deploy, tear staging down, retro | final | `.pal-harness/skills/phase/references/ship.md` |
 | `done` | Nothing left; the close-out PR merged | final | — |
 
-Never fake a stage: a gate without its artifact (an approved spec, a merged PR, a recorded result)
-is not passed.
+Never fake a stage: a gate without its artifact (an approved spec, a merged PR, a recorded result) is not passed.
 
 ## Flow overrides
 
@@ -103,9 +101,8 @@ A project is single-repo when every component's `repo` equals `ssot.repo`.
 3. Write `specs/NNN-slug/phase-state.yaml` from `.pal-harness/templates/phase-state.yaml`: phase,
    slug, title, `vehicle: phase`, the bundle, `stage: spec`, `session:` (this session's name, if
    known; otherwise `""`), every count zero, every gate `null`.
-4. Start `specs/NNN-slug/phase-log.md` with its first entry, by `pal-harness log` (**Saved state**
-   step 4). Set the bundle features' `phase:` to
-   `"NNN"` and their status to `brainstorming`. Commit, then `git push -u origin docs/NNN-slug`.
+4. Start `specs/NNN-slug/phase-log.md` with its first entry, by `pal-harness log` (**Saved state** step 4). Set
+   the bundle features' `phase:` to `"NNN"` and their status to `brainstorming`. Commit, then `git push -u origin docs/NNN-slug`.
 5. Add the line `Spec: specs/NNN-slug/` to the lead card's body, under the bundle line, and move the
    feature cards to `In flight`.
 6. Go to `references/spec.md`.
@@ -132,7 +129,8 @@ a new session, the phase continues from it and `git log` alone.
 
 1. **The session is its only writer.** Pal Center and `/pm` read it from the pushed `docs/NNN-slug`
    branch (from `dev` once the phase is `done`). Write only the template's keys; `pal-harness check`
-   rejects unknown ones. Quote `phase: "NNN"` and gate dates (`"YYYY-MM-DD"`).
+   rejects unknown ones. Quote `phase: "NNN"` and gate dates (`"YYYY-MM-DD"`). Write an optional key
+   (`qa`, `owner_stops`) only when it holds a non-default value, so an older Pal Center can still read the file.
 2. Update `last_progress_at` (RFC 3339 with offset; `pal-harness log` writes it) at every task and
    every stage change; `tasks` as tasks finish; `ci` as CI changes; `stage` on entering a stage; a gate's date when it passes.
 3. **Commit and push `docs/NNN-slug` after every `phase-state.yaml` write.** Pal Center reads the pushed branch, and its
@@ -172,9 +170,10 @@ notification. Everything else is decided by you and listed under "Calls I made".
 For the last two, write the batch or the note to `specs/NNN-slug/reviews/owner-YYYY-MM-DD-HHmm.md`
 first: the problem, what was tried, and numbered options with a recommended one.
 
-**Company mode.** Start, Resume and every quick fix run `pal-work mode --project <key>` first. At a
-spec-review or findings stop, after step 4 below, follow `references/company-mode.md` (the veto
-window, holds for money, keys or anything public, and how a default answer is recorded).
+**Company mode.** Start, Resume and every quick fix run `pal-work mode --project <key>` first, then the
+**Reader check** (**Until Pal Center and CI catch up**). At a spec-review or findings stop, after step 4 below,
+follow `references/company-mode.md` (the veto window, holds for money, keys or anything public, and how a
+default answer is recorded).
 
 At every stop:
 
@@ -189,8 +188,9 @@ At every stop:
    link. If the PushNotification tool is not available, write the "needs you" text in the session, say it could not
    notify, and keep waiting. Keep the session open and waiting; the owner reads on the phone and answers in this session
    through Remote Control. Do not end the session and do not poll.
-5. When the owner replies: record the answer (owner answers to questions go in
-   `doc/decisions.md`), clear `waiting_on_owner`, update `last_progress_at`, commit and push.
+5. When the owner replies: record the answer (owner answers to questions go in `doc/decisions.md`),
+   add an `owner_stops` entry (`references/company-mode.md`, section 4), clear `waiting_on_owner`, update
+   `last_progress_at`, commit and push.
 6. Work state: at a stop run `pal-work status --session <name> --state waiting` (the `Work CLI:`
    line gives the path; `<name>` is the session name in phase-state `session:`; skip this when the
    line is missing or the CLI exits 5), after the owner's reply `--state working`, at `done` `--state idle`.
@@ -228,6 +228,7 @@ after a resume (`references/staging-test.md` section 4).
 | A Pal Center CLI that Windows Defender blocks ("the file contains a virus or potentially unwanted software", or the `.exe` gone after quarantine) | Treat it as exit 5 for that CLI and go on. Tell the owner once, in the session and in the next owner-stop message, with the command for an admin PowerShell: `Add-MpPreference -ExclusionPath "<the exact .exe path>"`. Exclude the exact file, never a folder or a process |
 | Scheduled pickup, stuck alerts | `/pm pickup` runs the ladder by hand; there is no stuck alert, so send "needs you" yourself when stuck |
 | CI report jobs, fingerprint skip | Run the reports once, locally, on the final commit |
+| Pal Center reading an older harness | **Reader check** at Start, Resume and ship: read the pal-harness version in Pal Center's `daemon/go.mod` at tag `vX` (X from `Pal Center version:`; `gh api "repos/althenlimzixuan/pal-center/contents/daemon/go.mod?ref=vX" -H "Accept: application/vnd.github.raw"`) and run `pal-harness check --reader <version>` with it. On a warning, leave the newer optional keys out of `phase-state.yaml` and tell the owner in one line: `Pal Center X reads harness Y; update Pal Center to see <field>` (at ship, in the done message). A step that fails: log `reader check: not available (<why>)` and go on |
 | On-demand staging | The owner tests on the local stack before `staging` → `main`, so the order of sign-off, test and ship holds. A project whose Workflow Overrides say "test on production" merges to `main` first and tests after |
 
 Session PRs (phase build PRs, fix-now PRs, quick-fix PRs) merge with `gh pr merge --merge` after the merge guard

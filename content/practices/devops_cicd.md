@@ -90,6 +90,20 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
      notification and keep working (it is not an owner stop);
   3. keep `ci: red` with the note `ci blocked: Actions spending limit; local CI green`. A PR into
      `dev` may merge on that local evidence; the sign-off PR says CI did not run.
+
+  **Outage re-run.** A job that failed because a package mirror or the network was down is not a
+  code failure either. Its failing step's log shows an outage sign: apt `Failed to fetch` or
+  `Hash Sum mismatch`, `Could not resolve host`, `Connection timed out` or `Connection reset`,
+  `ETIMEDOUT`, `ECONNRESET`, or an HTTP 5xx from a package registry, mirror or module proxy. Then:
+  1. run `gh run rerun <run-id> -R <owner/repo> --failed` once and watch the run again (**Waiting on
+     CI and merging**). Push nothing. Write `infra re-run: <job> (<sign>)` in the log; it is not a fix
+     round and does not count toward the stuck limit;
+  2. the re-run fails with an outage sign again: tell the owner in one line, then run the CI locally
+     as steps 1 to 3 above say (note `ci blocked: <sign> outage; local CI green`). A green local run
+     counts as the PR's CI for the merge gates.
+
+  This holds for every CI watch: build, fix now, quick fix, sign-off and ship. A failure with no
+  outage sign is read and fixed as usual.
 - **Self-hosted runners:** a repo that runs out of free minutes moves its heavy jobs (Windows,
   long builds) to the owner's self-hosted runner. The job reads the runner from a repository
   variable, `runs-on: ${{ vars.WINDOWS_RUNNER || 'windows-latest' }}` (`templates/ci.yml` shows it),
