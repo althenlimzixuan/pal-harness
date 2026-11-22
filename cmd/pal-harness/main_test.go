@@ -839,6 +839,72 @@ func TestCheckStateValidFiles(t *testing.T) {
 	}
 }
 
+// pal-harness 1.9.0: check --reader warns about fields an older reader cannot read (design B2).
+func TestCheckReader(t *testing.T) {
+	stop := "owner_stops:\n  - {kind: spec-review, since: 2026-11-22T10:00:00+08:00, answered: 2026-11-22T11:30:00+08:00, could_decide: true, via: owner}\n"
+	warn := "warning: specs/004-x/phase-state.yaml: owner_stops needs harness 1.9.0; a reader on 1.8.0 calls this file unreadable\n"
+	project := func(t *testing.T) string {
+		dir := fixture(t)
+		write(t, dir, "specs/004-x/phase-state.yaml", stateFixture(t, "phase-state.yaml")+stop)
+		return dir
+	}
+	t.Run("older reader warns", func(t *testing.T) {
+		code, out, errs := do(t, "check", "--reader", "1.8.0", project(t))
+		if code != 0 || out != warn {
+			t.Fatalf("code %d out=%q err=%q", code, out, errs)
+		}
+	})
+	t.Run("v prefix", func(t *testing.T) {
+		if code, out, _ := do(t, "check", "--reader", "v1.8.0", project(t)); code != 0 || out != warn {
+			t.Fatalf("code %d out=%q", code, out)
+		}
+	})
+	t.Run("features field", func(t *testing.T) {
+		dir := fixture(t)
+		feat := strings.Replace(stateFixture(t, "features.yaml"), "step: 1, result: pass", "check: offline-banner, result: pass", 1)
+		write(t, dir, "doc/features.yaml", feat)
+		code, out, errs := do(t, "check", "--reader", "1.6.0", dir)
+		if code != 0 || out != "warning: doc/features.yaml: results.check needs harness 1.8.0; a reader on 1.6.0 calls this file unreadable\n" {
+			t.Fatalf("code %d out=%q err=%q", code, out, errs)
+		}
+	})
+	t.Run("reader that knows it", func(t *testing.T) {
+		if code, out, _ := do(t, "check", "--reader", "1.9.0", project(t)); code != 0 || out != "" {
+			t.Fatalf("code %d out=%q", code, out)
+		}
+	})
+	t.Run("no reader", func(t *testing.T) {
+		if code, out, _ := do(t, "check", project(t)); code != 0 || out != "" {
+			t.Fatalf("code %d out=%q", code, out)
+		}
+	})
+	t.Run("findings keep exit 1", func(t *testing.T) {
+		dir := project(t)
+		write(t, dir, "specs/005-y/phase-state.yaml", "stage: old\n")
+		code, out, _ := do(t, "check", "--reader", "1.8.0", dir)
+		if code != 1 || !strings.Contains(out, "specs/005-y/phase-state.yaml") || !strings.HasSuffix(out, warn) {
+			t.Fatalf("code %d out=%q", code, out)
+		}
+	})
+	t.Run("legacy spec skipped", func(t *testing.T) {
+		dir := project(t)
+		setLegacy(t, dir, "097")
+		if code, out, _ := do(t, "check", "--reader", "1.8.0", dir); code != 0 || out != "" {
+			t.Fatalf("code %d out=%q", code, out)
+		}
+	})
+	for _, args := range [][]string{
+		{"check", "--reader", "1.8"},
+		{"check", "--reader"},
+		{"check", "--bogus", "1.8.0"},
+		{"check", "--reader", "1.8.0", "a", "b"},
+	} {
+		if code, _, errs := do(t, args...); code != 2 || errs == "" {
+			t.Errorf("%v: code %d err=%q", args, code, errs)
+		}
+	}
+}
+
 func TestCheckStateUnreadable(t *testing.T) {
 	dir := fixture(t)
 	write(t, dir, "doc/features.yaml/x", "dir where a file should be\n")
