@@ -17,7 +17,11 @@ implementers:
    (`devops_cicd.md`, **Free memory before heavy runs**), and a report is sent only when it ends;
 2. to read the full test run's own exit code, and to report a timeout as a failure, never as a pass
    (a run that timed out hid a broken test in Pal Center phase 015);
-3. to check the **Known findings** list below before reporting, and say in the report that it did.
+3. to check the **Known findings** list below before reporting, and say in the report that it did;
+4. before the final report, it finishes or stops every background command, Monitor and watcher it
+   started (TaskStop for its own tasks), and says in the report that none is still running. A
+   watcher left running keeps re-sending reports after the task is done;
+5. to fix the brief's **Carry-over** list first, when it has one (section 2, step 4).
 
 **Known findings.** Each one cost a fix round in more than one phase:
 
@@ -39,6 +43,14 @@ implementers:
 3. **The red run.** Check every implementer's and fixer's report for the red run. If it is missing,
    send the task back to the agent; that counts as one of its fix rounds. The per-task review needs
    a clean lint run.
+4. **Carry-over.** After task K's review, each minor the reviewer marked should-fix that its own
+   rounds did not fix goes on a **Carry-over** list in task K+1's brief. Task K+1's implementer fixes
+   them first, in their own commit (`Fix Task K review minors`), and task K+1's review checks them; it
+   is not a fix round. The last task's carry-overs go to one fixer before the whole-branch review.
+   Minors that are not should-fix stay in sdd's ledger for **Deferred minors** (`references/build.md`,
+   section 6). This keeps the fix wave before the PR small.
+5. **A finished task.** A report from a task already marked done is ignored: not acted on and not
+   answered. A second one from the same agent gets TaskStop.
 
 ## 3. The task reviewer's checks
 
@@ -53,7 +65,13 @@ implementers:
 4. owner-facing wording: every text the owner reads (labels, messages, notices, reasons) has no
    jargon, follows the order the owner sees things in, and uses the reason names the docs use;
 5. the **Known findings** list (section 1) over the task's diff. The first task that touches shared
-   state also gets `pal-review-code`'s concurrency and lifecycle checks in its own review.
+   state also gets `pal-review-code`'s concurrency and lifecycle checks in its own review;
+6. the task's **Carry-over** list (section 2, step 4) is fixed;
+7. **Every ending tested.** For a task that sorts runs, sessions or jobs into outcomes (a status, a
+   result, an end state): list every way one can end (start failed, owner stop, restart mid-run,
+   idle, waiting, cancelled, timed out, crashed or killed, plus any ending the feature defines
+   itself) and match each to a test that drives it and checks the outcome. An ending with no test is
+   a major finding.
 
 ## 4. Stale editor warnings
 

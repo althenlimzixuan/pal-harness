@@ -26,6 +26,8 @@ var (
 	WaitingKinds = []string{"spec-review", "plan-review", "questions", "findings", "signoff", "staging-test"}
 	// QAStates are the values of phase-state's qa: (a missing qa: reads as none).
 	QAStates = []string{"none", "running", "passed", "failed"}
+	// ViaValues are how an owner stop ended: answered by the owner, or a wait-decision result.
+	ViaValues = []string{"owner", "approved", "defaulted", "changed", "vetoed"}
 )
 
 type Feature struct {
@@ -57,23 +59,33 @@ type Result struct {
 }
 
 type PhaseState struct {
-	Phase          string    `yaml:"phase"`
-	Slug           string    `yaml:"slug"`
-	Title          string    `yaml:"title"`
-	Vehicle        string    `yaml:"vehicle"`
-	Bundle         Bundle    `yaml:"bundle"`
-	Stage          string    `yaml:"stage"`
-	WaitingOnOwner *Waiting  `yaml:"waiting_on_owner"`
-	Approach       string    `yaml:"approach"`
-	Session        string    `yaml:"session"`
-	Tasks          Tasks     `yaml:"tasks"`
-	CI             string    `yaml:"ci"`
-	QA             string    `yaml:"qa"`
-	LoadTest       bool      `yaml:"load_test"`
-	Codex          Codex     `yaml:"codex"`
-	Gates          Gates     `yaml:"gates"`
-	LastProgressAt time.Time `yaml:"last_progress_at"`
-	Notes          []string  `yaml:"notes"`
+	Phase          string      `yaml:"phase"`
+	Slug           string      `yaml:"slug"`
+	Title          string      `yaml:"title"`
+	Vehicle        string      `yaml:"vehicle"`
+	Bundle         Bundle      `yaml:"bundle"`
+	Stage          string      `yaml:"stage"`
+	WaitingOnOwner *Waiting    `yaml:"waiting_on_owner"`
+	Approach       string      `yaml:"approach"`
+	Session        string      `yaml:"session"`
+	Tasks          Tasks       `yaml:"tasks"`
+	CI             string      `yaml:"ci"`
+	QA             string      `yaml:"qa"`
+	LoadTest       bool        `yaml:"load_test"`
+	Codex          Codex       `yaml:"codex"`
+	Gates          Gates       `yaml:"gates"`
+	LastProgressAt time.Time   `yaml:"last_progress_at"`
+	Notes          []string    `yaml:"notes"`
+	OwnerStops     []OwnerStop `yaml:"owner_stops"`
+}
+
+// OwnerStop is one answered owner stop, the trial measure for the veto window.
+type OwnerStop struct {
+	Kind        string    `yaml:"kind"`
+	Since       time.Time `yaml:"since"`
+	Answered    time.Time `yaml:"answered"`
+	CouldDecide bool      `yaml:"could_decide"`
+	Via         string    `yaml:"via"`
 }
 
 type Bundle struct {
@@ -119,7 +131,7 @@ var (
 // allowed maps each decoded type to its YAML field names, for the unknown-field hint.
 var allowed = func() map[string]string {
 	m := map[string]string{}
-	for _, v := range []any{Feature{}, Step{}, Result{}, PhaseState{}, Bundle{}, Waiting{}, Tasks{}, Codex{}, Gates{}} {
+	for _, v := range []any{Feature{}, Step{}, Result{}, PhaseState{}, Bundle{}, Waiting{}, Tasks{}, Codex{}, Gates{}, OwnerStop{}} {
 		t := reflect.TypeOf(v)
 		var names []string
 		for i := 0; i < t.NumField(); i++ {
@@ -360,6 +372,26 @@ func ParsePhaseState(b []byte) (*PhaseState, []string) {
 	} {
 		if g.v != nil && !validDate(*g.v) {
 			add("gates.%s must be a date (YYYY-MM-DD) or null", g.name)
+		}
+	}
+	for i, s := range ps.OwnerStops {
+		n := i + 1
+		if !oneOf(s.Kind, WaitingKinds) {
+			add("owner_stops %d: %s", n, notOneOf("kind", s.Kind, WaitingKinds))
+		}
+		switch {
+		case s.Since.IsZero():
+			add("owner_stops %d: since is required", n)
+		case s.Answered.IsZero():
+			add("owner_stops %d: answered is required", n)
+		case s.Answered.Before(s.Since):
+			add("owner_stops %d: answered is before since", n)
+		}
+		switch {
+		case !oneOf(s.Via, ViaValues):
+			add("owner_stops %d: via must be owner, approved, defaulted, changed or vetoed", n)
+		case s.Via != "owner" && !s.CouldDecide:
+			add("owner_stops %d: via %s needs could_decide: true", n, s.Via)
 		}
 	}
 	return &ps, out

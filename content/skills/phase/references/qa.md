@@ -19,13 +19,17 @@ sets `harness.qa_command`; with it unset, nothing here runs and `qa:` stays `non
    with `harness.qa_command` from the SSOT worktree, from `origin/staging` of each repo (as
    `references/staging-test.md` section 1 step 2 checks it out). It runs with fakes, so it never
    needs the owner's accounts or real data.
-3. Follow each bundle feature's test script in the spec (under `no-owner-test`, each What to expect
+3. **The warm-up.** Before the first step, load the app's first page once and wait for it to render,
+   with no screenshot: a dev server (Vite, Next.js, Metro) compiles on its first load, and that cold
+   start can outlast a step's timeout. A step whose first page load still times out is retried once,
+   and `summary.md` notes `cold start: retried` on that row; a second timeout fails the step.
+4. Follow each bundle feature's test script in the spec (under `no-owner-test`, each What to expect
    now line). For each step: do it, compare with its expected result, and save a screenshot.
-4. Record the run in `specs/NNN-slug/qa/`:
+5. Record the run in `specs/NNN-slug/qa/`:
    - `summary.md`: one row per step (feature, step, pass or fail, a one-line note, the screenshot);
      the date, the commit of each repo and the command used at the top;
    - `screens/`: one PNG per step, named `F-012-step-3.png`.
-5. Stop the environment and everything it started.
+6. Stop the environment and everything it started.
 
 ## 3. The result
 
