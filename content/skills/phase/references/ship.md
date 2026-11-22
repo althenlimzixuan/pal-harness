@@ -13,6 +13,9 @@ sign-off): promote to `main`, deploy, tear staging down, write the retro, close 
 2. **Hand over the Owner-run commands** as one numbered list in one message, with the exact text and
    where to run each, before the promotion; never find them mid-run. Wait for the owner's "done" on
    the ones ship needs before going on; the rest go in the final message.
+3. **Reader check**: run it again (SKILL.md, **Until Pal Center and CI catch up**). A warning goes in
+   the done message as one line, `Pal Center X reads harness Y; update Pal Center to see <field>`, so
+   the owner updates Pal Center before the next phase writes that field.
 
 ## 1. Promote to `main`
 

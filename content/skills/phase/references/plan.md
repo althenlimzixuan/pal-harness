@@ -84,6 +84,14 @@ goes in the tasks, not the summary.
    that task ships, the report is a recorded skip, not a blocker.
 3. **Size:** about one working day. Bigger → propose a split as one owner question (section 4),
    with a recommended answer.
+4. **Parts.** A plan over 8 tasks, or over about 30 KB, is written in parts of up to 8 tasks each, so
+   each review reads a plan it can hold:
+   - `plan.md` holds the summary, the coverage and the tables for the whole phase, plus Part 1's tasks;
+   - `plan-2.md`, `plan-3.md` and so on hold the later parts' tasks, numbered on from the part before,
+     each in the template's task format.
+
+   It stays one phase, one branch per repo and one sign-off; `tasks.total` counts every part. Every
+   part passes its review (section 3) before the build starts, and the parts are built in order.
 
 ## 3. Claude's plan review
 
@@ -96,8 +104,12 @@ goes in the tasks, not the summary.
    the size of about one working day; and that every task names its test file and fixture. Its
    first round starts from the earlier majors: the major and critical findings of the project's
    earlier plan reviews and owner batches, plus the harness's fixed list (`pal-review-plan`).
-3. A round with only minor findings ends the review: apply them and write "minors applied, no
-   re-review" in the log. A major or critical finding that does not change what gets built is fixed
+3. **Round 1 is the whole review:** the reviewer runs every check and reports every finding it sees,
+   however small, holding nothing back. A later round checks only the fixes and the text they
+   changed. A plan in parts gets one review per part, its report named
+   `pal-review-plan-partN-YYYY-MM-DD-HHmm.md`; Part 1's review also runs the whole-phase checks
+   (coverage, size, the earlier majors). A round with only minor findings ends the review: apply
+   them and write "minors applied, no re-review" in the log. A major or critical finding that does not change what gets built is fixed
    and the reviewer re-run, up to 3 rounds; it is listed in the summary's risks and choices.
 4. Codex never reviews the plan.
 

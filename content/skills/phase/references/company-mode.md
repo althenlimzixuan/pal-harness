@@ -48,7 +48,17 @@ the session waits for the owner's own answer.
 1. Each answer goes in `doc/decisions.md` as usual: `N. YYYY-MM-DD (phase NNN): <question> → <answer>`.
 2. An answer that came from the veto window's default ends with `(used by default)`. An answer from
    `changed:` quotes the owner's text.
-3. Clear `waiting_on_owner`, update `last_progress_at`, commit and push, then set the work state
+3. **The trial measure.** Every answered owner stop, in any mode, adds one entry to `owner_stops` in
+   `phase-state.yaml`, in the commit that clears `waiting_on_owner`:
+   `- {kind: <waiting kind>, since: <its since>, answered: <RFC 3339 now>, could_decide: true|false, via: <how it ended>}`.
+   - `could_decide` is `true` for a spec-review or findings stop with recommended answers and no
+     money, key or public question (section 3), whether Company mode was on or not.
+   - `via:` is the `wait-decision` result (`approved`, `defaulted`, `changed`, `vetoed`) when one came;
+     otherwise `owner`. A `via` other than `owner` needs `could_decide: true`.
+   - Leave the entry out when the **Reader check** (SKILL.md, **Until Pal Center and CI catch up**)
+     warned that the installed Pal Center cannot read `owner_stops`; the stop then stays in the log
+     only.
+4. Clear `waiting_on_owner`, update `last_progress_at`, commit and push, then set the work state
    back to `working` (**Owner stops** step 6).
 
 ## 5. Resume
