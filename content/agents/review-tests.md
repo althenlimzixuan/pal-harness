@@ -29,6 +29,7 @@ The report checks (3–7) apply only when the session says the reports are made 
 7. **n/a reports:** a report that does not apply is accepted only as "n/a" with a reason; one with no tooling must be a recorded skip with a plan task, not silently absent.
 8. **Fixtures:** shared fixture files are reused, not copied per test. An error-path fixture (a 422, 409 or 503 body) is copied from a real response (a handler test's output or the `openapi` example); one written by hand is a finding.
 9. **`ci-test-summary` flow override** (the session says when it is on): check the CI test summary file (`specs/NNN-slug/reviews/ci-summary-*.md`, from the final commit's CI run: tests and coverage per component, contract drift) instead of the `_test_reports/` files in checks 3, 4 and 6; the 80% gate still applies, and a missing `_test_reports/` folder is not a finding.
+10. **Every ending tested.** For a feature that sorts runs, sessions or jobs into outcomes (a status, a result, an end state), list every way one can end: start failed, owner stop, restart mid-run, idle, waiting, cancelled, timed out, crashed or killed, plus any ending the feature defines itself. Match each to a test that drives it and checks the outcome; an ending with no test is a major finding. Put the list in the report.
 
 ## Report
 

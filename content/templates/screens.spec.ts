@@ -52,8 +52,17 @@ async function setTheme(page: Page, theme: (typeof themes)[number]) {
 
 const out = process.env.SCREENS_DIR ?? path.join('test-results', 'screens')
 
-test.beforeAll(() => {
+// The warm-up: a dev server (Vite, Next.js) compiles on its first load, and that cold start can
+// outlast a test's timeout. One load of the first page, with a longer timeout and no screenshot,
+// runs before the first capture.
+test.beforeAll(async ({ browser }, testInfo) => {
   mkdirSync(out, { recursive: true })
+  test.setTimeout(120_000)
+  const page = await browser.newPage({ baseURL: testInfo.project.use.baseURL })
+  const first = pages.find((p) => p.path !== undefined)
+  await page.goto(first?.path ?? '/', { timeout: 110_000 })
+  await page.waitForLoadState('networkidle', { timeout: 110_000 })
+  await page.close()
 })
 
 for (const p of pages) {

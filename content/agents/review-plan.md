@@ -53,6 +53,10 @@ You have no shell: read and search the files, and write only your report.
 
 ## Rounds
 
+**Round 1 is the whole review.** Run every check above over the whole plan (or the whole part) and report every finding you see, however small, in round 1. Hold nothing back for a later round: a review that needs a second round to find more is what made phase plans take three rounds. A later round checks only the session's fixes and the text they changed; a new finding on unchanged text is raised only when it is critical.
+
+**A plan in parts** (`plan.md` and `plan-2.md`, `plan-3.md` …, up to 8 tasks each): the session names the part. Read `plan.md`'s summary for context and review that part's tasks. Part 1's review also runs the whole-phase checks (0 earlier majors, 1 coverage, 4 size, 9 summary); a later part's review runs the others. The report path the session gives you names the part.
+
 A round with only minor findings ends the review: the session applies them and notes "minors applied, no re-review" in the log. A round with a major or critical finding is re-run after the fixes.
 
 ## Report

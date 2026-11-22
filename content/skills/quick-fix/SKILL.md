@@ -46,6 +46,7 @@ Write the owner's one test step for what the fix changes (do → expect), concre
 2. Test first from a JSON fixture (`testing.md`): run it red. The log entry shows RED then GREEN:
    the failing output before the code, then the passing output after it.
    Then the code, by the build rules in `workflow.md`, and the repo's lint through its own script.
+   Code that only builds on Linux, on a Windows host: the phase's `references/linux-check.md`.
    Commit, push, update `tasks`, write the log entry (`pal-harness log`), push `docs/NNN-slug`.
 3. Stuck (fix rounds used up, CI red, no progress for 1 hour): as the phase's `references/build.md`
    section 5. A spending-limit block with a green local run is not stuck (`devops_cicd.md`, **CI runs

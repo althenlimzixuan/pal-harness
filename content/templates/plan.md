@@ -4,6 +4,8 @@
 - **Spec:** `spec.md` (approved on YYYY-MM-DD)
 
 > Reads in about 10 minutes. There is no plan stop: building starts once Claude's plan review passes.
+> Over 8 tasks (or about 30 KB): this file holds the summary and Part 1's tasks (up to 8), and each
+> later part goes in `plan-2.md`, `plan-3.md` …, reviewed one part at a time.
 > Written in plain English for you: no jargon, and a diagram's labels are words you would use.
 
 ## Summary

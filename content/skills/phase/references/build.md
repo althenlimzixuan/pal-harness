@@ -37,13 +37,20 @@ Without superpowers installed, say so in the log and build a larger phase inline
 
 ## 3. Each task
 
+**Carry-over** first: when the task before left should-fix review minors, fix them first, in their own
+commit (`Fix Task K review minors`), before this task's test; in a larger build they come in the
+brief (`references/subagents.md`, section 2 step 4). It is not a fix round, and it keeps the fix
+wave before the PR small.
+
 1. Write the failing test from its fixture (`testing.md`); run it and see it fail for the right
    reason. For the log, keep each new test's RED output (the command and its failing lines), then its GREEN.
 2. Write the code that makes it pass, by the build rules in `workflow.md` (TDD, the code patterns,
    the stack practice, contract-first). A change to owner-facing behaviour updates the project's
    owner guide in the same PR.
 3. Run the plan's prove-it commands, the repo's lint among them (through its own script, `workflow.md`);
-   read each result from the command's own exit code. The task is not done until lint is clean.
+   read each result from the command's own exit code. The task is not done until lint is clean. On a
+   Windows host, code that only builds on Linux (`!windows` Go files, `#[cfg(unix)]` Rust, a Linux CI
+   job) is proved by `references/linux-check.md` (`.pal-harness/skills/phase/references/linux-check.md`).
 4. Commit with the plan's message; push the feature branch.
 5. Add 1 to `tasks.done` and write the log entry with `pal-harness log` (it stamps
    `last_progress_at`; SKILL.md, **Saved state**); commit and push `docs/NNN-slug`.
@@ -134,7 +141,9 @@ stuck (section 6 step 4).
 4. CI red → read why first (`gh run view <id> -R <owner/repo>`). A job that never started because
    of the spending limit or billing is not a fix round and does not make the build stuck: run CI
    locally as `devops_cicd.md` (**CI runs and minutes**) says; a green local run counts as this
-   PR's CI for the merge gates (`review.md` section 6, quick-fix, sign-off). Otherwise fix, push,
+   PR's CI for the merge gates (`review.md` section 6, quick-fix, sign-off). A job that failed from a
+   package-mirror or network outage is re-run once and logged as `infra re-run`, not a fix round
+   (`devops_cicd.md`, **Outage re-run**). Otherwise fix, push,
    watch again (each fix is a round; 3 rounds, then section 5). Green on every PR → `ci: green`;
    `ci:` takes only `green`, `red`, `running` or `none` (exit 8 is `running`, never `pending`).
 5. `stage: code-review`; bundle features `code-review`. Commit and push. Go to `references/review.md`.
