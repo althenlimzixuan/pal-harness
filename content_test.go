@@ -10,6 +10,7 @@ import (
 	harness "github.com/althenlimzixuan/pal-harness"
 	"github.com/althenlimzixuan/pal-harness/manifest"
 	"github.com/althenlimzixuan/pal-harness/state"
+	"gopkg.in/yaml.v3"
 )
 
 func TestContentComplete(t *testing.T) {
@@ -1043,4 +1044,29 @@ func TestHarness180Rules(t *testing.T) {
 	// D3. Trial measures in the retro.
 	has("agents/retro.md", "**Owner stops:**", "could have been a decision under Company mode")
 	has("templates/retro.md", "## Owner stops")
+}
+
+// pal-harness 1.9.0: the phase-state template leaves out optional keys whose
+// default applies, so a reader on an older harness can still read a new phase
+// (design B1).
+func TestPhaseStateTemplateOptionalKeys(t *testing.T) {
+	b, err := harness.Content.ReadFile("content/templates/phase-state.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var keys map[string]any
+	if err := yaml.Unmarshal(b, &keys); err != nil {
+		t.Fatal(err)
+	}
+	for _, k := range []string{"qa", "owner_stops"} {
+		if _, ok := keys[k]; ok {
+			t.Errorf("templates/phase-state.yaml writes the optional key %s", k)
+		}
+		if !strings.Contains(string(b), "# "+k+":") {
+			t.Errorf("templates/phase-state.yaml does not name the optional key %s in a comment", k)
+		}
+	}
+	if ns := state.NewerFields("phase-state", b, state.Version{1, 3, 0}); len(ns) != 0 {
+		t.Errorf("the template uses fields a 1.3.0 reader cannot read: %v", ns)
+	}
 }
