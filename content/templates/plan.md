@@ -77,6 +77,9 @@ One block per task.
 - **Code:** (what makes the test pass, in a line or two. A screen with several independent save
   buttons, such as switches or forms, says "saves per item": each save sends only its own item, and a
   late answer never overwrites another item's value or a newer value of its own)
+- **Values from data:** (a task that builds text from data, such as a message, a label, a path or a
+  line naming a repo: each value it puts in, with its source field and type, for example
+  "repo: `project.yaml components[].repo`, string `owner/name`"; delete this line otherwise)
 - **Prove it:** (the exact commands, the repo's lint script among them, and the result to expect.
   Code for one OS adds the other OSes' checks, such as `GOOS=linux go vet ./...`,
   `GOOS=darwin go vet ./...` or `cargo clippy --target x86_64-unknown-linux-gnu`. A task that

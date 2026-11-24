@@ -59,8 +59,9 @@ The plan turns the approved spec into tasks. No owner stop: once Claude's plan r
     dependency records the resolved versions of the shared libraries it pulls in, against the
     existing native modules (`react_native.md`, **Native dependencies**). A mismatch is fixed in the
     plan, before the build.
-14. **File lists.** Each task's file list holds every file its code, tests, fixture and prove-it
-    commands name.
+14. **File lists and values.** Each task's file list holds every file its code, tests, fixture and
+    prove-it commands name. A task that builds text from data (a line naming a repo) has a
+    **Values from data:** line: each value's source field and type (`pal-review-plan` check 21).
 15. **Owner-run commands.** Every command only the owner can run (a production `terraform apply`,
     `gh workflow run` on a protected workflow, `eas submit`, a store or console step, anything auto
     mode refuses) is listed under the plan's **Owner-run commands**, with its exact text and where to
@@ -104,8 +105,7 @@ goes in the tasks, not the summary.
    report that does not apply to the stack is listed as "n/a" with the reason. A report that
    applies but has no tooling yet becomes a task in this plan when no earlier plan added it; until
    that task ships, the report is a recorded skip, not a blocker.
-3. **Size:** about one working day. Bigger → propose a split as one owner question (section 4),
-   with a recommended answer.
+3. **Size:** about one working day. Bigger → one owner question proposing a split (section 4).
 4. **Parts.** A plan over 8 tasks, or over about 30 KB, is written in parts of up to 8 tasks each, so
    each review reads a plan it can hold:
    - `plan.md` holds the summary, the coverage and the tables for the whole phase, plus Part 1's tasks;
