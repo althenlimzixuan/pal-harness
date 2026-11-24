@@ -82,6 +82,11 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
      lint is run again; `make test` is re-run one package group at a time with `GOFLAGS=-p=1`,
      retrying only the group that was cut; a stopped `make mock` falls back to
      `mockery --name <Interface>` as `go_api.md` (**Mocks.**) says.
+  5. **Jest exit `0xC0000142` on Windows** (exit code 3221225794 or -1073741502: a process that
+     could not start) counts as a run cut short by low memory: run `pal-harness mem --wait 9m`, then
+     re-run only the failed suites (`npx jest <their paths> --maxWorkers=2`). Log
+     `process-start failure: re-ran N suites`; it is not a fix round. The same suites failing the
+     same way again are re-run with `--maxWorkers=1`; a third time is a real failure.
 - **Read a red run before fixing it** (`gh run view <id> -R <owner/repo>`). A job that never started
   because of the spending limit or a billing problem is not a code failure and not a fix round:
   1. run the repo's CI commands locally on the PR's head (the checks of `workflow.md`, **Check before
@@ -150,6 +155,12 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
 - Migrations run manually before deploy: `make migrate-up`
 - **Cloud Run:** after `terraform apply`, traffic stays on the old revision until the deploy
   workflow runs, so the runbook runs the deploy workflow next and checks the serving revision
+- **gcloud and Terraform:** every `gcloud` command, the session's own and the handover's, passes
+  `--project <id>`: the PC's default project may belong to another product, so it is never
+  trusted. An owner-run Terraform handover lists, in the folder and in order,
+  `gcloud auth application-default login` (once per PC, or when it has expired),
+  `terraform init -backend-config=backend.hcl` when the folder has no `.terraform/` yet, then the
+  `plan` and `apply` with the exact `-var-file`, and names the GCP project ID
 
 **Next.js Web + Admin**:
 - Vercel (default, regardless of backend cloud)
@@ -162,6 +173,8 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
 - EAS Build for binary compilation
 - EAS Submit for App Store + Play Store submission
 - OTA updates via Expo Updates for JS-only changes (no store review)
+- Under Company mode a store submission or OTA update is held and goes out as one release (phase
+  skill, `references/ship.md`, section 8)
 
 **Database / Cache**:
 - GCP path: Cloud SQL (MySQL) + Memorystore (Redis)

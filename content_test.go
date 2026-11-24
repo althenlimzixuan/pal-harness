@@ -1221,7 +1221,7 @@ func TestHarness1110Rules(t *testing.T) {
 	}
 
 	// A. Held store releases under Company mode.
-	has("skills/phase/references/ship.md", "**Held store releases**", "`doc/releases/held.md`",
+	has("skills/phase/references/ship.md", "## 8. Held store releases", "`doc/releases/held.md`",
 		"`Release reason: (a) all approved work is finished`", "`Release reason: (b) you asked`",
 		"newest held build", "store release held (N held)")
 	has("skills/phase/references/company-mode.md", "`doc/releases/held.md`", "held store release")
@@ -1239,7 +1239,7 @@ func TestHarness1110Rules(t *testing.T) {
 	has("skills/phase/references/staging-test.md", "`adb -s <serial> shell pm clear <package>`")
 
 	// D. Apps that block screen capture.
-	has("practices/react_native.md", "**Screen-capture protection.**", "`uiautomator dump", "test PIN",
+	has("practices/react_native.md", "**Screen-capture protection.**", "uiautomator dump", "test PIN",
 		"`screen text: uiautomator`")
 
 	// E. Handovers give each value's format; Terraform's handover is complete.
@@ -1264,6 +1264,6 @@ func TestHarness1110Rules(t *testing.T) {
 	has("agents/review-tests.md", "`CPU busy: N%`")
 
 	// I. A subagent told to stand down.
-	has("skills/phase/references/subagents.md", "**Stand down.**", "send no report, handback or message",
+	has("skills/phase/references/subagents.md", "**Stand down.**", "Send no report, handback or message",
 		"takes the work over", "never dispatches a fresh agent")
 }

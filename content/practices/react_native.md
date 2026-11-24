@@ -247,10 +247,36 @@ appId: com.company.etp
   every fix round and every restart, not only the first start.
 - Never run `adb disconnect` or `adb kill-server`, and never toggle the phone's wireless debugging.
 - **A fresh app for each test.** The staging-test pre-flight clears the app's data on each phone with
-  `adb shell pm clear <package>`. Auto mode blocks it unless the project allows exactly that command
-  in its `.claude/settings.json` (`"Bash(adb shell pm clear <package>)"` under `permissions.allow`,
-  with the real package). A project that cannot allow it ships a debug-only reset in the app (a
-  hidden developer action that clears its storage) and the pre-flight uses that.
+  `adb -s <serial> shell pm clear <package>` (never the bare `adb shell pm clear <package>`, which
+  names no phone). Auto mode blocks it unless the SSOT repo's committed `.claude/settings.json`
+  allows exactly that command; the committed file, because a worktree set never sees
+  `settings.local.json`. For
+  each package (production and development variants) and each serial in `doc/devices.yaml`,
+  `permissions.allow` holds:
+
+  ```json
+  "Bash(adb -s R5CX123 shell pm clear com.example.app)",
+  "Bash(adb -s R5CX123 shell am force-stop com.example.app)"
+  ```
+
+  The first device test of a session (a device-check task, or the staging-test pre-flight) checks
+  the file first. When an entry is missing, the session asks once, in that first message, with the
+  exact lines; on the owner's yes it adds them and commits them with the phase's docs. Then
+  `adb -s <serial> shell pm clear <package>` and `adb -s <serial> shell am force-stop <package>` run
+  as listed, never asked again mid-test. A project that cannot allow them ships a debug-only reset
+  in the app (a hidden developer action that clears its storage) and the pre-flight uses that.
+- **Screen-capture protection.** An app that blocks screen capture (FLAG_SECURE, or
+  `usePreventScreenCapture`) shows black screenshots.
+  1. Read its screens with `adb -s <serial> shell uiautomator dump /sdcard/ui.xml`, then
+     `adb -s <serial> pull /sdcard/ui.xml`. The screen's text, with the server or phone log, is the
+     step's evidence, and the QA or device-check summary row says `screen text: uiautomator`.
+  2. The development variant (`APP_VARIANT=development`) leaves the protection off by a build-time
+     flag, so the device check can screenshot it; a test proves the production variant keeps it on.
+  3. The unlock-free route: the development variant also accepts a test PIN, typed by the session
+     with `adb -s <serial> shell input text <pin>` in place of a fingerprint. A build-time flag the
+     production build cannot set guards it, and a test proves the production build refuses it. The
+     unlock is never skipped, and the test PIN is never a real secret. A project adds the flag and
+     the PIN in a plan task the first time a device check needs them.
 - The test devices are listed in `doc/devices.yaml`: names and addresses only, no pairing codes.
 
   ```yaml

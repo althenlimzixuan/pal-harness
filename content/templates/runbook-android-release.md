@@ -31,6 +31,10 @@ placeholders. The session dry-reads it against the real files before ship (phase
 
 ## 3. Build and upload
 
+Under Company mode the upload is held: ship builds from `main`, adds a row to
+`doc/releases/held.md`, and stops before step 2 until the one batched release (phase skill,
+`references/ship.md`, section 8).
+
 1. **(you)** `eas build --platform android --profile production`
 2. **(you)** `eas submit --platform android --latest` (or upload the `.aab` by hand in step 4).
 

@@ -64,8 +64,11 @@ passes, building starts.
 15. **Owner-run commands.** Every command only the owner can run (a production `terraform apply`,
     `gh workflow run` on a protected workflow, `eas submit`, a store or console step, anything auto
     mode refuses) is listed under the plan's **Owner-run commands**, with its exact text and where to
-    run it, in the order ship needs them. A first store release copies
-    `.pal-harness/templates/runbook-android-release.md` (or the project's runbook) in a task.
+    run it, in the order ship needs them, and the exact format of every value it asks for, with an
+    example (`user:<email>`, a project ID, not its name). A Terraform step lists the login, `init`
+    and apply in order, with the GCP project ID (`devops_cicd.md`, **gcloud and Terraform**). A first
+    store release copies `.pal-harness/templates/runbook-android-release.md` (or the project's
+    runbook) in a task.
 16. **Look up every command and path** a task names, once, before the review: each existing file or
     folder; the folder and naming of each new file (a fixture beside the real fixtures); each make
     target, npm script and generator flag; each file the spec names as a behaviour's origin. Fix the

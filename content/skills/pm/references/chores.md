@@ -16,6 +16,9 @@ and, after each run, a `Last run: YYYY-MM-DD` line.
 | `When: after phase` | After a phase reaches `done` |
 | No timing line | Once; after the run the card moves back to `Chores` |
 
+A card may also hold `After run: off`: whatever its timing line, it moves back to `Chores` after its
+run (section 2 step 4).
+
 - A chore may run beside a phase, in the other session folder (`<KEY>-1` or `<KEY>-2`). It never
   touches the phase's branches.
 - A card with `Action: harness notes` is Pal Center's alone (its harness-notes batch): the skill
@@ -33,8 +36,16 @@ The session follows the card's description, then ends with a final review:
    step 1) and writes a short report as a comment on its card: what it checked, what it found, the
    issue links.
 3. Then the session writes `Last run: YYYY-MM-DD` on the card (replacing the old line), with
-   `gh project item-edit --id <draft-id> --body "<text>"`. It never edits the board's columns or
-   their options; only the once-only card moves back to `Chores`.
+   `gh project item-edit --id <draft-id> --body "<text>"`.
+4. **Back to `Chores`.** A once-only card, or one with `After run: off`, moves from
+   `Chores (Active)` to `Chores` after its run:
+   `gh project item-edit --id <item-id> --project-id <project-id> --field-id <Status field id> --single-select-option-id <Chores option id>`
+   (the item id from `gh project item-list`, the project id from `gh project view`, the field and
+   option ids from `gh project field-list`, each with `<n> --owner <o> --format json`). **When the
+   owner asks** in any session ("turn the weekly audit chore off"), the session moves the named card
+   the same way and says so in one line. It moves cards only: it never edits the board's columns or
+   their options. PC's Harness notes card is Pal Center's to move once a batch's PR opens; until Pal
+   Center does, the owner or the batch session moves it.
 
 ## 3. Registering a chore
 
