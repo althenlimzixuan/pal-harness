@@ -1294,8 +1294,8 @@ func TestHarness1111Rules(t *testing.T) {
 	// B. The findings page: each option's blast radius.
 	has("templates/owner-stop.md", "## Options", "Does:", "Also stops or hides:", "nothing else",
 		"Cost:", "unknown: <what was not checked>")
-	has("skills/phase/SKILL.md", "`templates/owner-stop.md`")
-	has("skills/phase/references/review.md", "`templates/owner-stop.md`")
+	has("skills/phase/SKILL.md", "templates/owner-stop.md`")
+	has("skills/phase/references/review.md", "templates/owner-stop.md`")
 
 	// C. Codex: wording is minor at most.
 	has("skills/phase/references/spec.md", "wording-only", "rated minor")

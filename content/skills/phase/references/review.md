@@ -61,10 +61,11 @@ Run them in parallel.
    run from the set's root. With Pal Center older than 0.4.0, `pal-review` cannot run from the set:
    add `<kind>: not available (worktree set)` to `codex.skipped` and go on. Never run it from the
    owner's checkout for a phase; it would review the owner's code, not the phase's.
-2. **Claude's reviewers**, each a subagent by its agent name, given the spec, the plan, the branch
-   list with base `origin/dev`, and, once the reports exist (section 4 step 4), the report folder
-   (under `ci-test-summary`, the CI summary file, with a line saying it replaces `_test_reports/`).
-   Before that, tell `pal-review-tests` "reports not made yet: skip the report checks (3–7)":
+2. **Claude's reviewers**, each a subagent by its agent name (a type that can't be dispatched:
+   `subagents.md` section 5), given the spec, the plan, the branch list with base `origin/dev`,
+   and, once the reports exist (section 4 step 4), the report folder
+   (under `ci-test-summary`, the CI summary file, saying it replaces `_test_reports/`). Before
+   that, tell `pal-review-tests` "reports not made yet: skip the report checks (3–7)":
 
    | Agent | When |
    |---|---|
@@ -77,7 +78,6 @@ Run them in parallel.
 
    In a larger build, `pal-review-code` also gets the path of the ledger sdd keeps, to check that each parked
    finding was carried (`build.md`, section 6, **Deferred minors**).
-
 3. Each reviewer writes its own report: give it the absolute path
    `<set>/specs/NNN-slug/reviews/<agent>-YYYY-MM-DD-HHmm.md`. It writes that one file and returns a
    short verdict. When the reviewers finish, check that `git status` in every worktree shows no change except
@@ -91,8 +91,8 @@ The severity table in `workflow.md` applies to every finding, Codex's and Claude
 - **none:** nothing to do.
 - **minor:** Claude decides: fix it, or dismiss it with a one-line reason in the report.
 - **major** and **critical:** one numbered batch to the owner (an owner stop, `kind: findings`,
-  written to `reviews/owner-YYYY-MM-DD-HHmm.md`), critical first, each with its reason, impact and
-  a recommended action, so "accept all" works.
+  `reviews/owner-YYYY-MM-DD-HHmm.md` by `.pal-harness/templates/owner-stop.md`), critical first,
+  each with its reason, impact, options with what else each stops or hides, and a recommended one.
 
 Arguing a finding up or down a level is allowed; a downgrade from major or critical is written in the
 report with the reason, and the owner still sees it.

@@ -167,8 +167,8 @@ notification. Everything else is decided by you and listed under "Calls I made".
 | Major or critical findings, an exhausted fix-round limit | `findings` | the page of `reviews/owner-YYYY-MM-DD-HHmm.md` |
 | A stuck build or another blocking question | `questions` | the page of `reviews/owner-YYYY-MM-DD-HHmm.md` |
 
-For the last two, write the batch or the note to `specs/NNN-slug/reviews/owner-YYYY-MM-DD-HHmm.md`
-first: the problem, what was tried, and numbered options with a recommended one.
+For the last two, write `specs/NNN-slug/reviews/owner-YYYY-MM-DD-HHmm.md` first, by `.pal-harness/templates/owner-stop.md`:
+the problem, what was tried, options with a recommended one, each saying what else it stops or hides.
 
 **Company mode.** Start, Resume and every quick fix run `pal-work mode --project <key>` first, then the
 **Reader check** (**Until Pal Center and CI catch up**). At a spec-review or findings stop, after step 4 below,

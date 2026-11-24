@@ -32,7 +32,15 @@ implementers:
    section 4);
 7. **Stand down.** Every dispatched agent (implementer, fixer, reviewer, reports) is told: when the
    controller tells you to stand down, stop at once. Send no report, handback or message after it,
-   and stop every background command, Monitor and watcher you started.
+   and stop every background command, Monitor and watcher you started;
+8. **Own packages only.** A Go task runs only the Go packages its task changed, plus the packages
+   that import them when it changed an exported name (`go test <its packages>`, with
+   `GOFLAGS=-p=1 GOMEMLIMIT=2GiB`). It never runs `./...` or `make test`: a full run is cut by low
+   memory or the 10-minute tool limit. The controller runs the full suite (section 2, step 7);
+9. **Saves per item.** For a screen with several independent save buttons (switches, forms): each
+   save sends only its own item, and a save that answers after a newer one never overwrites another
+   item's value, or a newer value of its own item. A test saves two items close together, with the
+   first answer arriving last, and checks both values.
 
 **Known findings.** Each one cost a fix round in more than one phase:
 
@@ -74,6 +82,11 @@ implementers:
    `Task N: parked — … — Ruling: …` lines stay as they are.
 6. **A finished task.** A report from a task already marked done is ignored: not acted on and not
    answered. A second one from the same agent gets TaskStop.
+7. **The full Go suite** is the controller's: after `pal-harness mem`, in package groups with
+   `GOFLAGS=-p=1`, each in the foreground with a Bash timeout of 600000 ms (the groups of
+   `devops_cicd.md`, **Free memory before heavy runs** step 4). It runs before the whole-branch
+   review (`build.md` section 6 step 1) and for a fix round's check. A group cut by low memory is
+   re-run alone; a group that hits the 10-minute limit is split in two.
 
 ## 3. The task reviewer's checks
 
@@ -102,10 +115,30 @@ implementers:
    (`git restore -- <files>`) and check `git status --porcelain` shows nothing the review did not
    start with. A test that stays green is an Important finding: "`<test>` passes with `<break>`".
    The report names each break and its result;
-9. a fixer's change to behaviour the owner sees goes no further than its finding (section 1, item 6).
+9. a fixer's change to behaviour the owner sees goes no further than its finding (section 1, item 6);
+10. **Every documented status code.** For each route the task adds or changes, list every status
+    code the contract (`openapi.yaml`, `doc/API.md`) documents for it, and name for each the line that
+    returns it and a test that reaches it. A documented code that no path returns, or one with no
+    test, is a major finding;
+11. **Render check.** For a UI task with a **Render check:** (`templates/plan.md`), open its
+    screenshot. A missing screenshot, or one where something overlaps, is clipped or is cut off, is a
+    finding. In an inline build, the session does this check;
+12. **Saves per item** (section 1, item 9): the test is there, and no save sends or overwrites
+    another item's value.
 
 ## 4. Stale editor warnings
 
 Language-server diagnostics shown after an edit can be stale. They are ignored when `go build`,
 `go vet` and the tests pass (or the stack's own typecheck and tests); the command results win. A
 diagnostic is acted on only when a command reproduces it.
+
+## 5. Agent types missing
+
+When a `pal-review-*` or `pal-retro` agent type can't be dispatched (after a session restart, say):
+
+1. Dispatch a general-purpose agent instead. Its brief opens with "You are `<name>`. Follow
+   `<set>/.pal-harness/agents/<file>.md` exactly: it is your whole definition, its checks and its
+   report format", then gives the inputs and the report path that agent would have had. Pass the
+   agent file's `model:` as the model.
+2. Log it once per session: `agent fallback: general-purpose for <names> (<why>)`. Its report counts
+   as that reviewer's.

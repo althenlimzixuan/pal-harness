@@ -70,13 +70,20 @@ One block per task.
 ### Task 1 — (name)
 
 - **Repo and files:** (repo; files to create or change)
-- **Test first:** (test file) with fixture `tests/(test_type)/(use_case).json`
+- **Test first:** (test file) with fixture `tests/(test_type)/(use_case).json`. RED evidence: the failing
+  test names, from the run's own output (the command and the lines that name each test), never a count
 - **Guard tests:** (optional: tests that pin behaviour already there and pass on their first run, each
   with its reason; each one's RED is a mutation run: break the code it guards, see it fail, restore)
-- **Code:** (what makes the test pass, in a line or two)
+- **Code:** (what makes the test pass, in a line or two. A screen with several independent save
+  buttons, such as switches or forms, says "saves per item": each save sends only its own item, and a
+  late answer never overwrites another item's value or a newer value of its own)
 - **Prove it:** (the exact commands, the repo's lint script among them, and the result to expect.
   Code for one OS adds the other OSes' checks, such as `GOOS=linux go vet ./...`,
   `GOOS=darwin go vet ./...` or `cargo clippy --target x86_64-unknown-linux-gnu`)
+- **Render check:** (UI tasks whose spec gives pixel values, such as a grid size, a row height or a
+  width: the values; the sample data that fills them (the longest real label, the most rows); and
+  the screenshot `specs/NNN-slug/screens/task-K-<name>.png`, taken once with that data and looked at
+  before the task is done: nothing overlaps, is clipped or is cut off)
 - **Existing behaviour:** (restyle tasks only: each badge, figure, link, control and state the
   screen shows today, and the test that covers it)
 - **Native versions:** (a task that adds or upgrades a native dependency: the resolved versions of
