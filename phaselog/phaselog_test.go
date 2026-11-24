@@ -127,12 +127,15 @@ func TestAppendRefusesAndWritesNothing(t *testing.T) {
 }
 
 func TestInWorktreeSet(t *testing.T) {
+	// Absolute paths under a temp folder: a drive-relative "D:ws" would resolve
+	// against the current folder, which is inside a set when the tests run in one.
+	ws := filepath.Join(t.TempDir(), "ws")
 	cases := map[string]bool{
-		filepath.Join("D:", "ws", ".pal-worktrees", "PC-1", "specs", "001-x"): true,
-		filepath.Join("D:", "ws", "PC-Pal Center", "specs", "001-x"):          false,
-		filepath.Join("D:", "ws", "not.pal-worktrees", "specs"):               false,
-		filepath.Join("D:", "ws", ".PAL-WORKTREES", "PC-1", "specs"):          true,
-		filepath.Join("D:", "ws", ".pal-worktrees"):                           false,
+		filepath.Join(ws, ".pal-worktrees", "PC-1", "specs", "001-x"): true,
+		filepath.Join(ws, "PC-Pal Center", "specs", "001-x"):          false,
+		filepath.Join(ws, "not.pal-worktrees", "specs"):               false,
+		filepath.Join(ws, ".PAL-WORKTREES", "PC-1", "specs"):          true,
+		filepath.Join(ws, ".pal-worktrees"):                           false,
 	}
 	for p, want := range cases {
 		if got := InWorktreeSet(p); got != want {
