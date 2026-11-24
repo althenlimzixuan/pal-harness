@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.10.0 — 2026-11-24
+
+Ten harness notes raised in Pal Center (ai-workshop#58 to #67), from Pal Center phase 022's and 023's retros. The design is `doc/specs/2026-11-24-harness-1.10.0-design.md`. No state field changes, so the installed Pal Center reads 1.10.0 phase state as it reads 1.9.0. The planned `upgrade` command and automatic re-pin move to 1.11.0.
+
+- **New `pal-harness minors <ledger> [--tag <tag>] [--task <N>]`** (#60). It lists sdd's deferred minors grouped by the tag set at triage (`Task K: minor (deferred) [carry]: …`):
+  - `carry`, `final`, `later`, `issue`, then sdd's `parked` lines, then `untagged`, then a count of `fixed`;
+  - exit 1 when a minor has no tag or an unknown one.
+
+  The controller tags at triage (`subagents.md` section 2 step 5) and builds each Carry-over list with `--task K --tag carry`. `build.md` **Deferred minors** and `pal-review-code` check 8 read the command's list instead of the ledger.
+- **New `pal-harness merge-check [--base origin/dev] [dir]`** (#63). It fetches, then tries the merge of `HEAD` in a throwaway worktree that is always removed; the caller's tree is never touched. It works on git older than 2.38. It runs at the start of the review stage (`review.md` **Merge check first**) and before each PR into `dev` (build section 6 step 3, quick fix). A conflict is merged in before CI, keeping both sides of a bookkeeping file.
+- **`spec new` branches from `origin/dev`** (#67). With an `origin` remote it fetches `dev` and creates the branch from `origin/dev` with `--no-track`. It stops when the fetch fails, origin has no `dev`, or local `dev` has commits not on `origin/dev`. With no remote it uses local `dev`, as before.
+- **QA seeds** (#58): the spec's UX outline ends with **QA seeds**, the records each changed screen needs to look filled. The plan adds missing seeds to the project's QA sample data, the plan review checks them (check 13), and the QA pass screenshots each changed screen in its seeded state.
+- **RED by name and guard tests** (#59):
+  - the controller matches each new test by name to its RED line before the task reviewer is dispatched;
+  - a RED recovered afterwards by a mutation run is logged `RED by mutation: <test>` and is not a fix round;
+  - the plan's optional **Guard tests:** pass on their first run, and their RED is a mutation run.
+- **Mutation check** (#66): the task reviewer breaks the covered code once per new test (at most 5 per task), confirms the test fails, restores with `git restore -- <files>`, and checks `git status`. A test that stays green is an Important finding.
+- **Plan review** (#61, #64):
+  - check 19 **Commands and paths** looks up every path, make target, npm script and generator flag a task names;
+  - check 20 **Other operating systems** needs the other OSes' checks in **Prove it**: `GOOS=linux` and `GOOS=darwin go vet`, `cargo clippy --target <triple>`, or the Docker run and `macOS proof: CI's macOS job`.
+
+  `linux-check.md` **Cheap first** gains the `cargo clippy --target` and macOS lines.
+- **A fix stays inside its finding** (#62): a fixer changes owner-facing behaviour only as far as its finding says, and reports anything more under **New question**. That question joins a coming findings stop, or becomes a backlog issue (`Why: a fix needs an owner-facing change`) listed in the sign-off PR.
+- **Done work drops out** (#65): `/pm` **Bundle and vehicle** step 1 and the spec stage check each backlog issue against `doc/features.yaml`, merged PRs and closed issues, and close the done ones with `Done in <link>`. Pal Center's own Inbox triage gets the same check through F-036.
+
 ## 1.9.0 — 2026-11-22
 
 Ten harness notes raised in Pal Center (ai-workshop#48 to #57), mostly from Pal Center phase 020's retro. The design is `doc/specs/2026-11-22-harness-1.9.0-design.md`. The planned `upgrade` command and automatic re-pin move to 1.10.0.

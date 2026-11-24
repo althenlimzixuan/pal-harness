@@ -137,7 +137,11 @@ Numbered, about ten lines, phone-readable:
 
 1. Propose the next phase as a **bundle**: one roadmap feature plus the backlog fixes that touch the
    same area, sized to **about one working day**. Too big → split the feature; too small → add the
-   nearest fixes.
+   nearest fixes. **Done work drops out first:** check each backlog issue against a `done` feature in
+   `doc/features.yaml`, `gh pr list -R <owner/repo> --state merged --search "<key words>"` and
+   `gh issue list -R <owner/repo> --state closed --search "<key words>"`. A done one is closed
+   (`gh issue close <n> -R <owner/repo> --comment "Done in <link>"`), its card goes to `Done`, and the
+   note gives the count closed. The bundle holds only open work.
 2. Set the **vehicle**, each with a one-line reason:
    - `phase` — the full flow: any roadmap feature, any API change, anything over a small fix;
    - `quick-fix` — no spec or plan, still reviewed, adds a test step for the owner: a small change

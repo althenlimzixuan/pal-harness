@@ -66,6 +66,18 @@ passes, building starts.
     mode refuses) is listed under the plan's **Owner-run commands**, with its exact text and where to
     run it, in the order ship needs them. A first store release copies
     `.pal-harness/templates/runbook-android-release.md` (or the project's runbook) in a task.
+16. **Look up every command and path** a task names, once, before the review: each existing file or
+    folder; the folder and naming of each new file (a fixture beside the real fixtures); each make
+    target, npm script and generator flag; each file the spec names as a behaviour's origin. Fix the
+    task when one is not there.
+17. **QA seeds.** A QA seed in the spec's UX outline that the project's QA sample data lacks gets a
+    task that adds it there, with a test that the seeder loads it.
+18. **Other operating systems.** A task that touches code for one OS (an OS file suffix or build tag
+    in Go; `cfg(target_os …)`, `cfg(unix)` or `cfg(windows)` in Rust) adds to **Prove it** the check
+    for each other OS it builds on: `GOOS=linux go vet ./...` and `GOOS=darwin go vet ./...` for Go;
+    `cargo clippy --target <triple> --all-targets -- -D warnings` (after `rustup target add`) for a
+    Rust crate with no system libraries; for one with them (Tauri, GTK, WebKit) the Docker run in
+    `references/linux-check.md`, and `macOS proof: CI's macOS job`.
 
 ## 2. The summary
 

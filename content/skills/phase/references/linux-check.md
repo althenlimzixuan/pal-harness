@@ -10,9 +10,14 @@ the final proof; these local runs catch the failures before a 25-minute CI run d
 From Windows, before anything heavier, lint and vet as Linux. A Windows lint skips `!windows` files:
 
 - `GOOS=linux golangci-lint run ./...` (the version CI pins)
-- `GOOS=linux go vet ./...`
+- `GOOS=linux go vet ./...`, and `GOOS=darwin go vet ./...` for macOS-only files
+- a Rust crate with no system libraries in its build scripts: `rustup target add x86_64-unknown-linux-gnu`,
+  then `cargo clippy --target x86_64-unknown-linux-gnu --all-targets -- -D warnings` (macOS: the
+  same with `aarch64-apple-darwin`). A crate whose build needs the target's libraries (Tauri, GTK,
+  WebKit) fails here: use section 3 for Linux
 
-Both need no WSL or Docker.
+None of these needs WSL or Docker. macOS code that only a Mac can build has no local proof: the
+task's log line says `macOS proof: CI's macOS job`, handled like section 5.
 
 ## 2. WSL for Go tests
 

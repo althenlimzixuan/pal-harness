@@ -43,7 +43,8 @@ brief (`references/subagents.md`, section 2 step 4). It is not a fix round, and 
 wave before the PR small.
 
 1. Write the failing test from its fixture (`testing.md`); run it and see it fail for the right
-   reason. For the log, keep each new test's RED output (the command and its failing lines), then its GREEN.
+   reason. For the log, keep each new test's RED by name (the command and its failing lines), then its
+   GREEN; a plan's **Guard tests:** get a mutation run as their RED (`references/subagents.md`, section 1).
 2. Write the code that makes it pass, by the build rules in `workflow.md` (TDD, the code patterns,
    the stack practice, contract-first). A change to owner-facing behaviour updates the project's
    owner guide in the same PR.
@@ -116,9 +117,9 @@ stuck (section 6 step 4).
 
 ## 6. Done building
 
-**Deferred minors.** In a larger build, first take each finding parked in sdd's ledger, `<set>/.superpowers/sdd/<plan>/progress.md`
-(git-ignored), that no later task fixed: a real bug becomes a backlog issue (`references/review.md`, section 5); any other, a
-`doc/later.md` line on `docs/NNN-slug`: `- YYYY-MM-DD — <finding> (source: task review, Task K, phase NNN)`. Commit, push, log the count.
+**Deferred minors.** In a larger build, first run `pal-harness minors <ledger>` on sdd's ledger, `<set>/.superpowers/sdd/<plan>/progress.md` (git-ignored; tags in
+`references/subagents.md`, section 2 step 5). Tag any untagged line, then: `carry` and `final` to the one fixer; `issue` to backlog issues (`references/review.md`, section 5);
+`later` and `parked` to `doc/later.md` lines on `docs/NNN-slug`: `- YYYY-MM-DD — <finding> (source: task review, Task K, phase NNN)`. Commit, push, log the counts per tag.
 
 1. **Full check.** After `pal-harness mem` (`devops_cicd.md`, **Free memory before heavy runs**), in
    each repo, the full lint, typecheck and tests pass (`workflow.md`, **Check before every push**),
@@ -135,8 +136,8 @@ stuck (section 6 step 4).
 
    Red → fix it test first, then run it again; 3 rounds, then section 5. It runs again only when a
    later fix changes that code or those tests.
-3. Open each `feature/NNN-slug` PR into `dev` (`gh pr create -R <owner/repo> --base dev --head feature/NNN-slug`); do
-   not merge yet. Single-repo: open the code PR `docs/NNN-slug` → `dev` instead. Set
+3. Run `pal-harness merge-check` in each repo (a conflict: `references/review.md`, **Merge check first**), then open each
+   `feature/NNN-slug` PR into `dev` (`gh pr create -R <owner/repo> --base dev --head feature/NNN-slug`); do not merge yet. Single-repo: open the code PR `docs/NNN-slug` → `dev` instead. Set
    `ci: running`; watch it in the foreground (`devops_cicd.md`, **Waiting on CI and merging**).
 4. CI red → read why first (`gh run view <id> -R <owner/repo>`). A job that never started because
    of the spending limit or billing is not a fix round and does not make the build stuck: run CI
