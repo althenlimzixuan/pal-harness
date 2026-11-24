@@ -79,7 +79,9 @@ One block per task.
   late answer never overwrites another item's value or a newer value of its own)
 - **Prove it:** (the exact commands, the repo's lint script among them, and the result to expect.
   Code for one OS adds the other OSes' checks, such as `GOOS=linux go vet ./...`,
-  `GOOS=darwin go vet ./...` or `cargo clippy --target x86_64-unknown-linux-gnu`)
+  `GOOS=darwin go vet ./...` or `cargo clippy --target x86_64-unknown-linux-gnu`. A task that
+  changes QA sample data or a screen adds the project's QA checks command, from its `CLAUDE.md`
+  line `QA checks: <command>`, expected green)
 - **Render check:** (UI tasks whose spec gives pixel values, such as a grid size, a row height or a
   width: the values; the sample data that fills them (the longest real label, the most rows); and
   the screenshot `specs/NNN-slug/screens/task-K-<name>.png`, taken once with that data and looked at

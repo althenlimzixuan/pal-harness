@@ -1392,3 +1392,15 @@ func TestHarness1120Rules(t *testing.T) {
 	has("skills/phase/references/qa.md", "pal-harness serve <folder>", "`file:`", "run_in_background")
 	has("practices/testing.md", "pal-harness serve")
 }
+
+// The retro template's expected list passes the check a filled retro must pass (design D4).
+func TestRetroTemplateExpected(t *testing.T) {
+	b, err := harness.Content.ReadFile("content/templates/retro.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	es, findings := state.ParseRetro(b)
+	if len(findings) != 0 || len(es) != 3 {
+		t.Fatalf("template: %d entries, findings %v", len(es), findings)
+	}
+}

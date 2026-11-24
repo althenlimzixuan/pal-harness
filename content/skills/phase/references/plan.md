@@ -1,7 +1,6 @@
 # Stage: plan (`planning`)
 
-The plan turns the approved spec into tasks. There is no owner stop: once Claude's plan review
-passes, building starts.
+The plan turns the approved spec into tasks. No owner stop: once Claude's plan review passes, building starts.
 
 ## 1. Write it
 
@@ -74,8 +73,11 @@ passes, building starts.
     folder; the folder and naming of each new file (a fixture beside the real fixtures); each make
     target, npm script and generator flag; each file the spec names as a behaviour's origin. Fix the
     task when one is not there.
-17. **QA seeds.** A QA seed in the spec's UX outline that the project's QA sample data lacks gets a
-    task that adds it there, with a test that the seeder loads it.
+17. **QA seeds and checks.** A QA seed in the spec's UX outline that the project's QA sample data
+    lacks gets a task that adds it, with a test that the seeder loads it. A task that changes QA sample
+    data or a screen lists the QA checks in **Prove it** (the `CLAUDE.md` line `QA checks: <command>`).
+    With `harness.qa_command` set and no line, find the command (the `qa` script beside its folder),
+    add the line on `docs/NNN-slug` and list it in Calls I made.
 18. **Other operating systems.** A task that touches code for one OS (an OS file suffix or build tag
     in Go; `cfg(target_os …)`, `cfg(unix)` or `cfg(windows)` in Rust) adds to **Prove it** the check
     for each other OS it builds on: `GOOS=linux go vet ./...` and `GOOS=darwin go vet ./...` for Go;
