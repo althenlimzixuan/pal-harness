@@ -529,6 +529,7 @@ func TestSpecNewRemoteNumbering(t *testing.T) {
 	t.Run("remote docs branch", func(t *testing.T) {
 		dir := gitRepo(t)
 		withOrigin(t, dir)
+		tgit(t, dir, "push", "-q", "origin", "dev")
 		pushCommit(t, dir, "docs/004-remote")
 		specNewAt(t, dir, "next", "005-next")
 	})
@@ -538,6 +539,67 @@ func TestSpecNewRemoteNumbering(t *testing.T) {
 		pushCommit(t, dir, "dev", "specs/006-merged/spec.md")
 		specNewAt(t, dir, "next", "007-next")
 	})
+}
+
+// specOrigin is a repo on main whose bare origin holds main and dev as they are now.
+func specOrigin(t *testing.T) string {
+	t.Helper()
+	dir := gitRepo(t)
+	withOrigin(t, dir)
+	tgit(t, dir, "push", "-q", "origin", "main", "dev")
+	return dir
+}
+
+func TestSpecNewBranchesFromOriginDev(t *testing.T) {
+	dir := specOrigin(t)
+	pushOnto(t, dir, "dev", "doc/decisions.md", "105\n")
+	remoteDev := strings.Fields(tgit(t, dir, "ls-remote", "origin", "refs/heads/dev"))[0]
+	if tgit(t, dir, "rev-parse", "dev") == remoteDev {
+		t.Fatal("setup: local dev should be behind origin's dev")
+	}
+	specNewAt(t, dir, "fresh", "001-fresh")
+	if parent := tgit(t, dir, "rev-parse", "HEAD"); parent != remoteDev {
+		t.Fatalf("branched from %s, want origin's dev %s", parent, remoteDev)
+	}
+	if out, err := git(dir, "config", "--get", "branch.docs/001-fresh.merge"); err == nil {
+		t.Fatalf("the new branch tracks %q; a push could land on dev", out)
+	}
+}
+
+func TestSpecNewStops(t *testing.T) {
+	for name, tc := range map[string]struct {
+		setup func(t *testing.T, dir string)
+		want  string
+	}{
+		"local dev ahead": {func(t *testing.T, dir string) {
+			tgit(t, dir, "switch", "-q", "dev")
+			commitFile(t, dir, "doc/later.md", "unpushed\n")
+			tgit(t, dir, "switch", "-q", "main")
+		}, "local dev has 1 commit not on origin/dev"},
+		"fetch fails": {func(t *testing.T, dir string) {
+			tgit(t, dir, "remote", "set-url", "origin", filepath.Join(t.TempDir(), "gone.git"))
+		}, "git fetch origin dev failed"},
+		"no origin dev": {func(t *testing.T, dir string) {
+			// The push also drops the remote-tracking origin/dev.
+			tgit(t, dir, "push", "-q", "origin", "--delete", "dev")
+		}, "origin has no dev"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			dir := specOrigin(t)
+			tc.setup(t, dir)
+			before := repoState(t, dir)
+			code, _, errs := do(t, "spec", "new", "x", dir)
+			if code != 2 || !strings.Contains(errs, tc.want) {
+				t.Fatalf("code %d err %q, want %q", code, errs, tc.want)
+			}
+			if after := repoState(t, dir); after != before {
+				t.Fatalf("repo changed:\n%s\nwas:\n%s", after, before)
+			}
+			if b := tgit(t, dir, "branch", "--list", "docs/*"); b != "" {
+				t.Fatalf("left a branch: %q", b)
+			}
+		})
+	}
 }
 
 func TestADRNewUsesDevAndOriginDev(t *testing.T) {

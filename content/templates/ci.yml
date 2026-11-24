@@ -16,9 +16,9 @@ permissions:
   contents: read
 jobs:
   gate:
-    uses: althenlimzixuan/pal-harness/.github/workflows/ci-gate.yml@v1.9.0
+    uses: althenlimzixuan/pal-harness/.github/workflows/ci-gate.yml@v1.10.0
     with:
-      version: 1.9.0
+      version: 1.10.0
       # One line per job: "<job>: <every path it reads>" (code, build files, lint config, a
       # contract copy its drift check compares). .github/workflows/ci.yml is always included.
       jobs: |
@@ -50,7 +50,7 @@ jobs:
     if: ${{ !cancelled() && needs.gate.result == 'success' }}
     permissions:
       contents: write
-    uses: althenlimzixuan/pal-harness/.github/workflows/ci-mark.yml@v1.9.0
+    uses: althenlimzixuan/pal-harness/.github/workflows/ci-mark.yml@v1.10.0
     with:
       fingerprints: ${{ needs.gate.outputs.fingerprints }}
       results: ${{ toJSON(needs) }}
