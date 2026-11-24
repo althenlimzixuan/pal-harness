@@ -54,6 +54,7 @@ func TestContentComplete(t *testing.T) {
 		"content/templates/decisions.md",
 		"content/templates/features.yaml",
 		"content/templates/held-releases.md",
+		"content/templates/implementer-report.md",
 		"content/templates/infra.mmd",
 		"content/templates/later.md",
 		"content/templates/north-star.md",
@@ -1391,6 +1392,53 @@ func TestHarness1120Rules(t *testing.T) {
 	// I. pal-harness serve for evidence pages.
 	has("skills/phase/references/qa.md", "pal-harness serve <folder>", "`file:`", "run_in_background")
 	has("practices/testing.md", "pal-harness serve")
+}
+
+// TestHarness1121Rules pins the 1.12.1 rules (design doc/specs/2026-11-25-harness-1.12.1-design.md).
+func TestHarness1121Rules(t *testing.T) {
+	flat := func(s string) string { return strings.Join(strings.Fields(s), " ") }
+	has := func(p string, subs ...string) {
+		t.Helper()
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		s := flat(string(b))
+		for _, sub := range subs {
+			if !strings.Contains(s, flat(sub)) {
+				t.Errorf("%s lacks %q", p, sub)
+			}
+		}
+	}
+
+	// A. Seed-file evidence for "first message" steps.
+	has("skills/phase/references/qa.md", "**First message steps.**", "`evidence: seed file <path>`",
+		"untrusted", "stays in the owner's staging test")
+	has("templates/spec.md", "seed file")
+
+	// B. One report shape for implementers.
+	has("templates/implementer-report.md", "**Gate 1 — test first**", "**Gate 2 — green and lint**",
+		"**Gate 3 — full test run**", "`Full test run: <command>, foreground, exit <N>`",
+		"`Add failing test for <behaviour>`", "`End of report.`", "At most 60 lines")
+	has("skills/phase/references/subagents.md", "templates/implementer-report.md`", "`git log --name-only",
+		"`Task K: tests <command>, foreground, exit N`", "repeats a section")
+
+	// C. Values from data.
+	has("agents/review-plan.md", "21. **Values from data:**", "11. text a task builds from data")
+	has("templates/plan.md", "**Values from data:**")
+	has("skills/phase/references/plan.md", "**Values from data:**")
+
+	// D. The automation summary in /pm.
+	has("skills/pm/SKILL.md", "`pal-work automation --project <key>`", "0.27.0", "as they are",
+		"`Automation: could not read (exit 4: <its message>)`")
+
+	// E. Two runners for Windows jobs.
+	has("practices/devops_cicd.md", "`pal-pc-2`", "registration-token",
+		"`CI queue: N runs ahead, R runners (about M min)`")
+
+	// F. Codex severities with precondition and likelihood.
+	has("practices/workflow.md", "`precondition:`", "`likelihood:`", "sub-second", "command-only tool")
+	has("skills/phase/references/review.md", "`precondition:`", "`likelihood:`")
 }
 
 // The retro template's expected list passes the check a filled retro must pass (design D4).

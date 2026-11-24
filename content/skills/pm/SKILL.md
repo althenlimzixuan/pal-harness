@@ -13,6 +13,10 @@ one-line reason.
 
 **Mode first.** `/pm` and `/pm pickup` run `pal-work mode --project <key>` before anything else and
 follow `.pal-harness/skills/phase/references/company-mode.md`; never trust a note about the mode.
+Right after it, with Pal Center 0.27.0 or later, they run `pal-work automation --project <key>` and
+open the start-of-session note (or pickup's first message) with its numbered lines, as they are.
+Exit 5, no `Work CLI:` line or an older Pal Center: skip it, with no line. Exit 4: run it once more;
+a second exit 4 opens the note with `Automation: could not read (exit 4: <its message>)`.
 
 ## Invocations
 
@@ -107,7 +111,7 @@ Run it before your first status line. Never report what you have not reconciled.
 
 ## Start-of-session note
 
-Numbered, about ten lines, phone-readable:
+Numbered, about ten lines, phone-readable, after the automation lines (**Mode first**):
 
 1. In flight: each live phase — `NNN-slug`, stage, tasks done/total, CI.
 2. Waiting on you: the count, then one line each (what to do, and the link from `waiting_on_owner`).
@@ -157,19 +161,18 @@ Numbered, about ten lines, phone-readable:
 
 ## Single-repo projects
 
-When every component's `repo` in `project.yaml` equals `ssot.repo`, the project is single-repo:
-a phase or quick fix keeps its code on `docs/NNN-slug` beside its state, with no
-component worktrees and no `feature/` or `fix/` branches (phase skill, **Single-repo
-projects**). Read its phase state there as usual; nothing else in this skill changes.
+When every component's `repo` in `project.yaml` equals `ssot.repo`, the project is single-repo: a
+phase or quick fix keeps its code on `docs/NNN-slug` beside its state, with no component worktrees
+and no `feature/` or `fix/` branches (phase skill, **Single-repo projects**). Nothing else changes.
 
 ## One card at a time
 
 - A project runs one card at a time. A phase blocks new work while its stage is not `staging-test`,
   `shipping` or `done`; so does a card in `In flight`.
-- The next phase may start building while the previous one waits for the owner's staging test. Its
-  sign-off PR waits until that test is done (one staging at a time).
-- Under `uat-queue` (phase skill, **Flow overrides**), a phase whose staging test is parked awaiting
-  UAT does not block: pickup may start the next card, and up to 3 phases wait on `staging` together.
+- The next phase may build while the previous one waits for the owner's staging test; its sign-off
+  PR waits until that test is done (one staging at a time). Under `uat-queue` (phase skill, **Flow
+  overrides**), a phase parked awaiting UAT does not block: pickup may start the next card, and up
+  to 3 phases wait on `staging` together.
 
 ## Reviewer findings and the later list
 
@@ -196,13 +199,11 @@ projects**). Read its phase state there as usual; nothing else in this skill cha
 
 1. Read what exists, read-only: the PRD, roadmap and north-star documents, existing specs, the
    Roadmap board's cards, open backlog issues labelled `enhancement` or `idea`.
-2. Draft `doc/north-star.md` from `.pal-harness/templates/north-star.md`: one page, with
-   `Last reviewed: YYYY-MM-DD (seed)` under the title.
+2. Draft `doc/north-star.md` from `.pal-harness/templates/north-star.md`: one page, `Last reviewed: YYYY-MM-DD (seed)` under the title.
 3. Draft `doc/features.yaml` from `.pal-harness/templates/features.yaml`, replacing its example: one
    entry per user-facing feature, ids from `F-001`, `why` and `use_case` in one line each, a
-   proposed label. Status `todo` when not built; `not-tested` when built (the owner tests it later).
-   Write a 3–6 step `test_script` for every feature that is already built (status `not-tested`);
-   `todo` features get their script later, in their spec.
+   proposed label. Status `todo` when not built; `not-tested` when built (the owner tests it later),
+   with a 3–6 step `test_script`; `todo` features get their script later, in their spec.
 4. Copy `.pal-harness/templates/decisions.md` and `later.md` to `doc/` when missing.
 5. Ask the owner to confirm the labels: a numbered list, one line each (id, name, proposed label,
    reason), so "accept all" or "accept all except 3: might" answers it.
@@ -211,8 +212,7 @@ projects**). Read its phase state there as usual; nothing else in this skill cha
 ## `/pm pickup` — the ladder
 
 Run it by hand when Pal Center has not. Stop at the first rung you can take without spending the owner's
-authority. The report gives the rung and the reason in one line for each card or backlog item it passes
-over ("rung 4: needs a contract change").
+authority. The report gives the rung and the reason for each card or item it passes ("rung 4: needs a contract change").
 
 0. Busy check (**One card at a time**). Busy → say what is in flight, run a due chore (rung 1) if
    there is one, and stop. If a board cannot be read, say it was unreachable; never report that as
@@ -232,8 +232,8 @@ over ("rung 4: needs a contract change").
    data, a product-direction decision or a breaking contract change, or a human gate already known.
    On refusal, tell the owner the one decision that unblocks it and go to rung 4. Otherwise claim it
    as in rung 2, noting in `phase-state.yaml` `notes` that pickup took it without approval: a `phase`
-   card drafts the spec, then stops at spec review; a `quick-fix` card runs
-   only if it also passes the rung 4 bar; an `owner-task` card is skipped.
+   card drafts the spec, then stops at spec review; a `quick-fix` card runs only if it also passes
+   the rung 4 bar; an `owner-task` card is skipped.
 4. **Safe backlog `Todo` items.** Read the backlog board's `Todo` column only, never `Triage`:
    `gh project item-list <n> --owner <o> --limit 500 --format json --jq '.items[] | select(.status=="Todo")'`.
    Before claiming, require `state == OPEN` (`gh issue view`); a closed issue's card moves to `Done`
