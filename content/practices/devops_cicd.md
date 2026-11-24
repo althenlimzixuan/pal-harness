@@ -81,7 +81,8 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
   4. **A run cut short by low memory** (killed, or no exit code of its own) is run again, never pushed over:
      lint is run again; `make test` is re-run one package group at a time with `GOFLAGS=-p=1`,
      retrying only the group that was cut; a stopped `make mock` falls back to
-     `mockery --name <Interface>` as `go_api.md` (**Mocks.**) says.
+     one mock per changed interface (`--name <Interface>` with `--all=false` and `--dir <its package folder>`),
+     as `go_api.md` (**Mocks.**) says.
   5. **Jest exit `0xC0000142` on Windows** (exit code 3221225794 or -1073741502: a process that
      could not start) counts as a run cut short by low memory: run `pal-harness mem --wait 9m`, then
      re-run only the failed suites (`npx jest <their paths> --maxWorkers=2`). Log
