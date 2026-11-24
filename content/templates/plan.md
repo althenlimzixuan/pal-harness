@@ -52,9 +52,16 @@ or folders lists its link and junction test cases.
 ## Owner-run commands
 
 Commands only you can run, with their exact text, in the order ship needs them. "none" when there
-are none.
+are none. Every value you are asked for gives its exact format and an example: an IAM member is
+`user:<email>` (`user:owner@example.com`), a project is its ID, not its name (`lfpv-prod-123`), a
+region is its code (`asia-southeast1`).
 
 1. (where to run it) `(the exact command)` (what it does, in one line)
+
+A Terraform step lists, in its folder and in order: `gcloud auth application-default login` (once
+per PC, or when it has expired); `terraform init -backend-config=backend.hcl` (or the project's
+backend file) when the folder has no `.terraform/` yet; the `plan` and the `apply` with the exact
+`-var-file`; and the GCP project ID they act on. Every `gcloud` command passes `--project <id>`.
 
 ## Tasks
 

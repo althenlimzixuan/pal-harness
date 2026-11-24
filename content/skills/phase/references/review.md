@@ -13,10 +13,10 @@ fixes, and not per reviewer. `pal-review-tests` then checks them (`testing.md` h
 thresholds and the tools).
 
 1. Until CI has report jobs, run `pal-harness mem` (`devops_cicd.md`, **Free memory before heavy
-   runs**), then the project's one report command (`make reports`, or
-   `npm run reports` in a Node-only repo) once, locally, on each branch's head. It writes them to
-   `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/` on `docs/NNN-slug`, with a numbered
-   `summary.md` from `.pal-harness/templates/test-summary.md`.
+   runs**), then the one report command (`make reports`, or `npm run reports` in a Node-only repo)
+   once, locally, on each branch's head, into `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/`
+   on `docs/NNN-slug`, with a numbered `summary.md` (`.pal-harness/templates/test-summary.md`). Read
+   each claim against its source (`testing.md`, **Every claim cites its source**) before reviewers.
 2. Every phase: `unit_test.html`, `test_coverage.html`, `profiling.html`, `summary.md`. Regression:
    here with the others until the project has staging; once it has staging, regression (and the
    load test when `load_test: true`) runs on staging after the sign-off PR merges

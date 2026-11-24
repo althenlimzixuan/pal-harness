@@ -107,6 +107,7 @@ the owner's interactive session and as the self-hosted runner's standard user in
   processes never run at once (on Windows they collide on the transform cache with EPERM); if EPERM
   still appears, that run uses `--no-cache`. Jest full runs and the report command pass
   `--maxWorkers=2`, after `pal-harness mem` (`devops_cicd.md`, **Free memory before heavy runs**).
+  A Jest suite that fails with `0xC0000142` on Windows is re-run alone, as that section's step 5 says.
 - **Location:** `_test_reports/<component>/<YYYY-MM-DD-HH>-<NNN-slug>/` in the SSOT repo, committed.
 - **Every phase:** `unit_test.html`, `test_coverage.html`, `regression.html`,
   `profiling.html`, and a numbered `summary.md` (pass/fail counts, coverage %, slowest calls, the paired speed check
@@ -127,6 +128,14 @@ the owner's interactive session and as the self-hosted runner's standard user in
   both more than 20% and over 2 ms slower: Windows timers step in about 1 ms, so a 3 ms call can
   read 33% slower with nothing changed. `summary.md` records the base commit, the number of pairs
   and both medians. The earlier report's numbers are context only, never the comparison.
+  **A quiet machine first:** run `pal-harness cpu --wait 9m` (Bash timeout 600000 ms) before the
+  pairs. Still busy (exit 1, the owner gaming or another build): run anyway and write
+  `CPU busy: N%` on `summary.md`'s speed line. A slowdown measured that way is re-run once on a
+  quiet CPU before it counts. Exit 2 (a platform it cannot read) is noted, and the run goes on.
+- **Every claim cites its source.** Each numbered line of `summary.md`, and each claim in its notes,
+  ends with its source in brackets: a report file (`[unit_test.html]`), a command and its exit code
+  (`[make reports, exit 0]`), or a file and line (`[infra/x_test.go:40]`). Before the reviewers are
+  dispatched, the session reads each claim against its source and corrects it.
 - A missing, empty or stale report is a review finding. Staging reports must match the tree hash of
   the staging deploy; every other report must come from the PR's final commit.
 - **A report the project cannot make yet.** One that does not apply to the stack (Lighthouse with no web

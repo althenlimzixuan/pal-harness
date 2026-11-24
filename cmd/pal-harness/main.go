@@ -43,6 +43,7 @@ const usage = `usage:
   pal-harness log <phase folder> <headline> [body file]
   pal-harness contrast <foreground> <background>
   pal-harness mem [--min 2GiB] [--wait 0] [--every 30s]
+  pal-harness cpu [--max 25%] [--for 10s] [--wait 0] [--every 30s]
   pal-harness minors [--tag <tag>] [--task <N>] <ledger>
   pal-harness merge-check [--base origin/dev] [dir]
   pal-harness adb [dir]
@@ -121,6 +122,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runAdb(dirArg(rest), stdout, stderr)
 	case "mem":
 		return runMem(rest, stdout, stderr)
+	case "cpu":
+		return runCPU(rest, stdout, stderr)
 	case "minors":
 		return runMinors(rest, stdout, stderr)
 	case "merge-check":
