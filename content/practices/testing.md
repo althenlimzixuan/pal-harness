@@ -49,6 +49,9 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
   `GOFLAGS=-p=1` and `GOMEMLIMIT=2GiB` in the command's environment
   (`GOFLAGS=-p=1 GOMEMLIMIT=2GiB make test`), so `make test` follows them with no Makefile change:
   one package at a time, under a 2 GiB soft limit, so low memory does not kill the run. CI never sets them.
+- **A subagent runs only the Go packages its task changed** (and their importers when it changed an
+  exported name), never `./...` or `make test`. The session runs the full suite in package groups
+  (`.pal-harness/skills/phase/references/subagents.md`, section 2).
 
 ## Windows security tests
 

@@ -57,6 +57,7 @@ func TestContentComplete(t *testing.T) {
 		"content/templates/infra.mmd",
 		"content/templates/later.md",
 		"content/templates/north-star.md",
+		"content/templates/owner-stop.md",
 		"content/templates/phase-state.yaml",
 		"content/templates/plan.md",
 		"content/templates/retro.md",
@@ -1266,4 +1267,70 @@ func TestHarness1110Rules(t *testing.T) {
 	// I. A subagent told to stand down.
 	has("skills/phase/references/subagents.md", "**Stand down.**", "Send no report, handback or message",
 		"takes the work over", "never dispatches a fresh agent")
+}
+
+// TestHarness1111Rules pins the 1.11.1 rules (doc/specs/2026-11-24-harness-1.11.1-design.md).
+func TestHarness1111Rules(t *testing.T) {
+	flat := func(s string) string { return strings.Join(strings.Fields(s), " ") }
+	has := func(p string, subs ...string) {
+		t.Helper()
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		s := flat(string(b))
+		for _, sub := range subs {
+			if !strings.Contains(s, flat(sub)) {
+				t.Errorf("%s lacks %q", p, sub)
+			}
+		}
+	}
+
+	// A. An unknown mode, said once.
+	has("skills/phase/references/company-mode.md", "Exit 4", "once more",
+		"`mode: unknown (exit 4: <its message>); every stop waits for the owner`",
+		"first owner-stop message", "Later stops do not repeat it")
+
+	// B. The findings page: each option's blast radius.
+	has("templates/owner-stop.md", "## Options", "Does:", "Also stops or hides:", "nothing else",
+		"Cost:", "unknown: <what was not checked>")
+	has("skills/phase/SKILL.md", "templates/owner-stop.md`")
+	has("skills/phase/references/review.md", "templates/owner-stop.md`")
+
+	// C. Codex: wording is minor at most.
+	has("skills/phase/references/spec.md", "wording-only", "rated minor")
+
+	// D. The task reviewer traces each documented status code.
+	has("skills/phase/references/subagents.md", "**Every documented status code.**",
+		"the line that returns it and a test that reaches it")
+
+	// E. Red evidence by name, in the plan.
+	has("templates/plan.md", "RED evidence: the failing test names", "never a count")
+	has("skills/phase/references/plan.md", "never a count")
+
+	// F. Pixel values rendered in the task.
+	has("templates/plan.md", "**Render check:**", "`specs/NNN-slug/screens/task-K-<name>.png`")
+	has("skills/phase/references/plan.md", "**Render check:**")
+	has("skills/phase/references/subagents.md", "**Render check:**")
+
+	// G. Saves are per item.
+	has("templates/plan.md", "saves per item")
+	has("skills/phase/references/subagents.md", "**Saves per item.**",
+		"never overwrites another item's value")
+
+	// H. Subagents run only their own Go packages.
+	has("skills/phase/references/subagents.md", "only the Go packages its task changed",
+		"never runs `./...` or `make test`", "in package groups")
+	has("practices/testing.md", "only the Go packages its task changed")
+
+	// I. One mock with all: true.
+	has("practices/go_api.md", "--name <Interface> --all=false --dir <its package folder> --output mocks",
+		"`Specify --name or --all, but not both`")
+	has("practices/devops_cicd.md", "`--all=false`")
+
+	// J. Reviewer agent types missing.
+	has("skills/phase/references/subagents.md", "## 5. Agent types missing",
+		"Follow `<set>/.pal-harness/agents/<file>.md` exactly",
+		"`agent fallback: general-purpose for <names> (<why>)`")
+	has("skills/phase/references/review.md", "`subagents.md` section 5")
 }
