@@ -13,8 +13,7 @@ that name the test; one run may show several), then the GREEN output and a clean
 plan lists under **Guard tests:** pins behaviour already there and passes on its first run; its RED
 is a mutation run (break the code it guards, run it, see it fail, restore), reported as
 `RED by mutation: <test>`. Local Go test
-runs set `GOFLAGS=-p=1 GOMEMLIMIT=2GiB` (`testing.md`, Go-Specific). The brief also tells
-implementers:
+runs set `GOFLAGS=-p=1 GOMEMLIMIT=2GiB` (`testing.md`, Go-Specific). The brief also tells implementers:
 
 1. to never wait on their own background work: every test, lint and build runs in the foreground
    (`devops_cicd.md`, **Free memory before heavy runs**), and a report is sent only when it ends;
@@ -40,7 +39,14 @@ implementers:
 9. **Saves per item.** For a screen with several independent save buttons (switches, forms): each
    save sends only its own item, and a save that answers after a newer one never overwrites another
    item's value, or a newer value of its own item. A test saves two items close together, with the
-   first answer arriving last, and checks both values.
+   first answer arriving last, and checks both values;
+10. **QA checks.** A task that changes the QA sample data (the spec's **QA seeds**, the project's
+    sample-data files) or a screen runs the project's QA checks before it reports done: the command
+    on the project `CLAUDE.md` line `QA checks: <command>` (Pal Center: `cd desktop && npm run qa`),
+    from the SSOT root, after `pal-harness mem`, in the foreground with a Bash timeout of 600000 ms.
+    A red check is fixed in the task like a failing test. With no such line, it runs the project's
+    `screens.spec.ts` when there is a copy (`references/review.md` section 1 item 6), or reports
+    `QA checks: none named`.
 
 **Known findings.** Each one cost a fix round in more than one phase:
 
@@ -83,10 +89,10 @@ implementers:
 6. **A finished task.** A report from a task already marked done is ignored: not acted on and not
    answered. A second one from the same agent gets TaskStop.
 7. **The full Go suite** is the controller's: after `pal-harness mem`, in package groups with
-   `GOFLAGS=-p=1`, each in the foreground with a Bash timeout of 600000 ms (the groups of
-   `devops_cicd.md`, **Free memory before heavy runs** step 4). It runs before the whole-branch
+   `GOFLAGS=-p=1`, each run as `timeout 580 <command>` in the foreground, Bash timeout 600000 ms
+   (`testing.md`, Go-Specific; the groups of `devops_cicd.md` step 4). It runs before the whole-branch
    review (`build.md` section 6 step 1) and for a fix round's check. A group cut by low memory is
-   re-run alone; a group that hits the 10-minute limit is split in two.
+   re-run alone; a group that exits 124 (the 10-minute limit) is split in two.
 
 ## 3. The task reviewer's checks
 

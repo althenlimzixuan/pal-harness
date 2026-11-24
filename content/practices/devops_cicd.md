@@ -50,6 +50,16 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
      keeps its local-evidence rule.
   4. **`ci:` values.** `phase-state.yaml` `ci:` is only `green`, `red`, `running` or `none`
      (`pal-harness check` rejects anything else). Exit 8 is written `running`; never `pending`.
+  5. **One runner, one queue.** When a repo's heavy jobs run on the self-hosted runner
+     (`gh variable get WINDOWS_RUNNER -R <owner/repo>` prints a label), its runs wait one after
+     another, about 20 minutes each. So:
+     1. before a push that starts CI (a push to a branch with an open PR), count the runs ahead in
+        each repo the phase touches: `gh run list -R <owner/repo> --status queued` and
+        `--status in_progress`. Write `CI queue: N runs ahead (about 20 min each)` with
+        `pal-harness log`, which stamps `last_progress_at`: a wait in the queue is not stuck;
+     2. a branch with an open PR gets one push per round: all of the round's fixes, in every repo,
+        committed locally and pushed together (step 0 already holds state and log pushes). Pushes
+        before a PR opens start no CI (the `pull_request` trigger) and go on as usual.
 - **The CI gate:** every repo with a code CI starts its `.github/workflows/ci.yml` from
   `.pal-harness/templates/ci.yml`. Its `gate` job calls the harness's reusable `ci-gate.yml`, which
   first runs `pal-harness utf8` (a tracked text file that is not UTF-8 makes the gate, and so the

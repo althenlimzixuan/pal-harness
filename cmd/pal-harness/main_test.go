@@ -1171,3 +1171,30 @@ func TestContrastCommand(t *testing.T) {
 		t.Errorf("one colour: code %d, errs %q", code, errs)
 	}
 }
+
+// pal-harness 1.12.0: check validates the retro's expected list (design D4).
+func TestCheckRetroExpected(t *testing.T) {
+	ok := "---\nexpected:\n  - {line: \"x\", source: \"summary 3\", result: met, evidence: \"qa/summary.md row 1\"}\n---\n# retro\n"
+	t.Run("valid", func(t *testing.T) {
+		dir := fixture(t)
+		write(t, dir, "specs/005-x/retro.md", ok)
+		if code, out, errs := do(t, "check", dir); code != 0 {
+			t.Fatalf("code %d out=%q err=%q", code, out, errs)
+		}
+	})
+	t.Run("bad result", func(t *testing.T) {
+		dir := fixture(t)
+		write(t, dir, "specs/005-x/retro.md", strings.Replace(ok, "result: met", "result: done", 1))
+		code, out, _ := do(t, "check", dir)
+		if code != 1 || !strings.Contains(out, `specs/005-x/retro.md: expected 1: result "done" is not one of met, partly, missed`) {
+			t.Fatalf("code %d out=%q", code, out)
+		}
+	})
+	t.Run("no front matter", func(t *testing.T) {
+		dir := fixture(t)
+		write(t, dir, "specs/005-x/retro.md", "# retro\n\n## Went well\n")
+		if code, out, errs := do(t, "check", dir); code != 0 {
+			t.Fatalf("code %d out=%q err=%q", code, out, errs)
+		}
+	})
+}

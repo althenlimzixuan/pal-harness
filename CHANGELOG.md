@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.12.0 — 2026-11-24
+
+Ten harness notes (ai-workshop#88 to #97), all raised in Pal Center, most from phase 026. The design is `doc/specs/2026-11-24-harness-1.12.0-design.md`. No phase-state field changes, so the installed Pal Center reads 1.12.0 phase state as it reads 1.11.1. The `upgrade` command and automatic re-pin move to 1.13.0.
+
+- **New `pal-harness serve [--port 0] [--for 30m] <dir>`** (#97). It serves a folder read-only on `127.0.0.1` for the browser tools, which refuse `file:` URLs. Dot paths (`.git`, `.env`, `..`) get 404, and it stops by itself after `--for` (at most 2h). QA evidence pages and screenshot folders open through it (`qa.md` section 2, `testing.md`).
+- **Expected vs got** (#91). `retro.md` opens with an `expected:` list: each Summary point 3 line, test-script step or What to expect now line (`summary 3`, `F-NNN step N`, `F-NNN expect N`), marked `met`, `partly` or `missed` with its evidence, and a `why` for the last two. The body counts them. `pal-harness check` validates the list in every `specs/*/retro.md` that has front matter (`templates/retro.md`, `pal-retro`).
+- **The owner's decisions reach Codex's code review** (#88). Before each code run, spec.md's Out of scope ends with `### Settled by the owner` (the phase's `doc/decisions.md` entries), and the run passes `--spec`. A Codex finding that only re-raises a settled decision is none, listed as `Codex <id>: settled by decision N` (`review.md` sections 2 and 3, quick fix). A Pal Center issue names the decisions in the code prompt.
+- **QA checks inside the task** (#89). A task that changes QA sample data or a screen runs the project's `QA checks: <command>` (its `CLAUDE.md` line; the plan adds it when missing) before it is done (`build.md` section 3, `subagents.md` item 10, `plan.md` item 17, the plan template).
+- **Pickup takes accepted feedback** (#90). `/pm pickup` gets rung 5: the Feedback board's `Accepted` column, run as a quick fix or moved to `Needs info` with a one-line comment. "Nothing qualifies" is rung 6.
+- **Long Go runs stay in the foreground** (#92). Every full local Go run is `timeout 580 <command>`. A run over 6 minutes last time is split up front (the slowest package alone), and exit 124 splits it (`testing.md`, `subagents.md`).
+- **`wire.go` edits need `make wire`** (#93): the `wireinject` build tag means the app runs `wire_gen.go`'s copy (`go_api.md`). The one-mock command with `all: true` was already in 1.11.1.
+- **A follow-on rule lists every case** (#95): an Appendix rule that follows another feature's rule or a decision lists each case, ending `cases: N of N` (`templates/spec.md`, `spec.md` item 10).
+- **One runner, one queue** (#96). On the self-hosted runner the session counts the runs ahead before a push, logs `CI queue: N runs ahead (about 20 min each)` (not stuck), and pushes once per round (`devops_cicd.md`).
+- `spec new` already branches from `origin/dev` since 1.10.0 (#94). Pal Center, pinned to 1.9.0, gets it with its re-pin.
+
 ## 1.11.1 — 2026-11-24
 
 Ten harness notes (ai-workshop#78 to #87): one from LFPV, nine from Pal Center phases 026 and 027's retros. The design is `doc/specs/2026-11-24-harness-1.11.1-design.md`. Rule text only: no new command and no state field, so the installed Pal Center reads 1.11.1 phase state as it reads 1.11.0. The `upgrade` command and automatic re-pin stay in 1.12.0.
