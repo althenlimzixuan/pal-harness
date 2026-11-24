@@ -1334,3 +1334,61 @@ func TestHarness1111Rules(t *testing.T) {
 		"`agent fallback: general-purpose for <names> (<why>)`")
 	has("skills/phase/references/review.md", "`subagents.md` section 5")
 }
+
+// TestHarness1120Rules pins the 1.12.0 rules (design doc/specs/2026-11-24-harness-1.12.0-design.md).
+func TestHarness1120Rules(t *testing.T) {
+	flat := func(s string) string { return strings.Join(strings.Fields(s), " ") }
+	has := func(p string, subs ...string) {
+		t.Helper()
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		s := flat(string(b))
+		for _, sub := range subs {
+			if !strings.Contains(s, flat(sub)) {
+				t.Errorf("%s lacks %q", p, sub)
+			}
+		}
+	}
+
+	// A. The owner's decisions reach Codex's code review.
+	has("skills/phase/references/review.md", "### Settled by the owner", "`Decision N: <question> → <answer>`",
+		"`Codex <id>: settled by decision N`", "--kind code` and `uiux`")
+	has("skills/quick-fix/SKILL.md", "### Settled by the owner")
+
+	// B. QA checks run inside the task.
+	has("skills/phase/references/build.md", "`QA checks: <command>`")
+	has("skills/phase/references/subagents.md", "**QA checks.**", "`QA checks: <command>`")
+	has("skills/phase/references/plan.md", "`QA checks: <command>`", "Calls I made")
+	has("templates/plan.md", "QA checks")
+
+	// C. Pickup takes accepted feedback.
+	has("skills/pm/SKILL.md", "**Accepted feedback.**", "`Accepted` column", "`Needs info`",
+		"one comment saying why, in one line", "6. Nothing qualifies")
+
+	// D. Expected vs got.
+	has("templates/retro.md", "expected:", "## Expected vs got", "partly met")
+	has("agents/retro.md", "**Expected vs got:**", "`summary 3`", "`F-NNN step N`", "`F-NNN expect N`",
+		"`met`, `partly` or `missed`", "why: no evidence")
+
+	// E. Long Go runs stay in the foreground.
+	has("practices/testing.md", "`timeout 580 <command>`", "Exit 124", "`go split: <package> alone (<N>s last time)`",
+		"over 6 minutes")
+	has("skills/phase/references/subagents.md", "timeout 580")
+
+	// F. wire.go edits need make wire.
+	has("practices/go_api.md", "`wireinject`", "the old graph")
+
+	// G. A rule that follows another lists every case.
+	has("templates/spec.md", "`cases: N of N`", "`not covered: <why>`")
+	has("skills/phase/references/spec.md", "`cases: N of N`")
+
+	// H. The single-runner CI queue.
+	has("practices/devops_cicd.md", "**One runner, one queue.**", "`CI queue: N runs ahead (about 20 min each)`",
+		"one push per round", "not stuck")
+
+	// I. pal-harness serve for evidence pages.
+	has("skills/phase/references/qa.md", "pal-harness serve <folder>", "`file:`", "run_in_background")
+	has("practices/testing.md", "pal-harness serve")
+}
