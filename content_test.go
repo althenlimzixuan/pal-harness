@@ -53,6 +53,7 @@ func TestContentComplete(t *testing.T) {
 		"content/templates/ci.yml",
 		"content/templates/decisions.md",
 		"content/templates/features.yaml",
+		"content/templates/held-releases.md",
 		"content/templates/infra.mmd",
 		"content/templates/later.md",
 		"content/templates/north-star.md",
@@ -1200,4 +1201,69 @@ func TestHarness1100Rules(t *testing.T) {
 	// I. Done work drops out before a fix pack.
 	has("skills/pm/SKILL.md", "--state merged --search", "--state closed --search", "Done in <link>")
 	has("skills/phase/references/spec.md", "already done")
+}
+
+// TestHarness1110Rules pins the 1.11.0 rules (doc/specs/2026-11-24-harness-1.11.0-design.md).
+func TestHarness1110Rules(t *testing.T) {
+	flat := func(s string) string { return strings.Join(strings.Fields(s), " ") }
+	has := func(p string, subs ...string) {
+		t.Helper()
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		s := flat(string(b))
+		for _, sub := range subs {
+			if !strings.Contains(s, flat(sub)) {
+				t.Errorf("%s lacks %q", p, sub)
+			}
+		}
+	}
+
+	// A. Held store releases under Company mode.
+	has("skills/phase/references/ship.md", "## 8. Held store releases", "`doc/releases/held.md`",
+		"`Release reason: (a) all approved work is finished`", "`Release reason: (b) you asked`",
+		"newest held build", "store release held (N held)")
+	has("skills/phase/references/company-mode.md", "`doc/releases/held.md`", "held store release")
+	has("skills/pm/SKILL.md", "`doc/releases/held.md`", "Release reason")
+	has("templates/runbook-android-release.md", "held")
+	has("templates/held-releases.md", "| Phase | Version | Build | Needs | Notes |")
+
+	// B. A chore card that switches itself off.
+	has("skills/pm/references/chores.md", "`After run: off`", "When the owner asks")
+	has("skills/pm/SKILL.md", "`After run: off`")
+
+	// C. Device-reset commands allowed once.
+	has("practices/react_native.md", "`adb -s <serial> shell pm clear <package>`",
+		"`adb -s <serial> shell am force-stop <package>`", "asks once")
+	has("skills/phase/references/staging-test.md", "`adb -s <serial> shell pm clear <package>`")
+
+	// D. Apps that block screen capture.
+	has("practices/react_native.md", "**Screen-capture protection.**", "uiautomator dump", "test PIN",
+		"`screen text: uiautomator`")
+
+	// E. Handovers give each value's format; Terraform's handover is complete.
+	has("templates/plan.md", "`user:<email>`", "`gcloud auth application-default login`", "`terraform init")
+	has("skills/phase/references/plan.md", "exact format")
+	has("skills/phase/references/ship.md", "exact format")
+	has("practices/devops_cicd.md", "`--project <id>`", "`gcloud auth application-default login`")
+
+	// F. Test summaries cite their sources.
+	has("templates/test-summary.md", "[unit_test.html]")
+	has("skills/phase/references/review.md", "against its source")
+	has("agents/review-tests.md", "no source")
+
+	// G. Jest exit 0xC0000142 on Windows.
+	has("practices/devops_cicd.md", "`0xC0000142`", "only the failed suites",
+		"`process-start failure: re-ran N suites`")
+	has("practices/testing.md", "`0xC0000142`")
+
+	// H. pal-harness cpu before the paired speed check.
+	has("practices/testing.md", "`pal-harness cpu --wait 9m`", "`CPU busy: N%`")
+	has("templates/test-summary.md", "CPU busy")
+	has("agents/review-tests.md", "`CPU busy: N%`")
+
+	// I. A subagent told to stand down.
+	has("skills/phase/references/subagents.md", "**Stand down.**", "Send no report, handback or message",
+		"takes the work over", "never dispatches a fresh agent")
 }
