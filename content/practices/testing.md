@@ -52,6 +52,17 @@ Run in CI in this order: unit → integration → E2E. Never skip unit if integr
 - **A subagent runs only the Go packages its task changed** (and their importers when it changed an
   exported name), never `./...` or `make test`. The session runs the full suite in package groups
   (`.pal-harness/skills/phase/references/subagents.md`, section 2).
+- **Long runs stay in the foreground.** The Bash tool moves a command that passes 600 s to the
+  background, and its result is lost or read late. So:
+  - every full local Go run (the full check, a fix round's check, a package group) runs as
+    `timeout 580 <command>` in the foreground, with a Bash timeout of 600000 ms: the `timeout` ends
+    it first, with exit 124;
+  - **split up front:** when the last full run took over 6 minutes (the log's `ok <package> <N>s`
+    lines, or CI's test step), the slowest package runs alone and the rest together
+    (`go test $(go list ./... | grep -v <slow package>)`), and the log says
+    `go split: <package> alone (<N>s last time)`;
+  - Exit 124 splits the run the same way, then re-runs the groups. It is not a failure and not a fix
+    round. A group that exits 124 again is split in two.
 
 ## Windows security tests
 
@@ -154,3 +165,6 @@ the owner's interactive session and as the self-hosted runner's standard user in
   narrowest supported one. The first UI phase without a copy adds a task for it. The review stage runs
   it when screens changed (the phase's `references/review.md`, section 1). React Native apps have no
   screenshot file yet.
+- **Evidence pages** (a rendered summary, a screenshot folder, a `pal-harness render` page) open in
+  the browser tools through `pal-harness serve <folder>` (`http://127.0.0.1:<port>/`), never as
+  `file:` URLs, which the browser tools refuse (the phase's `references/qa.md`, section 2).

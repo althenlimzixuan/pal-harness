@@ -8,9 +8,8 @@ entries, run the full check and push; not a fix round. Exit 2: log the reason an
 
 ## 1. The test reports
 
-Make them once, after the last review fix (section 4 step 4), on the final commit: not before the
-fixes, and not per reviewer. `pal-review-tests` then checks them (`testing.md` has the files, the
-thresholds and the tools).
+Make them once, on the final commit after the last review fix (section 4 step 4), not per reviewer;
+`pal-review-tests` then checks them (`testing.md` has the files, the thresholds and the tools).
 
 1. Until CI has report jobs, run `pal-harness mem` (`devops_cicd.md`, **Free memory before heavy
    runs**), then the one report command (`make reports`, or `npm run reports` in a Node-only repo)
@@ -45,9 +44,12 @@ thresholds and the tools).
 Run them in parallel.
 
 1. **Codex** (`pal-review` by the path in the session-start context, Bash timeout 600000 ms, from the
-   set's root, `--repo <component path>` per repo): `pal-review run --kind code` every phase;
-   `pal-review run --kind uiux` only when the phase changed something on screen, with
-   `--spec specs/NNN-slug` so the spec folder it is given holds the `screens/` folder. Exit codes:
+   set's root, `--repo <component path>` per repo, `--spec specs/NNN-slug` for `--kind code` and `uiux`):
+   `run --kind code` every phase; `run --kind uiux` only when the phase changed something on screen
+   (the spec folder holds `screens/`). **Before each code run**, end spec.md's `## Out of scope` with
+   `### Settled by the owner`: the phase's `doc/decisions.md` entries and older ones the spec cites,
+   one line each, `Decision N: <question> → <answer>`, led by "Decided by the owner
+   (`doc/decisions.md`): not findings unless the code breaks one"; commit and push it first. Exit codes:
    - 0: the report is printed. Save it as `specs/NNN-slug/reviews/codex-<kind>-YYYY-MM-DD-HHmm.md`;
      add 1 to `codex.code` or `codex.uiux`.
    - 3: still running. `pal-review wait <id>` (same Bash timeout) until it ends.
@@ -57,10 +59,8 @@ Run them in parallel.
      review is off, add "turn it on in Pal Center at Projects → <project> → Reviews" to that entry;
      the sign-off PR's review table and the next owner message carry the same line.
 
-   Pal Center 0.4.0 or later (the `Pal Center version:` line) resolves a worktree set to its project:
-   run from the set's root. With Pal Center older than 0.4.0, `pal-review` cannot run from the set:
-   add `<kind>: not available (worktree set)` to `codex.skipped` and go on. Never run it from the
-   owner's checkout for a phase; it would review the owner's code, not the phase's.
+   With Pal Center older than 0.4.0 (the `Pal Center version:` line) it cannot run from the set: add
+   `<kind>: not available (worktree set)` to `codex.skipped`. Never run it from the owner's checkout.
 2. **Claude's reviewers**, each a subagent by its agent name (a type that can't be dispatched:
    `subagents.md` section 5), given the spec, the plan, the branch list with base `origin/dev`,
    and, once the reports exist (section 4 step 4), the report folder
@@ -78,24 +78,24 @@ Run them in parallel.
 
    In a larger build, `pal-review-code` also gets the path of the ledger sdd keeps, to check that each parked
    finding was carried (`build.md`, section 6, **Deferred minors**).
-3. Each reviewer writes its own report: give it the absolute path
-   `<set>/specs/NNN-slug/reviews/<agent>-YYYY-MM-DD-HHmm.md`. It writes that one file and returns a
-   short verdict. When the reviewers finish, check that `git status` in every worktree shows no change except
-   the report paths you handed out (and the Codex reports you saved); revert anything else and log it. A reviewer that returned its report without writing it:
-   save the returned text verbatim at that path.
+3. Each reviewer writes its own report at the absolute path you give it,
+   `<set>/specs/NNN-slug/reviews/<agent>-YYYY-MM-DD-HHmm.md`, and returns a short verdict (one that returned
+   its report unwritten: save the text verbatim there). Then `git status` in every worktree shows no change
+   but the report paths you handed out and the Codex reports you saved; revert anything else and log it.
 
 ## 3. Severity
 
 The severity table in `workflow.md` applies to every finding, Codex's and Claude's alike:
 
-- **none:** nothing to do.
-- **minor:** Claude decides: fix it, or dismiss it with a one-line reason in the report.
+- **none:** nothing to do. **minor:** Claude decides: fix it, or dismiss it with a one-line reason.
 - **major** and **critical:** one numbered batch to the owner (an owner stop, `kind: findings`,
   `reviews/owner-YYYY-MM-DD-HHmm.md` by `.pal-harness/templates/owner-stop.md`), critical first,
   each with its reason, impact, options with what else each stops or hides, and a recommended one.
 
 Arguing a finding up or down a level is allowed; a downgrade from major or critical is written in the
-report with the reason, and the owner still sees it.
+report with the reason, and the owner still sees it. A Codex finding that only re-raises a settled
+decision (the code doesn't break it, and it brings no new fact) is none: `Codex <id>: settled by
+decision N` in Calls I made, never an owner stop; one with a new fact keeps its level and cites it.
 
 ## 4. Fix rounds
 

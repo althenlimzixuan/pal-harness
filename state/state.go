@@ -131,7 +131,7 @@ var (
 // allowed maps each decoded type to its YAML field names, for the unknown-field hint.
 var allowed = func() map[string]string {
 	m := map[string]string{}
-	for _, v := range []any{Feature{}, Step{}, Result{}, PhaseState{}, Bundle{}, Waiting{}, Tasks{}, Codex{}, Gates{}, OwnerStop{}} {
+	for _, v := range []any{Feature{}, Step{}, Result{}, PhaseState{}, Bundle{}, Waiting{}, Tasks{}, Codex{}, Gates{}, OwnerStop{}, retroFront{}, Expected{}} {
 		t := reflect.TypeOf(v)
 		var names []string
 		for i := 0; i < t.NumField(); i++ {

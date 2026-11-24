@@ -49,6 +49,7 @@ const usage = `usage:
   pal-harness adb [dir]
   pal-harness fingerprint [--rev HEAD] [--with <path>]... [--dir .] <spec file | ->
   pal-harness utf8 [dir]
+  pal-harness serve [--port 0] [--for 30m] <dir>
   pal-harness version
 `
 
@@ -130,6 +131,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runMergeCheck(rest, stdout, stderr)
 	case "fingerprint":
 		return runFingerprint(rest, stdout, stderr)
+	case "serve":
+		return runServe(rest, stdout, stderr)
 	case "utf8":
 		if len(rest) > 1 {
 			return usageErr(stderr, "utf8 takes at most one directory")
@@ -346,8 +349,8 @@ func runCheck(dir string, reader *state.Version, stdout, stderr io.Writer) int {
 	return 0
 }
 
-// stateFindings validates the optional doc/features.yaml and every
-// specs/*/phase-state.yaml, prefixing each finding with its slash path from
+// stateFindings validates the optional doc/features.yaml, every
+// specs/*/phase-state.yaml and the expected list of every specs/*/retro.md, prefixing each finding with its slash path from
 // dir. Specs numbered below p's legacy_specs_before (when set) are skipped. With
 // no valid manifest (p == nil) the flow overrides are unknown, so the shipped
 // rule is skipped. A file that exists but cannot be read is an error (exit 2).
@@ -372,7 +375,7 @@ func stateFindings(dir string, p *manifest.Project, reader *state.Version) ([]st
 		for _, f := range parse(b) {
 			out = append(out, rel+": "+f)
 		}
-		if reader != nil {
+		if reader != nil && kind != "retro" { // Pal Center does not read retro.md
 			for _, n := range state.NewerFields(kind, b, *reader) {
 				warnings = append(warnings, fmt.Sprintf("%s: %s needs harness %s; a reader on %s calls this file unreadable",
 					rel, n.Field, n.Since, reader))
@@ -396,6 +399,22 @@ func stateFindings(dir string, p *manifest.Project, reader *state.Version) ([]st
 			continue
 		}
 		if err := check(filepath.ToSlash(rel), "phase-state", func(b []byte) []string { _, f := state.ParsePhaseState(b); return f }); err != nil {
+			return nil, nil, err
+		}
+	}
+	retros, err := filepath.Glob(filepath.Join(dir, "specs", "*", "retro.md"))
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, m := range retros {
+		rel, err := filepath.Rel(dir, m)
+		if err != nil {
+			return nil, nil, err
+		}
+		if isLegacySpec(filepath.Base(filepath.Dir(m)), legacyBefore) {
+			continue
+		}
+		if err := check(filepath.ToSlash(rel), "retro", func(b []byte) []string { _, f := state.ParseRetro(b); return f }); err != nil {
 			return nil, nil, err
 		}
 	}

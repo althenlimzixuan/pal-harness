@@ -1,7 +1,6 @@
 # Stage: spec (`spec`, then `spec-review`)
 
-The spec says what this phase builds and how the owner will test it. You draft it alone; the owner
-reads it once, in about 10 minutes, and answers in one line.
+The spec says what this phase builds and how the owner tests it. You draft it alone; the owner reads it once, in about 10 minutes, and answers in one line.
 
 ## 1. Read
 
@@ -78,7 +77,8 @@ for the owner (`workflow.md`, **Plain English.**): diagrams, test steps and repo
    "ensures", "prevents", "only X can") names what enforces it (an OS ACL, a check in code with its
    test, a token's scope) and what it does not cover. A limit kept only by convention or a deny list
    is written as what it reduces ("blocks the listed commands"), never as absolute.
-10. **Out of scope** and the collapsed **Appendix**, as the template shows.
+10. **Out of scope** and the collapsed **Appendix**, as the template shows (a rule that follows another
+    feature's rule or a decision lists every case of it, ending `cases: N of N`).
 
 ## 3. Size
 
