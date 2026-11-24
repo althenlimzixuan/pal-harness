@@ -57,6 +57,9 @@ One block per feature. Approving this spec approves how you will test it.
 (A step whose result is right but may surprise you says why, in the step: "→ Expect: a new code
 arrives (by design: the app never says whether an account exists)".)
 
+(A step that checks what a started session receives first, such as its first message, is checked in
+QA on the session's seed file when the QA copy cannot open sessions; you still check it here.)
+
 (A destructive or optional step, such as removing the phone's screen lock, goes in their own feature
 block with its own script, so you can skip it on purpose.)
 

@@ -29,6 +29,7 @@ You have no shell: read and search the files, and write only your report.
    8. a delete helper whose **Deletes and locks** row names no link and junction test cases (check 16);
    9. a phase that changes the mobile app with no task that bumps the app version (check 18);
    10. a native dependency added or upgraded with no resolved versions of its shared libraries (check 18).
+   11. text a task builds from data (a line naming a repo, a label, a path, a command line) with no source field and type for each value (check 21).
 
    Check each item that fits this plan's kind of work. An item that applies and is not covered is a finding at its original severity. This round-1 sweep is what keeps a plan from needing three rounds that each find a major.
 1. **Coverage:** every spec feature, every step of the spec's test script, every endpoint in the spec's `## Contract` and every behaviour in its Appendix has at least one task; list the ones that have none (no exceptions).
@@ -52,6 +53,7 @@ You have no shell: read and search the files, and write only your report.
 18. **Mobile release:** a phase that changes the mobile app has a task that bumps the app version (the runbook's release step), whatever the flow overrides. A task that adds or upgrades a native dependency records the resolved versions of the shared libraries it pulls in, against the existing native modules (for example `./gradlew :app:dependencies` filtered by the library); a missing record, or a mismatch, is a major finding.
 19. **Commands and paths:** look up, once, every command and path each task names: existing files and folders with Glob; the folder and naming of each new file against its neighbours (a fixture beside the real fixtures); make targets in the `Makefile`, scripts in `package.json`, generator flags in the generator's config or source; each file the spec names as a behaviour's origin. One that is not there is a minor finding, or major when the task's design depends on it (the wrong file to change, a step that cannot run).
 20. **Other operating systems:** a task that touches code for one OS (an OS file suffix or build tag in Go; `cfg(target_os …)`, `cfg(unix)` or `cfg(windows)` in Rust) lists in **Prove it** the check for each other OS that code builds on (`GOOS=linux go vet ./...`, `GOOS=darwin go vet ./...`, `cargo clippy --target <triple>`, or the Docker run and `macOS proof: CI's macOS job` from `linux-check.md`). A missing check is a minor finding.
+21. **Values from data:** a task that builds text from data (a message, a label, a path, a command line, a log line, such as a line naming a repo) has a **Values from data:** line naming, for each value it puts in, its source field and type (`project.yaml components[].repo`, string `owner/name`). Look each source up once with Grep or Glob. A value with no source, or a source that is not there or has another type, is a major finding.
 
 ## Rounds
 

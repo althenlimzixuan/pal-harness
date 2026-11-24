@@ -7,22 +7,21 @@ controller, tells and checks the agents.
 ## 1. The brief
 
 Hand each fresh agent its task text, its worktree path, and the paths of `testing.md`, `workflow.md`
-and the stack practice. The brief says TDD is required for the task: run the fixture's test before
-any code, and report, for each new test, the RED output by name (the command and the failing lines
-that name the test; one run may show several), then the GREEN output and a clean lint run. A test the
-plan lists under **Guard tests:** pins behaviour already there and passes on its first run; its RED
-is a mutation run (break the code it guards, run it, see it fail, restore), reported as
-`RED by mutation: <test>`. Local Go test
-runs set `GOFLAGS=-p=1 GOMEMLIMIT=2GiB` (`testing.md`, Go-Specific). The brief also tells implementers:
+and the stack practice. The brief says TDD is required for the task: commit the failing test alone
+(`Add failing test for <behaviour>`, tests and fixtures only), run it before any code, and report,
+for each new test, the RED output by name. A test the plan lists under **Guard tests:** passes on its
+first run; its RED is a mutation run (break the code, see it fail, restore), `RED by mutation: <test>`.
+Local Go test runs set `GOFLAGS=-p=1 GOMEMLIMIT=2GiB` (`testing.md`). The brief also tells implementers:
 
-1. to never wait on their own background work: every test, lint and build runs in the foreground
-   (`devops_cicd.md`, **Free memory before heavy runs**), and a report is sent only when it ends;
-2. to read the full test run's own exit code, and to report a timeout as a failure, never as a pass
-   (a run that timed out hid a broken test in Pal Center phase 015);
-3. to check the **Known findings** list below before reporting, and say in the report that it did;
-4. before the final report, it finishes or stops every background command, Monitor and watcher it
-   started (TaskStop for its own tasks), and says in the report that none is still running. A
-   watcher left running keeps re-sending reports after the task is done;
+1. **One report, once,** by `.pal-harness/templates/implementer-report.md`: its three gates (test
+   first, green and lint, full test run), at most 60 lines, ending `End of report.`, with nothing
+   sent after it. They never wait on their own background work: every test, lint and build runs in
+   the foreground and has ended before the report (`devops_cicd.md`, **Free memory before heavy runs**);
+2. to read the full test run's own exit code, report it as `Full test run: <command>, foreground,
+   exit <N>`, and report a timeout as a failure, never a pass (one hid a broken test in phase 015);
+3. to check the **Known findings** list below before reporting;
+4. before the report, it finishes or stops every background command, Monitor and watcher it
+   started (TaskStop for its own tasks): a watcher left running keeps re-sending reports;
 5. to fix the brief's **Carry-over** list first, when it has one (section 2, step 4);
 6. for a fixer (a task's fix rounds, the final fixer, the review's fix rounds): a fix changes
    behaviour the owner can see or reach (text, controls, defaults, what an answer or a click does)
@@ -59,21 +58,23 @@ runs set `GOFLAGS=-p=1 GOMEMLIMIT=2GiB` (`testing.md`, Go-Specific). The brief a
 
 ## 2. The controller
 
-1. **A cut-off agent.** A cut-off is a stand-down, a timeout, an agent out of context, or the
-   second time an implementer repeats a finished report or reports "waiting on background work".
-   Stop it with TaskStop at the cut-off, and ignore anything it sends later, unanswered. After one
-   cut-off the session takes the work over itself, inline, from the last good report, and never
-   dispatches a fresh agent for it; that counts as one of the task's fix rounds.
-2. **A stale reply.** Accept a reply only when it answers the latest fix message: the reply quotes
-   that message's first line. A reply that does not is from an older message: send it back once
-   with the latest message, and never act on it.
+1. **A cut-off agent.** A cut-off is a stand-down, a timeout, an agent out of context, the second
+   time an implementer reports "waiting on background work", or a report that repeats a section it
+   already sent or runs past `End of report.` (at once). Stop it with TaskStop and ignore anything it
+   sends later, unanswered. After one cut-off the session takes the work over itself, inline, from
+   the last good report, and never dispatches a fresh agent for it (one of the task's fix rounds).
+2. **A stale reply.** Accept a reply only when it quotes that message's first line (the latest fix
+   message); send an older one back once with the latest message, and never act on it.
 3. **The red run, by name.** List every new test by name from the task's diff (Go `func Test…`,
-   Jest and Playwright `it(` / `test(`, Rust `#[test] fn …`) and find a RED line for each name in the
+   Jest and Playwright `it(` / `test(`, Rust `#[test] fn …`) and find a RED line for each in the
    report. A name with no RED line goes back to the implementer before the task reviewer is
-   dispatched. Now that the code exists, its RED can only come from a mutation run, logged
-   `RED by mutation: <test>`; that is not a fix round and costs no review round. A test that stays
-   green under the mutation is rewritten, which is a fix round. The per-task review needs a clean
-   lint run.
+   dispatched; now that the code exists, its RED can only come from a mutation run,
+   `RED by mutation: <test>` (no fix round, no review round). A test that stays green under the
+   mutation is rewritten (a fix round). Gate 1: `git log --name-only <base>..HEAD` shows the test
+   commit, with no code file, before the task's code (only a Carry-over commit may come earlier);
+   otherwise a fix round. Gate 3 goes into sdd's ledger as
+   `Task K: tests <command>, foreground, exit N`; one with no Gate 3 line, `background` in it, or no
+   exit code goes back. The review needs a clean lint run.
 4. **Carry-over.** After task K's review, each minor the reviewer marked should-fix that its own
    rounds did not fix goes on a **Carry-over** list in task K+1's brief. Task K+1's implementer fixes
    them first, in their own commit (`Fix Task K review minors`), and task K+1's review checks them; it
@@ -134,9 +135,8 @@ runs set `GOFLAGS=-p=1 GOMEMLIMIT=2GiB` (`testing.md`, Go-Specific). The brief a
 
 ## 4. Stale editor warnings
 
-Language-server diagnostics shown after an edit can be stale. They are ignored when `go build`,
-`go vet` and the tests pass (or the stack's own typecheck and tests); the command results win. A
-diagnostic is acted on only when a command reproduces it.
+Language-server diagnostics after an edit can be stale: ignored when `go build`, `go vet` and the
+tests pass (or the stack's typecheck and tests), and acted on only when a command reproduces them.
 
 ## 5. Agent types missing
 

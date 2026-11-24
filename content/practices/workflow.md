@@ -119,6 +119,7 @@ Before opening a PR that changes UI or code, run `pal-review`. Kinds: `uiux` for
   | critical | Broken or unsafe: data loss, security, a journey that cannot be completed, an accessibility blocker | As major, listed first |
 
 - Claude may argue a finding up or down a level, but a downgrade from major or critical is never silent: it is written in the report with the reason, and the owner still sees it.
+- **Precondition and likelihood.** Every Codex major or critical the session rates is written with `precondition:` (what must be true for it to happen) and `likelihood:` (how often, under what timing), in the report and on the owner-stop page. A race that needs a sub-second window in a command-only tool (a CLI one person runs, with no service and no other user) is never critical: it is minor, or major when it can lose data or cross a trust boundary, and the downgrade is written with its reason.
 
 ## Workflow Overrides
 
