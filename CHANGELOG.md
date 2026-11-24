@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.12.1 — 2026-11-25
+
+Eight harness notes (ai-workshop#98 to #105), all raised in Pal Center. The design is `doc/specs/2026-11-25-harness-1.12.1-design.md`. Rule text and one new template: no new command and no state field, so the installed Pal Center reads 1.12.1 phase state as it reads 1.12.0. The `upgrade` command and automatic re-pin stay in 1.13.0.
+
+- **One report shape for implementers** (#99, #100, #105). New `templates/implementer-report.md`, which every brief points to:
+  - **Gate 1 — test first:** the failing test is its own commit (`Add failing test for <behaviour>`, tests and fixtures only), made before the task's code, with its RED lines by name;
+  - **Gate 2 — green and lint**;
+  - **Gate 3 — full test run:** `Full test run: <command>, foreground, exit <N>`;
+  - at most 60 lines, ending `End of report.`, with nothing sent after it.
+
+  The controller checks Gate 1 with `git log --name-only` (a code file in the test commit, or code before it, is a fix round), copies Gate 3 into sdd's ledger as `Task K: tests <command>, foreground, exit N`, and sends back a report with no Gate 3, a background run or no exit code. A report that repeats a section or runs past `End of report.` is a cut-off at once (`subagents.md` sections 1 and 2).
+- **Seed-file evidence for "first message" steps** (#98). When the QA copy cannot open sessions (untrusted folders), a step about what a session receives first passes on the session's seed file, marked `evidence: seed file <path>` with the matching lines. The step stays in the owner's staging test (`qa.md` section 2, the spec template's test script).
+- **Values from data** (#101). A task that builds text from data has a **Values from data:** line: each value's source field and type. `pal-review-plan` check 21 and harness-list item 11 make a missing or wrong source a major finding (`templates/plan.md`, `plan.md` item 14).
+- **`/pm` opens with the automation summary** (#102). Right after `mode`, `/pm` and `/pm pickup` run `pal-work automation --project <key>` (Pal Center 0.27.0 or later) and open the note with its lines, as they are. Exit 5, no `Work CLI:` line or an older Pal Center skip it; exit 4 is retried once, then one line `Automation: could not read (exit 4: <its message>)` (Pal Center decision 110).
+- **Two Windows jobs at once** (#103). An owner-run handover adds a second self-hosted runner, `pal-pc-2`, with the same label, and the queue line reads `CI queue: N runs ahead, R runners (about M min)` (`devops_cicd.md`).
+- **Codex severities with precondition and likelihood** (#104). Each Codex major or critical carries `precondition:` and `likelihood:`, and a sub-second race in a command-only tool is never critical (`workflow.md` severity, `review.md` section 3). A Pal Center issue puts the same ask in the Codex prompts.
+
 ## 1.12.0 — 2026-11-24
 
 Ten harness notes (ai-workshop#88 to #97), all raised in Pal Center, most from phase 026. The design is `doc/specs/2026-11-24-harness-1.12.0-design.md`. No phase-state field changes, so the installed Pal Center reads 1.12.0 phase state as it reads 1.11.1. The `upgrade` command and automatic re-pin move to 1.13.0.

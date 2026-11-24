@@ -20,8 +20,7 @@ Make them once, on the final commit after the last review fix (section 4 step 4)
    here with the others until the project has staging; once it has staging, regression (and the
    load test when `load_test: true`) runs on staging after the sign-off PR merges
    (`.pal-harness/skills/phase/references/staging-test.md`).
-3. A report that does not apply is "n/a" with the reason; one with no tooling yet is a recorded
-   skip, as the plan says.
+3. A report that does not apply is "n/a" with the reason; one with no tooling is a recorded skip.
 4. Blocking: coverage under 80%; a failing test; an API call's p95 more than 20% slower, or a web
    page's Lighthouse performance score 5 points or more lower, than the previous code, measured by
    the paired speed check in `testing.md` (old and new code alternating on this machine, at least 5
@@ -92,8 +91,9 @@ The severity table in `workflow.md` applies to every finding, Codex's and Claude
   `reviews/owner-YYYY-MM-DD-HHmm.md` by `.pal-harness/templates/owner-stop.md`), critical first,
   each with its reason, impact, options with what else each stops or hides, and a recommended one.
 
-Arguing a finding up or down a level is allowed; a downgrade from major or critical is written in the
-report with the reason, and the owner still sees it. A Codex finding that only re-raises a settled
+Each Codex major or critical carries `precondition:` and `likelihood:`; a sub-second race in a
+command-only tool is never critical (`workflow.md`, severity). A downgrade from major or critical is
+written in the report with the reason, and the owner still sees it. A Codex finding that only re-raises a settled
 decision (the code doesn't break it, and it brings no new fact) is none: `Codex <id>: settled by
 decision N` in Calls I made, never an owner stop; one with a new fact keeps its level and cites it.
 

@@ -55,8 +55,11 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
      another, about 20 minutes each. So:
      1. before a push that starts CI (a push to a branch with an open PR), count the runs ahead in
         each repo the phase touches: `gh run list -R <owner/repo> --status queued` and
-        `--status in_progress`. Write `CI queue: N runs ahead (about 20 min each)` with
-        `pal-harness log`, which stamps `last_progress_at`: a wait in the queue is not stuck;
+        `--status in_progress`, and the online runners with the label
+        (`gh api repos/<owner/repo>/actions/runners`). Write, with `pal-harness log` (it stamps
+        `last_progress_at`: a wait in the queue is not stuck), `CI queue: N runs ahead (about 20 min
+        each)` with one runner, or `CI queue: N runs ahead, R runners (about M min)` with R of them,
+        M = 20 × N / R;
      2. a branch with an open PR gets one push per round: all of the round's fixes, in every repo,
         committed locally and pushed together (step 0 already holds state and log pushes). Pushes
         before a PR opens start no CI (the `pull_request` trigger) and go on as usual.
@@ -124,6 +127,22 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
   long builds) to the owner's self-hosted runner. The job reads the runner from a repository
   variable, `runs-on: ${{ vars.WINDOWS_RUNNER || 'windows-latest' }}` (`templates/ci.yml` shows it),
   so setting `WINDOWS_RUNNER` to the runner's label moves it, and unsetting it moves it back.
+  - **Two jobs at once (owner-run, once per repo).** One runner takes one job at a time, so a run
+    with several Windows jobs waits on itself (about 35 minutes in Pal Center phase 023). A second
+    runner on the same PC, in its own folder, named `pal-pc-2` with the same custom label, takes the
+    next job beside the first; `WINDOWS_RUNNER` is unchanged. It installs a Windows service, so it is
+    a handover, run by the owner in an admin PowerShell:
+
+    ```powershell
+    New-Item -ItemType Directory C:\actions-runner-2; Set-Location C:\actions-runner-2
+    Expand-Archive C:\actions-runner\actions-runner-win-x64-<version>.zip .   # the zip already there
+    $t = gh api -X POST repos/<owner/repo>/actions/runners/registration-token --jq .token
+    .\config.cmd --unattended --url https://github.com/<owner/repo> --token $t --name pal-pc-2 --labels pal-pc --work _work --runasservice
+    ```
+
+    `gh api repos/<owner/repo>/actions/runners` then lists both online. Two jobs share the PC's
+    memory: a run that fails on low memory while both runners are busy is re-run once; a second such
+    failure means the owner stops the `pal-pc-2` service, and the queue goes back to one runner.
 - **Bot PRs get CI:** a workflow that opens a PR with `GITHUB_TOKEN` gets no CI, since GitHub starts
   no workflow for it. So `ci.yml` has `workflow_dispatch:`, and the bot workflow (with
   `actions: write`) runs `gh workflow run ci.yml --ref <branch>` after opening the PR;

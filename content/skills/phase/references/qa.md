@@ -28,6 +28,13 @@ sets `harness.qa_command`; with it unset, nothing here runs and `qa:` stays `non
    changed screen is screenshotted in its seeded state (the spec's **QA seeds**), and its
    `summary.md` row names the seed it showed. A screen that comes up empty when its seed exists is a
    failed step.
+   **First message steps.** A step whose expected result is what a started session receives first
+   (its first message, the notes it is handed) passes on the session's seed file when the QA copy
+   cannot open the session (its folders are untrusted, or Claude Code is not signed in there). Read
+   the seed file the QA copy wrote (Pal Center: `%APPDATA%\PalCenter\sessions\<session>.txt`, or the
+   QA copy's own data folder) and compare its text with the expected result. The row says
+   `evidence: seed file <path>` and quotes the matching lines; it is a pass, never a skip. The step
+   stays in the owner's staging test, where sessions open for real.
 5. Record the run in `specs/NNN-slug/qa/`:
    - `summary.md`: one row per step (feature, step, pass or fail, a one-line note, the screenshot);
      the date, the commit of each repo and the command used at the top;
