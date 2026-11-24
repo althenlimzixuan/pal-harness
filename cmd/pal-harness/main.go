@@ -43,6 +43,7 @@ const usage = `usage:
   pal-harness contrast <foreground> <background>
   pal-harness mem [--min 2GiB] [--wait 0] [--every 30s]
   pal-harness minors [--tag <tag>] [--task <N>] <ledger>
+  pal-harness merge-check [--base origin/dev] [dir]
   pal-harness adb [dir]
   pal-harness fingerprint [--rev HEAD] [--with <path>]... [--dir .] <spec file | ->
   pal-harness utf8 [dir]
@@ -121,6 +122,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runMem(rest, stdout, stderr)
 	case "minors":
 		return runMinors(rest, stdout, stderr)
+	case "merge-check":
+		return runMergeCheck(rest, stdout, stderr)
 	case "fingerprint":
 		return runFingerprint(rest, stdout, stderr)
 	case "utf8":
