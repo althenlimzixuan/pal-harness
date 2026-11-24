@@ -130,14 +130,18 @@ No stage may be skipped; the one exception is a job whose fingerprint already pa
   - **Two jobs at once (owner-run, once per repo).** One runner takes one job at a time, so a run
     with several Windows jobs waits on itself (about 35 minutes in Pal Center phase 023). A second
     runner on the same PC, in its own folder, named `pal-pc-2` with the same custom label, takes the
-    next job beside the first; `WINDOWS_RUNNER` is unchanged. It installs a Windows service, so it is
-    a handover, run by the owner in an admin PowerShell:
+    next job beside the first; `WINDOWS_RUNNER` is unchanged. Its service runs as the first runner's
+    account, so its jobs see the same tools (with no account it runs as Network Service, which has
+    none of them). It installs a Windows service and needs that account's password, so it is a
+    handover, run by the owner in an admin PowerShell:
 
     ```powershell
     New-Item -ItemType Directory C:\actions-runner-2; Set-Location C:\actions-runner-2
     Expand-Archive C:\actions-runner\actions-runner-win-x64-<version>.zip .   # the zip already there
     $t = gh api -X POST repos/<owner/repo>/actions/runners/registration-token --jq .token
-    .\config.cmd --unattended --url https://github.com/<owner/repo> --token $t --name pal-pc-2 --labels pal-pc --work _work --runasservice
+    $a = (Get-CimInstance Win32_Service -Filter "Name like 'actions.runner.%'" | Select-Object -First 1).StartName
+    $p = [Net.NetworkCredential]::new('', (Read-Host "Password for $a" -AsSecureString)).Password
+    .\config.cmd --unattended --url https://github.com/<owner/repo> --token $t --name pal-pc-2 --labels pal-pc --work _work --runasservice --windowslogonaccount $a --windowslogonpassword $p
     ```
 
     `gh api repos/<owner/repo>/actions/runners` then lists both online. Two jobs share the PC's
