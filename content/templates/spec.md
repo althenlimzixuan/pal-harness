@@ -125,4 +125,9 @@ who can write that path), and where its environment comes from.
 
 (Edge cases, data shapes, alternatives considered.)
 
+(A rule that follows another feature's rule or a decision, such as a relay of its cases, lists
+every case of the original rule, taken from that rule's own list (its spec, the decision or its
+code), each with its wording. It ends with `cases: N of N`. A case left out on purpose stays listed
+with `not covered: <why>`.)
+
 </details>

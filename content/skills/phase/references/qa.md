@@ -32,7 +32,12 @@ sets `harness.qa_command`; with it unset, nothing here runs and `qa:` stays `non
    - `summary.md`: one row per step (feature, step, pass or fail, a one-line note, the screenshot);
      the date, the commit of each repo and the command used at the top;
    - `screens/`: one PNG per step, named `F-012-step-3.png`.
-6. Stop the environment and everything it started.
+6. **Evidence pages.** To look at a page in the browser tools (`summary.md` rendered by
+   `pal-harness render`, the `screens/` folder), serve its folder with `pal-harness serve <folder>`
+   and open the URL it prints: the browser tools refuse `file:` URLs. It is the one command started
+   with `run_in_background`, since it stops by itself (`--for`, 30 minutes by default); read the URL
+   from its output.
+7. Stop the environment and everything it started, `pal-harness serve` included.
 
 ## 3. The result
 

@@ -67,6 +67,9 @@ close-out PR at ship comes from it.
    fix touches login, user data, payments or credentials. Save each Codex report under
    `specs/NNN-slug/reviews/`; each reviewer agent writes its own, as the phase's `references/review.md`
    section 2 says.
+   - When the card or the fix cites an owner decision, end spec.md's `## Out of scope` with
+     `### Settled by the owner` before the code run, and treat a finding that only re-raises it as
+     the phase's `references/review.md` sections 2 and 3 say (`Codex <id>: settled by decision N`).
    - `pal-review` exit codes (Bash timeout 600000 ms): 0 the report is printed; 3 still running →
      `pal-review wait <id>` (same timeout) until it ends; 4 failed → record it, retry once, then
      add `<kind>: failed (<reason>)` to `codex.skipped` and go on with a note; 5 skipped → add

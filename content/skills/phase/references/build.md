@@ -48,10 +48,10 @@ wave before the PR small.
 2. Write the code that makes it pass, by the build rules in `workflow.md` (TDD, the code patterns,
    the stack practice, contract-first). A change to owner-facing behaviour updates the project's
    owner guide in the same PR.
-3. Run the plan's prove-it commands, the repo's lint among them (through its own script, `workflow.md`);
-   read each result from the command's own exit code. The task is not done until lint is clean. On a
-   Windows host, code that only builds on Linux (`!windows` Go files, `#[cfg(unix)]` Rust, a Linux CI
-   job) is proved by `references/linux-check.md` (`.pal-harness/skills/phase/references/linux-check.md`).
+3. Run the plan's prove-it commands, the repo's lint among them (its own script, `workflow.md`), each read
+   from its own exit code. The task is not done until lint is clean and, when it changed QA sample data
+   or a screen, its `QA checks: <command>` run is green (`references/subagents.md` section 1 item 10). On a
+   Windows host, Linux-only code (`!windows` Go, `#[cfg(unix)]` Rust, a Linux CI job) is proved by `references/linux-check.md`.
 4. Commit with the plan's message; push the feature branch.
 5. Add 1 to `tasks.done` and write the log entry with `pal-harness log` (it stamps
    `last_progress_at`; SKILL.md, **Saved state**); commit and push `docs/NNN-slug`.
