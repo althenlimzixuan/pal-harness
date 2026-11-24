@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.11.0 — 2026-11-24
+
+Ten harness notes (ai-workshop#68 to #77): one from Pal Center, one owner rule from the workspace, and eight from LFPV phase 012's retro. The design is `doc/specs/2026-11-24-harness-1.11.0-design.md`. No state field changes, so the installed Pal Center reads 1.11.0 phase state as it reads 1.10.0. The planned `upgrade` command and automatic re-pin move to 1.12.0.
+
+- **Held store releases under Company mode** (#69). When `pal-work mode` says Company mode is on, or the mode is unknown, ship deploys the API and builds the store build from `main` as before, but holds the Play or App Store upload, store build registration or OTA update in `doc/releases/held.md` (new `templates/held-releases.md`). The held changes go out as one release when:
+  - (a) all approved work is finished: `Approved to run` is empty and no other phase is `In flight` or `Waiting on you`. This is checked after every close-out and in every `/pm` or pickup run that finds nothing to claim;
+  - (b) the owner asks.
+
+  The handover starts `Release reason: (a) …` or `(b) you asked`, publishes the newest held build only, with one merged set of notes, and is never by default (`ship.md` section 8, `company-mode.md`, the pm skill's rung 5, `runbook-android-release.md`).
+- **Chores that switch off** (#68): a card with `After run: off` moves from `Chores (Active)` back to `Chores` after its run, and any session moves a chore card back when the owner asks (`chores.md` section 2 step 4). PC's Harness notes card is Pal Center's to move once a batch's PR opens (a Pal Center issue).
+- **Device-reset commands allowed once** (#70): each test phone's `adb -s <serial> shell pm clear <package>` and `am force-stop` are listed in the SSOT repo's committed `.claude/settings.json`. The first device test of a session asks once for missing entries.
+- **Screen-capture protection** (#73): `react_native.md` covers apps with FLAG_SECURE:
+  - reading screens with `uiautomator dump` (`screen text: uiautomator`);
+  - a development variant with capture on;
+  - a test PIN typed over adb, which the production build refuses, in place of a fingerprint.
+- **Handovers** (#71, #72): every owner-run value gives its exact format and an example (`user:<email>`, a project ID). A Terraform handover lists `gcloud auth application-default login`, `terraform init -backend-config=…`, the plan and apply, and the project ID. Every `gcloud` call passes `--project <id>` (`devops_cicd.md` **gcloud and Terraform**, `templates/plan.md`, `plan.md` item 15, ship section 0).
+- **Test summaries cite their sources** (#74): each `summary.md` line and claim ends with `[report]`, `[command, exit N]` or `[file:line]`. The session reads each claim against its source before the reviewers, and `pal-review-tests` check 11 makes a claim with no or a wrong source a major finding.
+- **Jest exit `0xC0000142` on Windows** (#75) counts as a low-memory cut. After `pal-harness mem --wait 9m`, only the failed suites are re-run (`process-start failure: re-ran N suites`; not a fix round). The second time uses `--maxWorkers=1`, and a third is a real failure.
+- **New `pal-harness cpu [--max 25%] [--for 10s] [--wait 0] [--every 30s]`** (#76) measures CPU use before the paired speed check: exit 0 quiet, 1 still busy, 2 unreadable. A speed check run while still busy is marked `CPU busy: N%`, and a slowdown it shows counts only after a re-run on a quiet CPU (`testing.md`, `pal-review-tests` check 5).
+- **Stand down** (#77): every dispatched agent's brief says to send nothing after a stand-down. The controller stops a cut-off agent (stand-down, timeout, out of context, or a second repeated report) with TaskStop at once, ignores what it sends later, and takes the work over inline instead of dispatching a fresh agent (`subagents.md`).
+
 ## 1.10.0 — 2026-11-24
 
 Ten harness notes raised in Pal Center (ai-workshop#58 to #67), from Pal Center phase 022's and 023's retros. The design is `doc/specs/2026-11-24-harness-1.10.0-design.md`. No state field changes, so the installed Pal Center reads 1.10.0 phase state as it reads 1.9.0. The planned `upgrade` command and automatic re-pin move to 1.11.0.

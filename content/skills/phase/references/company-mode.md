@@ -43,6 +43,11 @@ public post, a domain, anything a stranger could see) is held before waiting:
 `pal-work hold --phase NNN --reason "<why, in one line>"`. A held decision never passes by default;
 the session waits for the owner's own answer.
 
+**A held store release.** Under Company mode, or when the mode is unknown, a phase's app store
+release or OTA update is held in `doc/releases/held.md` and goes out once, when all approved work is
+finished or when the owner asks (`references/ship.md`, section 8). Publishing it is public, so it is
+never by default.
+
 ## 4. Recording
 
 1. Each answer goes in `doc/decisions.md` as usual: `N. YYYY-MM-DD (phase NNN): <question> → <answer>`.

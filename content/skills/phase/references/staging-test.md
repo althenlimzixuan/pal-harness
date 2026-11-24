@@ -45,8 +45,10 @@ or compacted:
    in `doc/devices.yaml` ready, with `adb reverse` up for each port the app uses (Metro's 8081, and on
    the local stack the API's port). A phone that needs wireless pairing: the message asks for the pairing code
    and port up front, not mid-test. The adb server is up (`adb devices` answers), and each test
-   phone starts from a fresh app: `adb shell pm clear <package>` (allowed in the project's
-   `.claude/settings.json`; otherwise the app's debug-only reset, `react_native.md`, **Device testing**).
+   phone starts from a fresh app: `adb -s <serial> shell pm clear <package>` (allowed in the SSOT
+   repo's `.claude/settings.json`, asked for once at the start when missing; otherwise the app's
+   debug-only reset, `react_native.md`, **Device testing**); never the bare
+   `adb shell pm clear <package>`, which the allowed entries don't cover.
 4. Free memory: `pal-harness mem` (`devops_cicd.md`, **Free memory before heavy runs**); under 2 GB free,
    the message warns the owner, and the session stops what it started and no longer needs (an
    emulator, an old dev server or Metro).

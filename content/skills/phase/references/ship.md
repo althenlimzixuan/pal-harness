@@ -11,7 +11,8 @@ sign-off): promote to `main`, deploy, tear staging down, write the retro, close 
    `.tfvars` names, the workflow names, the package, the profile names. Fix any mismatch in the
    runbook first, on `docs/NNN-slug`.
 2. **Hand over the Owner-run commands** as one numbered list in one message, with the exact text and
-   where to run each, before the promotion; never find them mid-run. Wait for the owner's "done" on
+   where to run each, and the exact format of every value it asks for (`plan.md`, item 15), before
+   the promotion; never find them mid-run. Wait for the owner's "done" on
    the ones ship needs before going on; the rest go in the final message.
 3. **Reader check**: run it again (SKILL.md, **Until Pal Center and CI catch up**). A warning goes in
    the done message as one line, `Pal Center X reads harness Y; update Pal Center to see <field>`, so
@@ -64,6 +65,7 @@ sign-off): promote to `main`, deploy, tear staging down, write the retro, close 
       release link and the installer's full path (`%USERPROFILE%\Downloads\<file name>`). Add the
       list to the notes with `gh release edit vX.Y.Z -R <owner/repo> --notes-file <file>`, the file
       holding the release's notes plus the list.
+6. **An app store release or OTA update** is held under Company mode (section 8).
 
 ## 3. Tear staging down
 
@@ -104,7 +106,7 @@ sign-off): promote to `main`, deploy, tear staging down, write the retro, close 
 3. Once deployed (or, with no production yet, once staging → main merges; under `installer-ready`,
    once the installer is downloaded) and the close-out PR merged, write **recommended next**: run the
    pm skill's **Recommended next** (`.pal-harness/skills/pm/SKILL.md`), which writes through its own
-   worktree.
+   worktree. Then, when `doc/releases/held.md` has rows, the held-release check (section 8 step 3).
 4. PushNotification: "done: phase NNN shipped — <one line>. Retest: N. Deferred: N." Under
    `installer-ready`, add the installer's full path.
 
@@ -115,3 +117,27 @@ sign-off): promote to `main`, deploy, tear staging down, write the retro, close 
    push it or say what it is; never remove a worktree that holds unpushed work.
 2. `git -C <project root>/<component> worktree remove <set>/<component>` for each component, then
    `git -C <project root> worktree remove <set>`. Delete the phase's merged local branches.
+
+## 8. Held store releases
+
+Under Company mode, a store release goes out only (a) when all the project's approved work is
+finished, or (b) when the owner asks. It covers every app on any platform: a Play or App Store
+upload, a store build registration, an OTA update. A project runbook that says each phase releases
+is overridden by this section under Company mode.
+
+1. **When.** `pal-work mode` says Company mode is on, or the mode is unknown (`company-mode.md`,
+   section 1 step 3). With Company mode plainly off, release as the runbook says.
+2. **Hold.** Promote, deploy the API, run its gates and build the store build from `main` as usual,
+   then stop before the upload, registration or publish. Add a row to `doc/releases/held.md` (from
+   `.pal-harness/templates/held-releases.md`) in the close-out PR. The done message says
+   `store release held (N held); it goes out when Approved to run is empty, or when you ask`.
+3. **(a) Check.** After every close-out, and in every `/pm` or pickup run that finds nothing to
+   claim: `held.md` has rows, the Roadmap's `Approved to run` is empty, and no other phase is in
+   `In flight` or `Waiting on you`. **(b)** The owner asks, in any session of the project.
+4. **One batched publish.** The handover starts `Release reason: (a) all approved work is finished`
+   or `Release reason: (b) you asked`. It publishes the newest held build only (`main` holds every
+   earlier change; unpublished versions are skipped), as a store release when any row says `store`,
+   else one OTA update, with one set of notes merged from every row. The runbook's owner-run steps
+   go as one numbered list (section 0 step 2). It is public: never by default (`company-mode.md`,
+   section 3).
+5. On the owner's "done", clear the rows, and log the version, track, date and the reason.

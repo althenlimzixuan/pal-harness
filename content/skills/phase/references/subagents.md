@@ -29,7 +29,10 @@ implementers:
    behaviour the owner can see or reach (text, controls, defaults, what an answer or a click does)
    only as far as its finding says. When the finding cannot be fixed without more, leave that part
    and report it under **New question**: what it would change and why (`references/review.md`,
-   section 4).
+   section 4);
+7. **Stand down.** Every dispatched agent (implementer, fixer, reviewer, reports) is told: when the
+   controller tells you to stand down, stop at once. Send no report, handback or message after it,
+   and stop every background command, Monitor and watcher you started.
 
 **Known findings.** Each one cost a fix round in more than one phase:
 
@@ -42,9 +45,11 @@ implementers:
 
 ## 2. The controller
 
-1. **A repeating agent.** Stop an implementer with TaskStop the second time it repeats a finished
-   report, or reports "waiting on background work". Give the task to a fresh agent with the last
-   good report and what is left; that counts as one of the task's fix rounds.
+1. **A cut-off agent.** A cut-off is a stand-down, a timeout, an agent out of context, or the
+   second time an implementer repeats a finished report or reports "waiting on background work".
+   Stop it with TaskStop at the cut-off, and ignore anything it sends later, unanswered. After one
+   cut-off the session takes the work over itself, inline, from the last good report, and never
+   dispatches a fresh agent for it; that counts as one of the task's fix rounds.
 2. **A stale reply.** Accept a reply only when it answers the latest fix message: the reply quotes
    that message's first line. A reply that does not is from an older message: send it back once
    with the latest message, and never act on it.
