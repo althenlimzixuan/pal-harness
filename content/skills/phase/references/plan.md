@@ -12,7 +12,8 @@ passes, building starts.
 2. Every task names:
    1. its repo and the files it creates or changes;
    2. **the test to write first:** the test file and its JSON fixture
-      `tests/{test_type}/{use_case}.json` (`testing.md`);
+      `tests/{test_type}/{use_case}.json` (`testing.md`); its RED evidence is the failing test
+      names from the run's own output, never a count;
    3. the code that makes the test pass, in a line or two;
    4. the commands that prove it, and the result to expect;
    5. the commit message.
@@ -81,6 +82,10 @@ passes, building starts.
     `cargo clippy --target <triple> --all-targets -- -D warnings` (after `rustup target add`) for a
     Rust crate with no system libraries; for one with them (Tauri, GTK, WebKit) the Docker run in
     `references/linux-check.md`, and `macOS proof: CI's macOS job`.
+19. **Pixel values and saves.** A UI task whose spec gives pixel values (a grid size, a row height, a
+    width) has a **Render check:** (the template's task block): one screenshot with sample data that
+    fills them, looked at before the task is done. A screen with several independent save buttons
+    says "saves per item" in its **Code:** line, and its test saves two items close together.
 
 ## 2. The summary
 

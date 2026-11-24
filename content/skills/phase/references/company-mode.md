@@ -12,8 +12,13 @@ gives the path of `pal-work`.
    the session.
 2. The output is the only truth about Company mode. Never trust a note, a memory, a spec or a seed
    that says the mode is on or off.
-3. Exit 5, no `Work CLI:` line, or a `Pal Center version:` older than 0.21.0: the mode is unknown.
-   Every stop then waits for the owner, as written in SKILL.md, **Owner stops**.
+3. Exit 4 (failed), exit 5 (not running), no `Work CLI:` line, or a `Pal Center version:` older
+   than 0.21.0: the mode is unknown. On exit 4, run `mode` once more first; a second exit 4 is
+   unknown. Every stop then waits for the owner, as written in SKILL.md, **Owner stops**.
+4. **Said once.** An unknown mode is written to the log once, at the start, with the CLI's own
+   message: `mode: unknown (exit 4: <its message>); every stop waits for the owner` (or `exit 5`,
+   `no Work CLI line`, `Pal Center X`). The first owner-stop message carries the same line. Later
+   stops do not repeat it.
 
 ## 2. At a spec-review or findings stop
 

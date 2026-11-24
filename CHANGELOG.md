@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.11.1 — 2026-11-24
+
+Ten harness notes (ai-workshop#78 to #87): one from LFPV, nine from Pal Center phases 026 and 027's retros. The design is `doc/specs/2026-11-24-harness-1.11.1-design.md`. Rule text only: no new command and no state field, so the installed Pal Center reads 1.11.1 phase state as it reads 1.11.0. The `upgrade` command and automatic re-pin stay in 1.12.0.
+
+- **An unknown Company mode, said once** (#78). `pal-work mode` exit 4 is retried once, then counts as unknown, like exit 5. The session logs `mode: unknown (exit 4: <its message>); every stop waits for the owner` once at the start and repeats it only in the first owner-stop message (`company-mode.md` section 1). A Pal Center issue asks exit 4 to print its real reason.
+- **Findings options show their blast radius** (#86). New `templates/owner-stop.md` for findings and questions pages: each option has `Does:`, `Also stops or hides:` (required when it widens a failure rule; `nothing else`, or `unknown: …`, which is never the recommended one) and `Cost:`. The phase `SKILL.md` and `review.md` section 3 point to it.
+- **Codex wording findings are minor at most** (#83). A Codex doc finding whose fix changes no behaviour, contract, data or test script is fixed and listed in Calls I made as `rated minor` (`spec.md` section 4). A Pal Center issue puts the rule in the `doc` prompt.
+- **The task reviewer traces every documented status code** (#79): for each route a task adds or changes, the line that returns each documented code and a test that reaches it. A code no path returns, or one with no test, is a major finding (`subagents.md` section 3).
+- **RED evidence by name** (#80): the plan template's **Test first:** line and `plan.md` item 2 ask for the failing test names, never a count.
+- **Pixel values rendered in the task** (#84): a UI task whose spec gives pixel values has a **Render check:**, a screenshot with sample data at `specs/NNN-slug/screens/task-K-<name>.png`, looked at before the task is done (`templates/plan.md`, `plan.md` item 19, `subagents.md` section 3).
+- **Saves per item** (#85): a screen with several independent save buttons says so in its task, the brief says a late save never overwrites another item's value, and the task reviewer checks its test (`subagents.md` sections 1 and 3).
+- **Subagents run only their own Go packages** (#82); the controller runs the full suite in package groups with `GOFLAGS=-p=1` after `pal-harness mem` (`subagents.md`, `testing.md`).
+- **One mock with `all: true`** (#81): `go_api.md` gives `mockery --name <Interface> --all=false --dir <its package folder> --output mocks`, checked with v2.53.7.
+- **Reviewer agent types missing** (#87): a general-purpose agent told to follow `.pal-harness/agents/<file>.md`, with that file's model, logged once as `agent fallback: …` (`subagents.md` section 5, `review.md` section 2).
+
 ## 1.11.0 — 2026-11-24
 
 Ten harness notes (ai-workshop#68 to #77): one from Pal Center, one owner rule from the workspace, and eight from LFPV phase 012's retro. The design is `doc/specs/2026-11-24-harness-1.11.0-design.md`. No state field changes, so the installed Pal Center reads 1.11.0 phase state as it reads 1.10.0. The planned `upgrade` command and automatic re-pin move to 1.12.0.
