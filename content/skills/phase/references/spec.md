@@ -9,9 +9,9 @@ Read-only, from the SSOT worktree:
 
 1. `doc/north-star.md`, the lead card, and each bundle feature's `why` and `use_case` in
    `doc/features.yaml`.
-2. Each bundle issue (`gh issue view <n> -R <owner/repo>`).
-3. `doc/decisions.md`: past owner answers. A question answered there is never asked again; it
-   becomes a call.
+2. Each bundle issue (`gh issue view <n> -R <owner/repo>`). One already done is closed with its link
+   and left out (`/pm` **Bundle and vehicle** step 1); the summary gives the count closed.
+3. `doc/decisions.md`: past owner answers. A question answered there is never asked again; it is a call.
 4. When the API may change: `doc/API.md` and `doc/openapi.yaml`. Code in the component repos as
    needed, read-only.
 
@@ -50,8 +50,8 @@ for the owner (`workflow.md`, **Plain English.**): diagrams, test steps and repo
    Under `no-owner-test` (SKILL.md, **Flow overrides**) the test section is a
    **What to expect now** list instead: what behaves differently and where to see it, one line
    each, with nothing to run.
-5. **UX outline:** screens or steps in plain words; delete it when nothing on screen changes.
-   **Data sources:** when the spec says, or relies on, a screen's data already being served, list
+5. **UX outline:** screens or steps in plain words; delete it when nothing on screen changes. It ends
+   with **QA seeds:** the records each changed screen needs to look filled in QA, or `none`. **Data sources:** when the spec says, or relies on, a screen's data already being served, list
    each figure, list or badge with the endpoint and field that serves it and where you checked it
    (the `doc/openapi.yaml` line, or the handler's file and line) in the template's **Data sources**
    table, before the Codex review. A figure nothing serves becomes a row in **Contract** (the phase

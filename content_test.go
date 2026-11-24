@@ -596,9 +596,10 @@ func TestHarness150Rules(t *testing.T) {
 	has("skills/phase/references/spec.md", "Check each step against where the owner will test",
 		"fake file store", "airplane mode or Wi-Fi off drops wireless adb", "moved to the automated tests")
 
-	// 9. The red run comes first and is checked.
-	has("skills/phase/references/subagents.md", "TDD is required for the task", "the red run",
-		"send the task back to the agent; that counts as one of its fix rounds")
+	// 9. The red run comes first and is checked. 1.10.0 checks it by name before the
+	// review, and a RED recovered by a mutation run is no longer a fix round.
+	has("skills/phase/references/subagents.md", "TDD is required for the task", "**The red run, by name.**",
+		"A name with no RED line goes back to the implementer")
 	has("skills/phase/references/review.md", "starts with a test that reproduces the bug, run red")
 	has("skills/quick-fix/SKILL.md", "run it red")
 

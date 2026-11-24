@@ -64,8 +64,12 @@ One block per task.
 
 - **Repo and files:** (repo; files to create or change)
 - **Test first:** (test file) with fixture `tests/(test_type)/(use_case).json`
+- **Guard tests:** (optional: tests that pin behaviour already there and pass on their first run, each
+  with its reason; each one's RED is a mutation run: break the code it guards, see it fail, restore)
 - **Code:** (what makes the test pass, in a line or two)
-- **Prove it:** (the exact commands, the repo's lint script among them, and the result to expect)
+- **Prove it:** (the exact commands, the repo's lint script among them, and the result to expect.
+  Code for one OS adds the other OSes' checks, such as `GOOS=linux go vet ./...`,
+  `GOOS=darwin go vet ./...` or `cargo clippy --target x86_64-unknown-linux-gnu`)
 - **Existing behaviour:** (restyle tasks only: each badge, figure, link, control and state the
   screen shows today, and the test that covers it)
 - **Native versions:** (a task that adds or upgrades a native dependency: the resolved versions of
