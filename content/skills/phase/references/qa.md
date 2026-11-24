@@ -24,7 +24,10 @@ sets `harness.qa_command`; with it unset, nothing here runs and `qa:` stays `non
    start can outlast a step's timeout. A step whose first page load still times out is retried once,
    and `summary.md` notes `cold start: retried` on that row; a second timeout fails the step.
 4. Follow each bundle feature's test script in the spec (under `no-owner-test`, each What to expect
-   now line). For each step: do it, compare with its expected result, and save a screenshot.
+   now line). For each step: do it, compare with its expected result, and save a screenshot. Each
+   changed screen is screenshotted in its seeded state (the spec's **QA seeds**), and its
+   `summary.md` row names the seed it showed. A screen that comes up empty when its seed exists is a
+   failed step.
 5. Record the run in `specs/NNN-slug/qa/`:
    - `summary.md`: one row per step (feature, step, pass or fail, a one-line note, the screenshot);
      the date, the commit of each repo and the command used at the top;

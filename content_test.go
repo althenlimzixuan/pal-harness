@@ -596,9 +596,10 @@ func TestHarness150Rules(t *testing.T) {
 	has("skills/phase/references/spec.md", "Check each step against where the owner will test",
 		"fake file store", "airplane mode or Wi-Fi off drops wireless adb", "moved to the automated tests")
 
-	// 9. The red run comes first and is checked.
-	has("skills/phase/references/subagents.md", "TDD is required for the task", "the red run",
-		"send the task back to the agent; that counts as one of its fix rounds")
+	// 9. The red run comes first and is checked. 1.10.0 checks it by name before the
+	// review, and a RED recovered by a mutation run is no longer a fix round.
+	has("skills/phase/references/subagents.md", "TDD is required for the task", "**The red run, by name.**",
+		"A name with no RED line goes back to the implementer")
 	has("skills/phase/references/review.md", "starts with a test that reproduces the bug, run red")
 	has("skills/quick-fix/SKILL.md", "run it red")
 
@@ -1134,4 +1135,69 @@ func TestHarness190Rules(t *testing.T) {
 	endings := "start failed, owner stop, restart mid-run, idle, waiting, cancelled, timed out, crashed or killed"
 	has("skills/phase/references/subagents.md", "**Every ending tested.**", endings)
 	has("agents/review-tests.md", "**Every ending tested.**", endings)
+}
+
+func TestHarness1100Rules(t *testing.T) {
+	flat := func(s string) string { return strings.Join(strings.Fields(s), " ") }
+	has := func(p string, subs ...string) {
+		t.Helper()
+		b, err := harness.Content.ReadFile("content/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		s := flat(string(b))
+		for _, sub := range subs {
+			if !strings.Contains(s, flat(sub)) {
+				t.Errorf("%s lacks %q", p, sub)
+			}
+		}
+	}
+
+	// A. QA seeds.
+	has("templates/spec.md", "**QA seeds:**")
+	has("skills/phase/references/spec.md", "**QA seeds:**")
+	has("skills/phase/references/plan.md", "QA seed")
+	has("skills/phase/references/qa.md", "seeded state", "names the seed")
+	has("agents/review-plan.md", "QA seed")
+
+	// B. RED by test name, and guard tests.
+	has("skills/phase/references/subagents.md", "by name", "before the task reviewer is dispatched",
+		"**Guard tests:**", "`RED by mutation: <test>`")
+	has("templates/plan.md", "**Guard tests:**")
+	has("skills/phase/references/build.md", "RED by name")
+
+	// C. Mutation check in the task review.
+	has("skills/phase/references/subagents.md", "**Mutation check.**", "`git restore -- <files>`",
+		"passes with `<break>`")
+
+	// D. Deferred minors tagged at triage.
+	has("skills/phase/references/subagents.md", "`Task K: minor (deferred) [carry]:", "`carry`, `final`, `later`, `issue`",
+		"`pal-harness minors <ledger> --task K --tag carry`")
+	has("skills/phase/references/build.md", "`pal-harness minors <ledger>`")
+	has("agents/review-code.md", "`pal-harness minors`")
+
+	// E. Plan review looks up every command and path.
+	has("agents/review-plan.md", "**Commands and paths:**")
+	has("skills/phase/references/plan.md", "Look up every command and path")
+
+	// F. A fix stays inside its finding.
+	has("skills/phase/references/review.md", "only as far as its finding says", "**New question**",
+		"`Why: a fix needs an owner-facing change`")
+	has("skills/phase/references/subagents.md", "only as far as its finding says")
+
+	// G. Merge check before CI.
+	has("skills/phase/references/review.md", "`pal-harness merge-check`")
+	has("skills/phase/references/build.md", "`pal-harness merge-check`")
+	has("skills/quick-fix/SKILL.md", "`pal-harness merge-check`")
+
+	// H. Checks for other operating systems.
+	has("templates/plan.md", "`GOOS=darwin go vet ./...`")
+	has("skills/phase/references/plan.md", "`GOOS=linux go vet ./...`", "`cargo clippy --target")
+	has("skills/phase/references/linux-check.md", "`cargo clippy --target x86_64-unknown-linux-gnu",
+		"`macOS proof: CI's macOS job`")
+	has("agents/review-plan.md", "**Other operating systems:**")
+
+	// I. Done work drops out before a fix pack.
+	has("skills/pm/SKILL.md", "--state merged --search", "--state closed --search", "Done in <link>")
+	has("skills/phase/references/spec.md", "already done")
 }

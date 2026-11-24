@@ -68,6 +68,9 @@ what behaves differently and where to see it, one line each, with nothing to run
 (Screens or steps in plain words, one short line each. Delete this section when nothing on screen
 changes.)
 
+**QA seeds:** (the records each changed screen needs to look filled in the QA environment, such as
+"3 audit lines, a paused project, a held decision"; or "none")
+
 ## Data sources
 
 Delete this section when the phase builds every figure it shows. Otherwise one row per figure, list

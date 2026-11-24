@@ -1,7 +1,10 @@
 # Stage: review (`code-review`)
 
 One whole-branch review over every `feature/NNN-slug` branch (base `origin/dev`) and the
-`docs/NNN-slug` branch, then the test reports from the final commit.
+`docs/NNN-slug` branch, then the test reports from the final commit. **Merge check first:** before the
+reviewers, `pal-harness merge-check` in every repo. On a conflict (exit 1) merge `origin/dev` in now,
+a bookkeeping file (`doc/decisions.md`, `doc/later.md`, `doc/features.yaml`) keeping both sides'
+entries, run the full check and push; not a fix round. Exit 2: log the reason and go on.
 
 ## 1. The test reports
 
@@ -106,9 +109,13 @@ report with the reason, and the owner still sees it.
      without that red run goes back to the fixer, and that counts as a fix round (build.md, section 3).
    - A contrast fix is measured again with `pal-harness contrast '<foreground>' '<background>'` (or the
      rendered colours), and the new ratio goes in the fix's log entry. An estimate is not evidence.
-   - A fix that changes behaviour the owner sees re-reads the affected features' test scripts in the
-     spec and in `doc/features.yaml`. A step whose expected result no longer holds is updated in
-     both, and the sign-off PR lists the change in Calls I made.
+   - A fix changes behaviour the owner sees or reaches only as far as its finding says (`subagents.md`
+     section 1 item 6). A fixer's **New question** joins a coming findings stop, or else becomes a
+     backlog issue with a recommended answer and `Why: a fix needs an owner-facing change`, listed in
+     the sign-off PR's review table; the finding is partly fixed, with that link. The re-check treats
+     owner-facing change beyond the finding as a new finding. A fix that changes what the owner sees
+     re-reads the affected features' test scripts (spec, `doc/features.yaml`) and updates a step that
+     no longer holds in both; the sign-off PR lists it in Calls I made.
    - After each fix round, the reviewer re-checks the failure path and the retry of what was fixed:
      the fix fails part-way, then the owner tries again (a failed Stop then Start, a failed restore
      then a second restore).

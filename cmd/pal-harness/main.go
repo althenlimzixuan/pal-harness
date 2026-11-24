@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -42,6 +43,8 @@ const usage = `usage:
   pal-harness log <phase folder> <headline> [body file]
   pal-harness contrast <foreground> <background>
   pal-harness mem [--min 2GiB] [--wait 0] [--every 30s]
+  pal-harness minors [--tag <tag>] [--task <N>] <ledger>
+  pal-harness merge-check [--base origin/dev] [dir]
   pal-harness adb [dir]
   pal-harness fingerprint [--rev HEAD] [--with <path>]... [--dir .] <spec file | ->
   pal-harness utf8 [dir]
@@ -118,6 +121,10 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runAdb(dirArg(rest), stdout, stderr)
 	case "mem":
 		return runMem(rest, stdout, stderr)
+	case "minors":
+		return runMinors(rest, stdout, stderr)
+	case "merge-check":
+		return runMergeCheck(rest, stdout, stderr)
 	case "fingerprint":
 		return runFingerprint(rest, stdout, stderr)
 	case "utf8":
@@ -628,6 +635,46 @@ func devEntries(dir, path, kind string) ([]string, error) {
 	return names, nil
 }
 
+// specStart is where a new spec branch starts. With an origin remote it is a
+// freshly fetched origin/dev, refused when local dev holds commits origin/dev
+// lacks (they would be left out silently); with no origin, local dev.
+func specStart(dir string) (string, error) {
+	remotes, err := git(dir, "remote")
+	if err != nil {
+		return "", fmt.Errorf("git remote failed: %v: %s", err, remotes)
+	}
+	if !slices.Contains(strings.Fields(remotes), "origin") {
+		return "dev", nil
+	}
+	if out, err := git(dir, "fetch", "-q", "origin", "dev"); err != nil {
+		// ls-remote --exit-code exits 2 when origin answers but has no dev.
+		if _, lerr := git(dir, "ls-remote", "--exit-code", "origin", "refs/heads/dev"); exitCode(lerr) == 2 {
+			return "", errors.New("origin has no dev branch; push dev first")
+		}
+		return "", fmt.Errorf("git fetch origin dev failed: %v: %s", err, out)
+	}
+	ahead, err := git(dir, "rev-list", "--count", "refs/remotes/origin/dev..refs/heads/dev")
+	if err != nil {
+		return "", fmt.Errorf("git rev-list failed: %v: %s", err, ahead)
+	}
+	if ahead != "0" {
+		s := "s"
+		if ahead == "1" {
+			s = ""
+		}
+		return "", fmt.Errorf("local dev has %s commit%s not on origin/dev; push them or drop them first", ahead, s)
+	}
+	return "origin/dev", nil
+}
+
+func exitCode(err error) int {
+	var ee *exec.ExitError
+	if errors.As(err, &ee) {
+		return ee.ExitCode()
+	}
+	return -1
+}
+
 // writeFile creates the spec file; tests replace it to force a failure.
 var writeFile = writeNew
 
@@ -642,12 +689,16 @@ func newSpec(dir, slug string, stdout, stderr io.Writer) int {
 	if _, err := git(dir, "rev-parse", "--verify", "-q", "refs/heads/dev"); err != nil {
 		return fail(stderr, "local branch dev does not exist")
 	}
+	start, err := specStart(dir)
+	if err != nil {
+		return fail(stderr, "%v", err)
+	}
 	n, err := number.NextSpec(dir)
 	if err != nil {
 		return fail(stderr, "%v", err)
 	}
 	// Numbers already taken elsewhere: dev's and origin/dev's specs/ (the new
-	// branch starts from dev) and every docs/NNN-* branch, local or remote,
+	// branch starts from one of them) and every docs/NNN-* branch, local or remote,
 	// so two specs in flight never share a number.
 	names, err := devEntries(dir, "specs/", "tree")
 	if err != nil {
@@ -679,7 +730,8 @@ func newSpec(dir, slug string, stdout, stderr io.Writer) int {
 		sha, _ := git(dir, "rev-parse", "HEAD")
 		back = []string{"switch", "--detach", sha}
 	}
-	if out, err := git(dir, "switch", "-c", branch, "dev"); err != nil {
+	// --no-track: a branch made from origin/dev must never push to dev.
+	if out, err := git(dir, "switch", "--no-track", "-c", branch, start); err != nil {
 		return fail(stderr, "git switch failed: %v: %s", err, out)
 	}
 	text = strings.NewReplacer("<NNN>", fmt.Sprintf("%03d", n), "<Title>", title(slug)).Replace(text)
